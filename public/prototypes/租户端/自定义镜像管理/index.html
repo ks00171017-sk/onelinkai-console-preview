@@ -1,0 +1,654 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>OneLink AI｜自定义镜像独立评审原型</title>
+  <style>
+    :root {
+      --primary:#18181b; --primary-hover:#3f3f46; --primary-light:#f4f4f5;
+      --link:#4f46e5; --text:#09090b; --text2:#52525b; --text3:#a1a1aa;
+      --border:#e4e4e7; --split:#f0f0f1; --bg:#fafafa;
+      --red:#dc2626; --red-soft:#fef2f2; --orange:#d97706; --orange-soft:#fffbeb;
+      --green:#059669; --green-soft:#ecfdf5; --blue-soft:#eef2ff;
+      --radius:8px; --shadow:0 10px 34px rgba(9,9,11,.10),0 2px 8px rgba(9,9,11,.05);
+    }
+
+    * { box-sizing:border-box; }
+    html,body { margin:0; min-width:1180px; min-height:100%; }
+    body {
+      color:var(--text); background:var(--bg);
+      font-family:"Inter","Geist","SF Pro Text",-apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI","Microsoft YaHei",sans-serif;
+      font-size:14px; -webkit-font-smoothing:antialiased;
+    }
+    button,input,select,textarea { font:inherit; }
+    button { cursor:pointer; }
+    .hidden,[hidden] { display:none!important; }
+
+    /* shell */
+    .app { min-height:100vh; }
+    .topbar {
+      position:sticky; top:0; z-index:30; height:60px; display:flex; align-items:center;
+      justify-content:space-between; padding:0 28px; border-bottom:1px solid var(--border);
+      background:rgba(255,255,255,.88); backdrop-filter:blur(16px) saturate(180%);
+    }
+    .logo { display:flex; align-items:center; gap:9px; font-size:19px; font-weight:750; }
+    .logo-mark { width:27px; height:27px; display:grid; place-items:center; border-radius:8px; color:#fff; background:#09090b; font-size:12px; transform:rotate(45deg); }
+    .logo-mark span { transform:rotate(-45deg); }
+    .logo b { color:#4f46e5; }
+    .top-menu { display:flex; gap:34px; color:var(--text2); font-size:13.5px; }
+    .tenant-chip { display:flex; align-items:center; gap:9px; padding:7px 14px; border:1px solid var(--border); border-radius:999px; background:#fff; color:var(--text2); font-size:13px; }
+    .tenant-dot { width:22px; height:22px; display:grid; place-items:center; border-radius:50%; color:#fff; background:#18181b; font-size:10px; }
+    .body { display:flex; min-height:calc(100vh - 60px); }
+    .sidebar { width:240px; flex:0 0 auto; padding:16px 12px 30px; border-right:1px solid var(--border); background:#fff; }
+    .nav-group { margin-bottom:4px; }
+    .nav-item { display:flex; align-items:center; gap:10px; width:100%; min-height:40px; padding:9px 12px; border:0; border-radius:8px; color:var(--text2); background:transparent; text-align:left; font-size:13.5px; transition:.15s ease; }
+    .nav-item:hover { color:var(--text); background:var(--primary-light); }
+    .nav-item.active { color:var(--text); background:var(--primary-light); font-weight:650; }
+    .nav-item.sub { padding-left:42px; }
+    .nav-item svg { width:18px; height:18px; flex:none; }
+    .nav-arrow { margin-left:auto; color:var(--text3); }
+    .nav-children { margin-top:2px; }
+    .content { flex:1; min-width:0; padding:28px 36px 64px; }
+
+    /* common */
+    .page { display:none; }
+    .page.active { display:block; }
+    .page-head { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin-bottom:18px; }
+    .page-head h1 { margin:0; font-size:20px; line-height:1.35; font-weight:680; letter-spacing:-.4px; }
+    .page-head p { margin:7px 0 0; color:var(--text3); font-size:13px; }
+    .card { padding:20px 22px; border:1px solid var(--border); border-radius:12px; background:#fff; }
+    .card + .card { margin-top:14px; }
+    .btn { min-height:36px; padding:8px 16px; border:1px solid transparent; border-radius:8px; background:#fff; font-weight:520; transition:.15s ease; }
+    .btn-primary { color:#fff; background:var(--primary); }
+    .btn-primary:hover { background:var(--primary-hover); }
+    .btn-secondary { color:var(--text2); border-color:var(--border); }
+    .btn-secondary:hover { color:var(--text); background:var(--primary-light); }
+    .btn-danger { color:#fff; background:var(--red); }
+    .btn-danger:hover { background:#ef4444; }
+    .btn:disabled { color:var(--text3); border-color:transparent; background:var(--primary-light); cursor:not-allowed; }
+    .link-btn { padding:0; border:0; color:var(--link); background:transparent; }
+    .link-btn:hover { color:#4338ca; }
+    .link-btn.danger { color:var(--red); }
+    .link-btn.disabled { color:var(--text3); cursor:not-allowed; }
+    .input,.select,.textarea { width:100%; border:1px solid var(--border); border-radius:8px; color:var(--text); background:#fff; outline:none; transition:.15s ease; }
+    .input,.select { height:38px; padding:8px 12px; }
+    .textarea { min-height:82px; padding:10px 12px; resize:vertical; line-height:1.55; }
+    .input:hover,.select:hover,.textarea:hover { border-color:#c8c8cd; }
+    .input:focus,.select:focus,.textarea:focus { border-color:#18181b; box-shadow:0 0 0 3px rgba(24,24,27,.08); }
+    .input::placeholder,.textarea::placeholder { color:var(--text3); }
+    .input.error,.select.error { border-color:var(--red); }
+    .field-error { margin-top:6px; color:var(--red); font-size:12px; }
+    .filters { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+    .filters .input { width:300px; }
+    .filters .select { width:160px; }
+    .filter-label { color:var(--text2); font-size:13px; }
+    .table-wrap { overflow:auto; }
+    table { width:100%; border-collapse:collapse; }
+    th { padding:10px 12px; border-bottom:1px solid var(--border); color:var(--text3); font-size:12px; font-weight:520; text-align:left; white-space:nowrap; }
+    td { padding:13px 12px; border-bottom:1px solid var(--split); font-size:13.5px; vertical-align:middle; }
+    tbody tr:hover td { background:#fafafa; }
+    tbody tr:last-child td { border-bottom:0; }
+    .primary-cell { color:var(--text); font-weight:600; white-space:nowrap; }
+    .secondary-line { display:block; margin-top:4px; color:var(--text3); font-size:11.5px; font-weight:400; }
+    .status { display:inline-flex; align-items:center; gap:7px; white-space:nowrap; }
+    .status::before { content:""; width:7px; height:7px; border-radius:50%; background:var(--text3); }
+    .status.available { color:#047857; }
+    .status.available::before { background:var(--green); }
+    .status.creating { color:var(--text2); }
+    .status.failed { color:#b91c1c; }
+    .status.failed::before { background:var(--red); }
+    .mini-progress { width:96px; height:4px; margin-top:7px; overflow:hidden; border-radius:3px; background:#e4e4e7; }
+    .mini-progress span { display:block; height:100%; border-radius:3px; background:#71717a; }
+    .reason { display:block; max-width:190px; margin-top:5px; overflow:hidden; color:#b91c1c; font-size:11.5px; text-overflow:ellipsis; white-space:nowrap; }
+    .actions { display:flex; gap:14px; white-space:nowrap; }
+    .table-foot { display:flex; align-items:center; justify-content:space-between; padding-top:16px; color:var(--text3); font-size:13px; }
+    .pager { display:flex; align-items:center; gap:12px; }
+    .page-number { width:31px; height:31px; display:grid; place-items:center; border-radius:8px; color:#fff; background:#18181b; }
+    .tag { display:inline-block; padding:3px 9px; border:1px solid; border-radius:999px; font-size:11.5px; font-weight:520; }
+    .tag.green { color:#047857; border-color:#a7f3d0; background:#ecfdf5; }
+    .tag.orange { color:#b45309; border-color:#fde68a; background:#fffbeb; }
+    .tag.gray { color:#52525b; border-color:#e4e4e7; background:#f4f4f5; }
+    .tag.indigo { color:#4338ca; border-color:#c7d2fe; background:#eef2ff; }
+    .empty { display:grid; place-items:center; min-height:260px; padding:30px; text-align:center; }
+    .empty-icon { width:52px; height:52px; display:grid; place-items:center; margin:0 auto 14px; border-radius:16px; color:var(--text2); background:var(--primary-light); }
+    .empty h3 { margin:0 0 7px; font-size:15px; }
+    .empty p { margin:0 0 16px; color:var(--text3); font-size:13px; }
+
+    /* image management */
+    .info-strip { display:flex; align-items:flex-start; gap:10px; margin-bottom:14px; padding:12px 14px; border:1px solid var(--border); border-radius:10px; color:var(--text2); background:#fff; font-size:12.5px; line-height:1.6; }
+    .info-strip .i { width:19px; height:19px; display:grid; place-items:center; flex:none; border-radius:50%; color:#fff; background:#71717a; font-size:11px; font-weight:700; }
+    .image-table { min-width:1180px; }
+
+    /* cloud pc list */
+    .stat-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:14px; }
+    .stat-card { display:flex; align-items:center; gap:13px; padding:17px 18px; border:1px solid var(--border); border-radius:12px; background:#fff; }
+    .stat-icon { width:40px; height:40px; display:grid; place-items:center; border-radius:10px; color:#3f3f46; background:#f4f4f5; }
+    .stat-card small { display:block; color:var(--text3); font-size:12px; }
+    .stat-card strong { display:block; margin-top:3px; font-size:24px; font-weight:670; }
+    .pc-table { min-width:1080px; }
+    .pc-spec { color:var(--text2); font-size:12.5px; line-height:1.65; }
+
+    /* create cloud pc */
+    .create-layout { display:grid; grid-template-columns:minmax(0,1fr) 230px; gap:20px; align-items:start; }
+    .section-card { margin-bottom:14px; padding:20px 24px; border:1px solid var(--border); border-radius:12px; background:#fff; }
+    .section-card h2 { margin:0 0 18px; font-size:14px; font-weight:650; }
+    .seg { display:inline-flex; gap:3px; padding:3px; border-radius:9px; background:#f4f4f5; }
+    .seg button { padding:7px 18px; border:0; border-radius:7px; color:#71717a; background:transparent; }
+    .seg button.active { color:var(--text); background:#fff; box-shadow:0 1px 2px rgba(0,0,0,.08); font-weight:520; }
+    .product-card { width:330px; padding:17px; border:1px solid #18181b; border-radius:12px; background:#fff; }
+    .product-card h3 { margin:0 0 6px; font-size:15px; }
+    .product-card p { margin:0 0 14px; color:var(--text3); font-size:12px; }
+    .product-kv { display:flex; justify-content:space-between; margin-top:8px; color:var(--text2); font-size:12.5px; }
+    .image-tabs { display:flex; gap:26px; margin-bottom:18px; border-bottom:1px solid var(--split); }
+    .image-tabs button { padding:0 1px 9px; border:0; color:var(--text2); background:transparent; }
+    .image-tabs button.active { margin-bottom:-1px; color:var(--text); border-bottom:2px solid #18181b; font-weight:650; }
+    .image-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .image-option { position:relative; padding:15px 16px; border:1px solid var(--border); border-radius:10px; background:#fff; cursor:pointer; transition:.15s ease; }
+    .image-option:hover { border-color:#c8c8cd; }
+    .image-option.selected { border-color:#18181b; box-shadow:0 0 0 1px #18181b; }
+    .image-option.disabled { color:var(--text3); background:#fafafa; cursor:not-allowed; }
+    .image-option h3 { margin:0 0 6px; padding-right:26px; font-size:14px; }
+    .image-option p { margin:0; color:var(--text3); font-size:12px; line-height:1.55; }
+    .radio-dot { position:absolute; top:15px; right:15px; width:16px; height:16px; border:1px solid #d4d4d8; border-radius:50%; }
+    .selected .radio-dot { border:5px solid #18181b; }
+    .disabled-reason { margin-top:9px; color:#b45309!important; }
+    .image-detail { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-top:16px; padding:15px 16px; border-radius:10px; background:#fafafa; }
+    .image-detail small { display:block; color:var(--text3); font-size:11.5px; }
+    .image-detail strong { display:block; margin-top:5px; font-size:13px; font-weight:580; }
+    .disk-fields { display:flex; align-items:center; gap:14px; }
+    .disk-fields label { color:var(--text2); font-size:13px; }
+    .disk-value { width:100px; height:36px; padding:8px 11px; border:1px solid var(--border); border-radius:8px; color:var(--text2); background:#f4f4f5; }
+    .anchor { position:sticky; top:82px; padding:18px; border:1px solid var(--border); border-radius:12px; background:#fff; }
+    .anchor h3 { margin:0 0 15px; font-size:14px; }
+    .anchor div { position:relative; padding:8px 0 8px 19px; color:var(--text3); font-size:12.5px; }
+    .anchor div::before { content:""; position:absolute; left:2px; top:14px; width:6px; height:6px; border-radius:50%; background:#d4d4d8; }
+    .anchor div.active { color:var(--text); font-weight:600; }
+    .anchor div.active::before { background:#18181b; }
+
+    /* modal */
+    .mask { position:fixed; inset:0; z-index:100; display:none; align-items:flex-start; justify-content:center; overflow:auto; padding:48px 20px; background:rgba(9,9,11,.42); backdrop-filter:blur(3px); }
+    .mask.open { display:flex; }
+    .modal { width:520px; max-width:96vw; padding:25px 28px; border:1px solid var(--border); border-radius:14px; background:#fff; box-shadow:var(--shadow); }
+    .modal.lg { width:760px; }
+    .modal-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+    .modal-head h2 { margin:0; font-size:16px; font-weight:680; letter-spacing:-.2px; }
+    .close { padding:3px; border:0; color:var(--text2); background:transparent; font-size:22px; line-height:1; }
+    .modal-foot { display:flex; justify-content:flex-end; gap:10px; margin-top:24px; }
+    .form-row { margin-bottom:17px; }
+    .label { display:flex; align-items:center; gap:4px; margin-bottom:8px; font-size:13px; font-weight:550; }
+    .req { color:var(--red); }
+    .helper { margin-top:7px; color:var(--text3); font-size:11.8px; line-height:1.55; }
+    .readonly-card { display:flex; align-items:center; gap:12px; padding:12px 14px; border:1px solid var(--border); border-radius:10px; background:#fafafa; }
+    .readonly-icon { width:34px; height:34px; display:grid; place-items:center; flex:none; border-radius:9px; color:#3f3f46; background:#e4e4e7; }
+    .readonly-card strong { display:block; font-size:13px; }
+    .readonly-card span { display:block; margin-top:3px; color:var(--text3); font-size:11.5px; }
+    .source-picker { position:relative; }
+    .source-trigger { min-height:42px; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 12px; border:1px solid var(--border); border-radius:8px; background:#fff; cursor:pointer; }
+    .source-trigger.locked { color:var(--text2); background:#f4f4f5; cursor:default; }
+    .source-trigger .placeholder { color:var(--text3); }
+    .source-menu { position:absolute; left:0; right:0; top:47px; z-index:5; overflow:hidden; border:1px solid var(--border); border-radius:10px; background:#fff; box-shadow:var(--shadow); }
+    .source-option { display:grid; grid-template-columns:minmax(0,1fr) 120px 110px; gap:10px; padding:11px 13px; border-bottom:1px solid var(--split); cursor:pointer; }
+    .source-option:last-child { border-bottom:0; }
+    .source-option:hover { background:#fafafa; }
+    .source-option.disabled { color:var(--text3); background:#fafafa; cursor:not-allowed; }
+    .source-option strong { display:block; overflow:hidden; font-size:12.5px; text-overflow:ellipsis; white-space:nowrap; }
+    .source-option small { display:block; margin-top:3px; color:var(--text3); font-size:10.8px; }
+    .source-option .why { color:#b45309; font-size:11px; text-align:right; }
+    .source-detail { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-top:9px; padding:11px 12px; border-radius:9px; background:#fafafa; }
+    .source-detail small { display:block; color:var(--text3); font-size:10.8px; }
+    .source-detail strong { display:block; margin-top:4px; font-size:11.8px; font-weight:550; }
+    .radio-row { display:flex; gap:24px; align-items:flex-start; }
+    .radio-row label { display:flex; align-items:center; gap:7px; cursor:pointer; }
+    .radio-row input { width:16px; height:16px; accent-color:#18181b; }
+    .radio-row label.disabled { color:var(--text3); cursor:not-allowed; }
+    .switch-line { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; }
+    .switch { position:relative; width:40px; height:23px; flex:none; padding:0; border:0; border-radius:999px; background:#18181b; }
+    .switch::after { content:""; position:absolute; top:2px; right:2px; width:19px; height:19px; border-radius:50%; background:#fff; transition:.15s ease; box-shadow:0 1px 3px rgba(0,0,0,.18); }
+    .switch.off { background:#d4d4d8; }
+    .switch.off::after { left:2px; right:auto; }
+    .warning { display:flex; gap:10px; margin-top:10px; padding:11px 12px; border:1px solid #fde68a; border-radius:9px; color:#92400e; background:#fffbeb; font-size:11.8px; line-height:1.55; }
+    .counter { margin-top:5px; color:var(--text3); font-size:11px; text-align:right; }
+    .failure-box { padding:14px; border:1px solid #fecaca; border-radius:10px; color:#991b1b; background:#fef2f2; font-size:13px; line-height:1.7; }
+    .confirm-image { display:flex; gap:12px; margin-top:16px; padding:12px; border-radius:10px; background:#fafafa; }
+    .confirm-image small { display:block; color:var(--text3); }
+    .confirm-image strong { display:block; margin-top:4px; }
+
+    /* toast + review */
+    .toast { position:fixed; top:14px; left:50%; z-index:300; display:flex; align-items:center; gap:9px; opacity:0; transform:translate(-50%,-12px); padding:10px 16px; border:1px solid var(--border); border-radius:10px; background:#fff; box-shadow:var(--shadow); pointer-events:none; transition:.2s ease; }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+    .toast-icon { width:19px; height:19px; display:grid; place-items:center; border-radius:50%; color:#fff; background:var(--green); font-size:11px; }
+    .toast.error .toast-icon { background:var(--red); }
+    .review-chip { position:fixed; right:22px; bottom:20px; z-index:25; padding:9px 13px; border:1px solid var(--border); border-radius:999px; color:var(--text2); background:#fff; box-shadow:0 6px 20px rgba(9,9,11,.08); font-size:12px; }
+    .review-panel { position:fixed; right:22px; bottom:66px; z-index:50; width:350px; display:none; padding:18px; border:1px solid var(--border); border-radius:13px; background:#fff; box-shadow:var(--shadow); }
+    .review-panel.open { display:block; }
+    .review-panel h3 { margin:0 0 10px; font-size:14px; }
+    .review-panel p,.review-panel li { color:var(--text2); font-size:12px; line-height:1.65; }
+    .review-panel p { margin:0 0 8px; }
+    .review-panel ul { margin:0; padding-left:18px; }
+
+    @media (max-width:1320px) {
+      .content { padding-left:24px; padding-right:24px; }
+      .image-list { grid-template-columns:1fr; }
+      .create-layout { grid-template-columns:minmax(0,1fr) 190px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="logo"><span class="logo-mark"><span>◈</span></span>OneLink <b>AI</b></div>
+      <nav class="top-menu"><span>模型广场</span><span>聊天</span><span>文档</span><span>推荐计划</span><span>OLA Studio</span></nav>
+      <button class="tenant-chip"><span class="tenant-dot">SD</span>示例科技大学… <span>⌄</span></button>
+    </header>
+
+    <div class="body">
+      <aside class="sidebar">
+        <div class="nav-group"><button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M4 6h16M4 12h16M4 18h10"/></svg>API Router<span class="nav-arrow">⌄</span></button></div>
+        <div class="nav-group"><button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><circle cx="12" cy="8" r="3"/><path d="M5 21c.8-4.3 3.1-6.5 7-6.5s6.2 2.2 7 6.5"/></svg>用户中心<span class="nav-arrow">⌄</span></button></div>
+        <div class="nav-group"><button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 9h10M7 13h6"/></svg>费用<span class="nav-arrow">⌄</span></button></div>
+        <div class="nav-group">
+          <button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>云电脑管理<span class="nav-arrow">⌃</span></button>
+          <div class="nav-children">
+            <button class="nav-item sub" data-page="cloud-create">创建云电脑</button>
+            <button class="nav-item sub" data-page="cloud-list">云电脑</button>
+            <button class="nav-item sub active" data-page="image-management">镜像管理</button>
+            <button class="nav-item sub">云硬盘</button>
+            <button class="nav-item sub">终端管理</button>
+            <button class="nav-item sub">场所管理</button>
+          </div>
+        </div>
+        <div class="nav-group"><button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>课程管理<span class="nav-arrow">⌄</span></button></div>
+        <div class="nav-group"><button class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M16 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M17 11l2 2 3-3"/></svg>组织信息</button></div>
+      </aside>
+
+      <main class="content">
+        <!-- SCR-IMAGE-MANAGEMENT -->
+        <section id="page-image-management" class="page active" data-screen-id="SCR-IMAGE-MANAGEMENT">
+          <div class="page-head">
+            <div><h1>镜像管理</h1><p>管理本租户从云电脑创建的自定义镜像，用于批量创建一致的云电脑环境。</p></div>
+            <button class="btn btn-primary" id="create-image-btn" data-component-id="CMP-IMAGE-CREATE-ENTRY">＋ 创建镜像</button>
+          </div>
+          <div class="info-strip"><span class="i">i</span><span>自定义镜像是来源云电脑在创建时的磁盘快照。镜像创建完成后，来源云电脑的后续变化不会同步到镜像；删除镜像也不会影响已经创建完成的云电脑。</span></div>
+          <div class="card" style="margin-bottom:14px" data-component-id="CMP-IMAGE-FILTERS">
+            <div class="filters">
+              <span class="filter-label">镜像</span>
+              <input id="image-keyword" class="input" placeholder="请输入镜像名称或镜像 ID" />
+              <span class="filter-label">状态</span>
+              <select id="image-status-filter" class="select"><option value="">全部</option><option value="creating">创建中</option><option value="available">可用</option><option value="failed">创建失败</option></select>
+              <span class="filter-label">操作系统</span>
+              <select id="image-os-filter" class="select"><option value="">全部</option><option value="Windows 10">Windows</option><option value="Ubuntu 22.04">Ubuntu</option></select>
+              <button id="image-query" class="btn btn-primary">查询</button>
+              <button id="image-reset" class="btn btn-secondary">重置</button>
+            </div>
+          </div>
+          <div class="card" data-component-id="CMP-IMAGE-TABLE">
+            <div class="table-wrap">
+              <table class="image-table">
+                <thead><tr><th>镜像名称 / 镜像 ID</th><th>状态</th><th>操作系统</th><th>镜像范围</th><th>来源云电脑</th><th>系统盘 / 数据盘</th><th>创建时间</th><th>描述</th><th>操作</th></tr></thead>
+                <tbody id="image-table-body"></tbody>
+              </table>
+            </div>
+            <div id="image-empty" class="empty hidden">
+              <div><div class="empty-icon">▣</div><h3>暂无自定义镜像</h3><p>你可以从一台已关机的云电脑创建镜像，用于批量复用环境。</p><button class="btn btn-primary" onclick="openCreateImage()">创建镜像</button></div>
+            </div>
+            <div id="image-table-foot" class="table-foot"><span id="image-count">共 0 条</span><span class="pager"><span>总页数：1</span><span>‹</span><span class="page-number">1</span><span>›</span></span></div>
+          </div>
+        </section>
+
+        <!-- SCR-CLOUD-PC-LIST -->
+        <section id="page-cloud-list" class="page" data-screen-id="SCR-CLOUD-PC-LIST">
+          <div class="page-head"><div><h1>云电脑管理</h1><p>管理租户云电脑及其当前状态。</p></div><button class="btn btn-primary" onclick="showPage('cloud-create')">＋ 创建云电脑</button></div>
+          <div class="stat-grid">
+            <div class="stat-card"><span class="stat-icon">▣</span><div><small>有效云电脑总数</small><strong>4</strong></div></div>
+            <div class="stat-card"><span class="stat-icon">▶</span><div><small>运行中的云电脑</small><strong>1</strong></div></div>
+            <div class="stat-card"><span class="stat-icon">■</span><div><small>已关机云电脑</small><strong>2</strong></div></div>
+            <div class="stat-card"><span class="stat-icon">!</span><div><small>维护中云电脑</small><strong>1</strong></div></div>
+          </div>
+          <div class="card" style="margin-bottom:14px"><div class="filters"><span class="filter-label">云电脑</span><input class="input" placeholder="搜索云电脑 ID 或名称" /><span class="filter-label">状态</span><select class="select"><option>全部</option><option>已关机</option><option>运行中</option><option>维护中</option></select><button class="btn btn-primary">查询</button><button class="btn btn-secondary">重置</button></div></div>
+          <div class="card" data-component-id="CMP-CLOUD-PC-IMAGE-ENTRY">
+            <div class="table-wrap"><table class="pc-table"><thead><tr><th>云电脑 ID</th><th>云电脑名称</th><th>所属用户</th><th>配置规格</th><th>操作系统</th><th>当前状态</th><th>购买方式</th><th>创建时间</th><th>操作</th></tr></thead><tbody id="pc-table-body"></tbody></table></div>
+            <div class="table-foot"><span>共 4 条</span><span class="pager"><span>总页数：1</span><span>‹</span><span class="page-number">1</span><span>›</span></span></div>
+          </div>
+        </section>
+
+        <!-- SCR-CLOUD-PC-CREATE -->
+        <section id="page-cloud-create" class="page" data-screen-id="SCR-CLOUD-PC-CREATE">
+          <div class="page-head"><div><h1>创建云电脑</h1><p>选择产品、镜像和购买方式后创建云电脑。</p></div></div>
+          <div class="create-layout">
+            <div>
+              <div class="section-card"><h2>选择区域</h2><span class="tag gray">鲍山机房</span></div>
+              <div class="section-card"><h2>产品列表</h2><div class="product-card"><h3>GPU 云电脑 · RTX 4090</h3><p>适用于 AI 训练、视觉渲染等 GPU 场景</p><div class="product-kv"><span>vCPU / 内存</span><strong>8核 / 16GB</strong></div><div class="product-kv"><span>系统盘 / 数据盘</span><strong>100 / 50 GiB</strong></div><div class="product-kv"><span>显卡</span><strong>RTX 4090 8G</strong></div></div></div>
+              <div class="section-card" data-component-id="CMP-CUSTOM-IMAGE-SELECTOR">
+                <h2>操作系统</h2>
+                <div class="image-tabs"><button data-image-tab="system">系统镜像</button><button data-image-tab="community">社区镜像</button><button class="active" data-image-tab="custom">自定义镜像</button></div>
+                <div id="image-panel-system" class="image-panel hidden"><div class="image-option"><h3>Windows 10 企业版</h3><p>平台系统镜像 · x86_64</p></div></div>
+                <div id="image-panel-community" class="image-panel hidden"><div class="empty" style="min-height:150px"><div><h3>社区镜像保持现有逻辑</h3><p>本次原型不调整社区镜像。</p></div></div></div>
+                <div id="image-panel-custom" class="image-panel">
+                  <div id="custom-image-list" class="image-list"></div>
+                  <div id="selected-image-detail" class="image-detail"></div>
+                </div>
+              </div>
+              <div class="section-card"><h2>购买方式</h2><div class="seg"><button class="active">计时付费</button><button>按课表付费</button></div></div>
+              <div class="section-card"><h2>存储容量</h2><div class="disk-fields"><label>系统盘（SSD）</label><input id="system-disk-value" class="disk-value" value="100" readonly /><span>GiB</span><label style="margin-left:18px">数据盘（SSD）</label><input id="data-disk-value" class="disk-value" value="50" readonly /><span>GiB</span></div><p id="disk-hint" class="helper">磁盘容量不得小于所选镜像要求。</p></div>
+              <div class="section-card"><h2>后续创建流程</h2><div class="info-strip" style="margin:0"><span class="i">i</span><span>选择自定义镜像后，购买方式、计费、批量创建和用户分配继续沿用现有流程，本次原型不改变这些规则。</span></div></div>
+              <div style="display:flex;justify-content:flex-end;gap:10px"><button class="btn btn-secondary" onclick="showPage('image-management')">取消</button><button id="continue-create" class="btn btn-primary">继续创建</button></div>
+            </div>
+            <aside class="anchor"><h3>创建云电脑</h3><div>选择区域</div><div>产品列表</div><div class="active">操作系统</div><div>购买方式</div><div>存储容量</div><div>分配用户</div></aside>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- CMP-IMAGE-CREATE -->
+  <div id="create-image-mask" class="mask" data-component-id="CMP-IMAGE-CREATE" data-note-id="NOTE-IMG-02">
+    <div class="modal lg" role="dialog" aria-modal="true" aria-labelledby="create-image-title">
+      <div class="modal-head"><h2 id="create-image-title">创建自定义镜像</h2><button class="close" onclick="closeMask('create-image-mask')">×</button></div>
+      <div id="create-server-error" class="warning hidden" style="margin:0 0 16px;border-color:#fecaca;color:#991b1b;background:#fef2f2">来源云电脑状态已变化，请重新选择后再提交。</div>
+      <div class="form-row"><div class="label">创建方式</div><div class="readonly-card"><span class="readonly-icon">▣</span><div><strong>从云电脑创建</strong><span>将来源云电脑的系统环境和所选磁盘制作成镜像</span></div></div></div>
+      <div class="form-row">
+        <div class="label"><span class="req">*</span> 来源云电脑</div>
+        <div class="source-picker">
+          <div id="source-trigger" class="source-trigger"><span id="source-trigger-text" class="placeholder">请选择一台已关机的云电脑</span><span id="source-trigger-arrow">⌄</span></div>
+          <div id="source-menu" class="source-menu hidden"></div>
+        </div>
+        <div id="source-error" class="field-error hidden">请选择来源云电脑</div>
+        <div id="source-detail" class="source-detail hidden"></div>
+      </div>
+      <div class="form-row"><div class="label"><span class="req">*</span> 镜像名称</div><input id="image-name-input" class="input" maxlength="64" placeholder="请输入镜像名称，最多 64 个字符" /><div id="image-name-error" class="field-error hidden">请输入镜像名称</div></div>
+      <div class="form-row"><div class="label"><span class="req">*</span> 镜像范围</div><div class="radio-row"><label id="scope-all-label"><input type="radio" name="image-scope" value="all" checked />系统盘及数据盘</label><label><input type="radio" name="image-scope" value="system" />仅系统盘</label></div><div id="scope-helper" class="helper">生成的镜像将包含来源云电脑的系统盘和数据盘。</div></div>
+      <div class="form-row" data-note-id="NOTE-IMG-04"><div class="switch-line"><div><div class="label" style="margin-bottom:4px">清理用户数据</div><div class="helper" style="margin:0">将从生成的镜像中清理平台支持的用户账号、登录凭据和个人数据残留，不影响来源云电脑。</div></div><button id="cleanup-switch" class="switch" aria-pressed="true" aria-label="清理用户数据"></button></div><div id="cleanup-warning" class="warning hidden"><span>!</span><span>关闭后，镜像可能保留原云电脑中的账号、登录凭据和个人文件。请确认无敏感信息后再继续。</span></div></div>
+      <div class="form-row"><div class="label">描述</div><textarea id="image-description" class="textarea" maxlength="200" placeholder="请输入镜像用途、预装软件或版本说明"></textarea><div id="description-count" class="counter">0 / 200</div></div>
+      <div class="modal-foot"><button class="btn btn-secondary" onclick="closeMask('create-image-mask')">取消</button><button id="submit-image-create" class="btn btn-primary">创建镜像</button></div>
+    </div>
+  </div>
+
+  <!-- privacy confirm -->
+  <div id="privacy-confirm-mask" class="mask" data-component-id="CMP-PRIVACY-CONFIRM">
+    <div class="modal" role="dialog" aria-modal="true"><div class="modal-head"><h2>确认不清理用户数据？</h2><button class="close" onclick="closeMask('privacy-confirm-mask')">×</button></div><div class="warning" style="margin-top:0"><span>!</span><span>该镜像可能被分发给其他用户。若保留账号、登录凭据或个人文件，可能造成隐私泄露。</span></div><div class="modal-foot"><button class="btn btn-secondary" onclick="closeMask('privacy-confirm-mask')">返回检查</button><button id="confirm-create-without-cleanup" class="btn btn-danger">确认并创建</button></div></div>
+  </div>
+
+  <!-- delete confirm -->
+  <div id="delete-image-mask" class="mask" data-component-id="CMP-IMAGE-DELETE">
+    <div class="modal" role="dialog" aria-modal="true"><div class="modal-head"><h2>删除自定义镜像？</h2><button class="close" onclick="closeMask('delete-image-mask')">×</button></div><p style="margin:0;color:var(--text2);line-height:1.7">删除后，该镜像不能再用于创建云电脑；已经基于该镜像创建的云电脑不受影响。</p><div id="delete-image-info" class="confirm-image"></div><div class="modal-foot"><button class="btn btn-secondary" onclick="closeMask('delete-image-mask')">取消</button><button id="confirm-delete-image" class="btn btn-danger">删除</button></div></div>
+  </div>
+
+  <!-- failure reason -->
+  <div id="failure-reason-mask" class="mask" data-component-id="CMP-IMAGE-FAILURE">
+    <div class="modal" role="dialog" aria-modal="true"><div class="modal-head"><h2>镜像创建失败</h2><button class="close" onclick="closeMask('failure-reason-mask')">×</button></div><div class="failure-box"><strong>失败原因</strong><br />来源云电脑的系统盘快照创建失败，未生成可用镜像。请确认来源云电脑磁盘状态正常后重新创建。</div><div class="modal-foot"><button class="btn btn-primary" onclick="closeMask('failure-reason-mask')">知道了</button></div></div>
+  </div>
+
+  <button id="review-chip" class="review-chip">独立评审原型 · 说明</button>
+  <aside id="review-panel" class="review-panel"><h3>本原型的范围</h3><p>这是独立评审文件，未修改租户端正式原型。</p><ul><li>镜像管理、创建、删除与失败反馈</li><li>从云电脑列表发起并锁定来源</li><li>创建云电脑时选择兼容的自定义镜像</li><li>默认仅已关机实例可创建镜像</li><li>不包含导入、共享、版本、启停和客户端能力</li></ul></aside>
+  <div id="toast" class="toast"><span class="toast-icon">✓</span><span id="toast-text"></span></div>
+
+  <script>
+    const images = [
+      { id:'IMG-20260826-001', name:'AI 开发环境-v3', status:'available', progress:100, os:'Windows 10', scope:'系统盘及数据盘', sourceId:'CPC-900000000000000018', sourceName:'AI 环境模板机', systemDisk:100, dataDisk:50, createdAt:'2026-08-26 15:20:00', description:'Python、CUDA、VS Code 开发环境', failureReason:null, compatible:true },
+      { id:'IMG-20260826-002', name:'深度学习训练模板', status:'creating', progress:68, os:'Ubuntu 22.04', scope:'仅系统盘', sourceId:'CPC-900000000000000022', sourceName:'Ubuntu 开发模板机', systemDisk:100, dataDisk:null, createdAt:'2026-08-26 16:05:12', description:'PyTorch、JupyterLab 训练环境', failureReason:null, compatible:true },
+      { id:'IMG-20260826-003', name:'CV 环境镜像-旧版', status:'failed', progress:0, os:'Windows 10', scope:'系统盘及数据盘', sourceId:'CPC-900000000000000023', sourceName:'CV 渲染工作站', systemDisk:100, dataDisk:50, createdAt:'2026-08-25 19:42:08', description:'计算机视觉工具与依赖', failureReason:'来源磁盘快照创建失败', compatible:false },
+      { id:'IMG-20260825-004', name:'产品设计工具集', status:'available', progress:100, os:'Windows 10', scope:'仅系统盘', sourceId:'CPC-900000000000000024', sourceName:'设计环境模板机', systemDisk:120, dataDisk:null, createdAt:'2026-08-25 11:18:46', description:'Blender、Adobe 工具与字体', failureReason:null, compatible:false, incompatibleReason:'目标系统盘小于镜像要求的 120 GiB' }
+    ];
+
+    const sources = {
+      'CPC-900000000000000018': { id:'CPC-900000000000000018', name:'AI 环境模板机', user:'G姓名76-LS', os:'Windows 10', state:'已关机', stateKey:'stopped', spec:'8核 / 16GB / RTX 4090', systemDisk:100, dataDisk:50, purchase:'按课表付费', createdAt:'2026-07-15 19:20:06', locked:false },
+      'CPC-900000000000000022': { id:'CPC-900000000000000022', name:'Ubuntu 开发模板机', user:'admin', os:'Ubuntu 22.04', state:'已关机', stateKey:'stopped', spec:'8核 / 16GB / RTX 4090', systemDisk:100, dataDisk:null, purchase:'计时付费', createdAt:'2026-07-20 10:11:03', locked:false },
+      'CPC-900000000000000023': { id:'CPC-900000000000000023', name:'CV 渲染工作站', user:'test-user', os:'Windows 10', state:'运行中', stateKey:'running', spec:'8核 / 16GB / RTX 4090', systemDisk:100, dataDisk:50, purchase:'计时付费', createdAt:'2026-07-08 15:10:42', locked:false, disabledReason:'运行中，请先关机' },
+      'CPC-900000000000000024': { id:'CPC-900000000000000024', name:'数据分析环境', user:'analyst', os:'Windows 10', state:'维护中', stateKey:'maintenance', spec:'16核 / 32GB', systemDisk:120, dataDisk:100, purchase:'计时付费', createdAt:'2026-06-28 09:02:31', locked:false, disabledReason:'维护中，恢复后再试' }
+    };
+
+    let filteredImages = [...images];
+    let selectedSourceId = null;
+    let sourceLocked = false;
+    let cleanupEnabled = true;
+    let deleteImageId = null;
+    let selectedCustomImageId = 'IMG-20260826-001';
+    let toastTimer = null;
+
+    function iconSvg(type) {
+      if (type === 'windows') return '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.2 10.5 4v7.2H3V5.2Zm8.5-1.35L21 2.5v8.7h-9.5V3.85ZM3 12.2h7.5V19L3 17.9v-5.7Zm8.5 0H21v9.3l-9.5-1.35V12.2Z"/></svg>';
+      return '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></svg>';
+    }
+
+    function showPage(page) {
+      document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+      document.getElementById('page-' + page).classList.add('active');
+      document.querySelectorAll('[data-page]').forEach(el => el.classList.toggle('active', el.dataset.page === page));
+      if (page === 'cloud-list') renderCloudPCs();
+      if (page === 'cloud-create') { setImageTab('custom'); renderCustomImages(); }
+      window.scrollTo(0,0);
+    }
+
+    document.querySelectorAll('[data-page]').forEach(el => el.addEventListener('click', () => showPage(el.dataset.page)));
+
+    function statusCell(img) {
+      if (img.status === 'available') return '<span class="status available">可用</span>';
+      if (img.status === 'creating') return `<span class="status creating">创建中 ${img.progress}%</span><div class="mini-progress"><span style="width:${img.progress}%"></span></div>`;
+      return `<span class="status failed">创建失败</span><span class="reason" title="${img.failureReason}">${img.failureReason}</span>`;
+    }
+
+    function actionCell(img) {
+      if (img.status === 'creating') return '<button class="link-btn disabled" title="镜像创建中，暂不可删除" onclick="showToast(\'镜像创建中，暂不可删除\',\'error\')">删除</button>';
+      const reason = img.status === 'failed' ? `<button class="link-btn" onclick="openFailureReason()">查看原因</button>` : '';
+      return `<span class="actions">${reason}<button class="link-btn danger" onclick="requestDeleteImage('${img.id}')">删除</button></span>`;
+    }
+
+    function renderImages(list = filteredImages) {
+      const body = document.getElementById('image-table-body');
+      body.innerHTML = list.map(img => `<tr>
+        <td><span class="primary-cell">${img.name}<span class="secondary-line">${img.id}</span></span></td>
+        <td>${statusCell(img)}</td><td>${img.os}</td><td>${img.scope}</td>
+        <td><span class="primary-cell">${img.sourceName}<span class="secondary-line">${img.sourceId}</span></span></td>
+        <td>${img.systemDisk} GiB / ${img.dataDisk === null ? '-' : img.dataDisk + ' GiB'}</td>
+        <td>${img.createdAt}</td><td title="${img.description}">${img.description}</td><td>${actionCell(img)}</td>
+      </tr>`).join('');
+      const empty = list.length === 0;
+      document.getElementById('image-empty').classList.toggle('hidden', !empty);
+      document.querySelector('.image-table').classList.toggle('hidden', empty);
+      document.getElementById('image-table-foot').classList.toggle('hidden', empty);
+      document.getElementById('image-count').textContent = `共 ${list.length} 条`;
+    }
+
+    function applyFilters() {
+      const keyword = document.getElementById('image-keyword').value.trim().toLowerCase();
+      const status = document.getElementById('image-status-filter').value;
+      const os = document.getElementById('image-os-filter').value;
+      filteredImages = images.filter(img => (!keyword || img.name.toLowerCase().includes(keyword) || img.id.toLowerCase().includes(keyword)) && (!status || img.status === status) && (!os || img.os === os));
+      renderImages();
+    }
+
+    document.getElementById('image-query').addEventListener('click', applyFilters);
+    document.getElementById('image-reset').addEventListener('click', () => {
+      document.getElementById('image-keyword').value = '';
+      document.getElementById('image-status-filter').value = '';
+      document.getElementById('image-os-filter').value = '';
+      filteredImages = [...images]; renderImages();
+    });
+
+    function renderSourceMenu() {
+      const menu = document.getElementById('source-menu');
+      menu.innerHTML = Object.values(sources).map(src => {
+        const disabled = src.stateKey !== 'stopped' || src.locked;
+        const why = src.locked ? '镜像制作中' : (src.disabledReason || '');
+        return `<div class="source-option ${disabled ? 'disabled' : ''}" ${disabled ? '' : `onclick="selectSource('${src.id}')"`}><div><strong>${src.name}</strong><small>${src.id} · ${src.user}</small></div><div><strong>${src.os}</strong><small>${src.systemDisk} / ${src.dataDisk === null ? '-' : src.dataDisk} GiB</small></div><div class="why">${disabled ? why : src.state}</div></div>`;
+      }).join('');
+    }
+
+    function openCreateImage(sourceId = null) {
+      selectedSourceId = sourceId;
+      sourceLocked = Boolean(sourceId);
+      cleanupEnabled = true;
+      document.getElementById('cleanup-switch').classList.remove('off');
+      document.getElementById('cleanup-switch').setAttribute('aria-pressed','true');
+      document.getElementById('cleanup-warning').classList.add('hidden');
+      document.getElementById('image-name-input').value = '';
+      document.getElementById('image-description').value = '';
+      document.getElementById('description-count').textContent = '0 / 200';
+      document.getElementById('image-name-error').classList.add('hidden');
+      document.getElementById('source-error').classList.add('hidden');
+      document.getElementById('create-server-error').classList.add('hidden');
+      document.querySelector('input[name="image-scope"][value="all"]').checked = true;
+      updateSourceUI();
+      renderSourceMenu();
+      openMask('create-image-mask');
+    }
+
+    document.getElementById('create-image-btn').addEventListener('click', () => openCreateImage());
+    document.getElementById('source-trigger').addEventListener('click', () => {
+      if (sourceLocked) return;
+      document.getElementById('source-menu').classList.toggle('hidden');
+    });
+
+    function selectSource(id) {
+      selectedSourceId = id;
+      document.getElementById('source-menu').classList.add('hidden');
+      document.getElementById('source-error').classList.add('hidden');
+      updateSourceUI();
+    }
+
+    function updateSourceUI() {
+      const trigger = document.getElementById('source-trigger');
+      const text = document.getElementById('source-trigger-text');
+      const arrow = document.getElementById('source-trigger-arrow');
+      const detail = document.getElementById('source-detail');
+      trigger.classList.toggle('locked', sourceLocked);
+      arrow.textContent = sourceLocked ? '🔒' : '⌄';
+      if (!selectedSourceId) {
+        text.textContent = '请选择一台已关机的云电脑'; text.className = 'placeholder'; detail.classList.add('hidden');
+        setScopeForSource(null); return;
+      }
+      const src = sources[selectedSourceId];
+      text.textContent = `${src.name} · ${src.id}`; text.className = '';
+      detail.innerHTML = `<div><small>所属用户</small><strong>${src.user}</strong></div><div><small>操作系统</small><strong>${src.os}</strong></div><div><small>磁盘</small><strong>${src.systemDisk} / ${src.dataDisk === null ? '-' : src.dataDisk} GiB</strong></div><div><small>当前状态</small><strong>${src.state}</strong></div>`;
+      detail.classList.remove('hidden');
+      setScopeForSource(src);
+    }
+
+    function setScopeForSource(src) {
+      const all = document.querySelector('input[name="image-scope"][value="all"]');
+      const system = document.querySelector('input[name="image-scope"][value="system"]');
+      const label = document.getElementById('scope-all-label');
+      if (src && src.dataDisk === null) { all.disabled = true; all.checked = false; system.checked = true; label.classList.add('disabled'); }
+      else { all.disabled = false; label.classList.remove('disabled'); if (!system.checked) all.checked = true; }
+      updateScopeHelper();
+    }
+
+    function updateScopeHelper() {
+      const scope = document.querySelector('input[name="image-scope"]:checked')?.value;
+      document.getElementById('scope-helper').textContent = scope === 'all' ? '生成的镜像将包含来源云电脑的系统盘和数据盘。' : '生成的镜像仅包含系统盘；新建云电脑的数据盘使用商品默认空盘。';
+    }
+    document.querySelectorAll('input[name="image-scope"]').forEach(r => r.addEventListener('change', updateScopeHelper));
+
+    document.getElementById('cleanup-switch').addEventListener('click', () => {
+      cleanupEnabled = !cleanupEnabled;
+      const sw = document.getElementById('cleanup-switch');
+      sw.classList.toggle('off', !cleanupEnabled); sw.setAttribute('aria-pressed', String(cleanupEnabled));
+      document.getElementById('cleanup-warning').classList.toggle('hidden', cleanupEnabled);
+    });
+    document.getElementById('image-description').addEventListener('input', e => document.getElementById('description-count').textContent = `${e.target.value.length} / 200`);
+
+    function validateCreate() {
+      const name = document.getElementById('image-name-input').value.trim();
+      const validSource = Boolean(selectedSourceId);
+      document.getElementById('source-error').classList.toggle('hidden', validSource);
+      document.getElementById('image-name-error').classList.toggle('hidden', Boolean(name));
+      document.getElementById('image-name-input').classList.toggle('error', !name);
+      return validSource && Boolean(name);
+    }
+
+    document.getElementById('submit-image-create').addEventListener('click', () => {
+      if (!validateCreate()) return;
+      if (!cleanupEnabled) { openMask('privacy-confirm-mask'); return; }
+      createImageTask();
+    });
+    document.getElementById('confirm-create-without-cleanup').addEventListener('click', () => { closeMask('privacy-confirm-mask'); createImageTask(); });
+
+    function createImageTask() {
+      const src = sources[selectedSourceId];
+      if (!src || src.stateKey !== 'stopped') { document.getElementById('create-server-error').classList.remove('hidden'); return; }
+      const scope = document.querySelector('input[name="image-scope"]:checked').value;
+      const now = new Date();
+      const pad = n => String(n).padStart(2,'0');
+      const id = 'IMG-DEMO-' + String(Math.floor(Math.random()*9000)+1000);
+      images.unshift({ id, name:document.getElementById('image-name-input').value.trim(), status:'creating', progress:0, os:src.os, scope:scope === 'all' ? '系统盘及数据盘' : '仅系统盘', sourceId:src.id, sourceName:src.name, systemDisk:src.systemDisk, dataDisk:scope === 'all' ? src.dataDisk : null, createdAt:`${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`, description:document.getElementById('image-description').value.trim() || '-', failureReason:null, compatible:true });
+      src.locked = true;
+      closeMask('create-image-mask');
+      filteredImages = [...images]; renderImages(); renderCloudPCs();
+      showPage('image-management');
+      showToast('镜像创建任务已提交，可在镜像管理中查看进度。');
+    }
+
+    function renderCloudPCs() {
+      const body = document.getElementById('pc-table-body');
+      body.innerHTML = Object.values(sources).map(src => {
+        const canCreate = src.stateKey === 'stopped' && !src.locked;
+        const statusTag = src.stateKey === 'stopped' ? '<span class="tag green">已关机</span>' : src.stateKey === 'running' ? '<span class="tag indigo">运行中</span>' : '<span class="tag orange">维护中</span>';
+        const createAction = canCreate ? `<button class="link-btn" onclick="openCreateImage('${src.id}')">创建镜像</button>` : src.locked ? '<button class="link-btn disabled" title="正在制作镜像">镜像制作中</button>' : '';
+        return `<tr><td><span class="primary-cell">${src.id}</span></td><td><span class="primary-cell">${src.name}</span></td><td>${src.user}</td><td><div class="pc-spec">${src.spec}<br>系统盘 ${src.systemDisk} GiB · 数据盘 ${src.dataDisk === null ? '-' : src.dataDisk + ' GiB'}</div></td><td>${src.os}</td><td>${statusTag}</td><td>${src.purchase}</td><td>${src.createdAt}</td><td><span class="actions">${createAction}<button class="link-btn">详情</button></span></td></tr>`;
+      }).join('');
+    }
+
+    function requestDeleteImage(id) {
+      const img = images.find(item => item.id === id);
+      if (!img || img.status === 'creating') { showToast('镜像创建中，暂不可删除','error'); return; }
+      deleteImageId = id;
+      document.getElementById('delete-image-info').innerHTML = `<div><small>镜像名称</small><strong>${img.name}</strong></div><div style="margin-left:auto;text-align:right"><small>镜像 ID</small><strong>${img.id}</strong></div>`;
+      openMask('delete-image-mask');
+    }
+
+    document.getElementById('confirm-delete-image').addEventListener('click', () => {
+      const index = images.findIndex(item => item.id === deleteImageId);
+      if (index < 0) return;
+      images.splice(index,1); filteredImages = [...images]; closeMask('delete-image-mask'); renderImages(); renderCustomImages(); showToast('镜像已删除。');
+    });
+    function openFailureReason() { openMask('failure-reason-mask'); }
+
+    function setImageTab(type) {
+      document.querySelectorAll('[data-image-tab]').forEach(tab => tab.classList.toggle('active', tab.dataset.imageTab === type));
+      document.querySelectorAll('.image-panel').forEach(panel => panel.classList.add('hidden'));
+      document.getElementById('image-panel-' + type).classList.remove('hidden');
+    }
+    document.querySelectorAll('[data-image-tab]').forEach(tab => tab.addEventListener('click', () => setImageTab(tab.dataset.imageTab)));
+
+    function renderCustomImages() {
+      const available = images.filter(img => img.status === 'available');
+      if (!available.some(img => img.id === selectedCustomImageId && img.compatible)) selectedCustomImageId = available.find(img => img.compatible)?.id || null;
+      document.getElementById('custom-image-list').innerHTML = available.map(img => `<article class="image-option ${img.id === selectedCustomImageId ? 'selected' : ''} ${img.compatible ? '' : 'disabled'}" ${img.compatible ? `onclick="selectCustomImage('${img.id}')"` : ''}><span class="radio-dot"></span><h3>${img.name}</h3><p>${iconSvg(img.os.startsWith('Windows') ? 'windows' : 'linux')} ${img.os} · ${img.scope}<br>系统盘 ${img.systemDisk} GiB · 数据盘 ${img.dataDisk === null ? '-' : img.dataDisk + ' GiB'}</p>${img.compatible ? '' : `<p class="disabled-reason">${img.incompatibleReason || '与当前产品配置不兼容'}</p>`}</article>`).join('');
+      updateSelectedImageDetail();
+    }
+
+    function selectCustomImage(id) { selectedCustomImageId = id; renderCustomImages(); }
+    function updateSelectedImageDetail() {
+      const img = images.find(item => item.id === selectedCustomImageId);
+      const detail = document.getElementById('selected-image-detail');
+      if (!img) { detail.innerHTML = '<div style="grid-column:1/-1;color:var(--text3)">暂无可用于当前配置的自定义镜像。请更换产品或区域，或前往镜像管理创建镜像。</div>'; return; }
+      detail.innerHTML = `<div><small>操作系统</small><strong>${img.os}</strong></div><div><small>镜像范围</small><strong>${img.scope}</strong></div><div><small>磁盘要求</small><strong>${img.systemDisk} / ${img.dataDisk === null ? '-' : img.dataDisk} GiB</strong></div><div><small>来源云电脑</small><strong>${img.sourceId}</strong></div>`;
+      document.getElementById('system-disk-value').value = Math.max(100,img.systemDisk);
+      document.getElementById('data-disk-value').value = img.dataDisk === null ? 50 : Math.max(50,img.dataDisk);
+      document.getElementById('disk-hint').textContent = img.scope === '仅系统盘' ? '系统盘容量已满足镜像要求；数据盘使用商品默认空盘。' : '系统盘和数据盘容量均已满足镜像要求。';
+    }
+
+    document.getElementById('continue-create').addEventListener('click', () => {
+      const img = images.find(item => item.id === selectedCustomImageId);
+      if (!img || img.status !== 'available') { showToast('所选镜像已不可用，请重新选择。','error'); return; }
+      showToast(`已选择“${img.name}”，后续沿用原有购买和用户分配流程。`);
+    });
+
+    function openMask(id) { document.getElementById(id).classList.add('open'); }
+    function closeMask(id) { document.getElementById(id).classList.remove('open'); }
+    document.querySelectorAll('.mask').forEach(mask => mask.addEventListener('click', e => { if (e.target === mask) closeMask(mask.id); }));
+
+    function showToast(message,type='success') {
+      const toast = document.getElementById('toast');
+      toast.classList.toggle('error', type === 'error');
+      toast.querySelector('.toast-icon').textContent = type === 'error' ? '!' : '✓';
+      document.getElementById('toast-text').textContent = message;
+      toast.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'),2600);
+    }
+
+    document.getElementById('review-chip').addEventListener('click', () => document.getElementById('review-panel').classList.toggle('open'));
+    renderImages(); renderCloudPCs(); renderCustomImages();
+  </script>
+</body>
+</html>

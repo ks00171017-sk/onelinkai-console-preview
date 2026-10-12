@@ -1,5 +1,5 @@
 export function consoleHomePage(tenant = null) {
-  return tenant ? "dashboard" : "personal-key";
+  return tenant ? "dashboard" : "personal-home";
 }
 
 export function createConsoleState(tenant = null) {

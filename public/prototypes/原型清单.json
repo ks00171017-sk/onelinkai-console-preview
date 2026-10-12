@@ -1,0 +1,76 @@
+[
+  {
+    "end": "客户端",
+    "title": "云电脑客户端",
+    "path": "客户端/云电脑客户端/out/index.html",
+    "description": "启动、账号登录、校园登录与绑定、云电脑与数据盘、远程会话、设置及找回密码。",
+    "primary": true,
+    "query": "v=20261012-parallel-entry-v3"
+  },
+  {
+    "end": "客户端",
+    "title": "校园登录 · 入口与账号安全",
+    "path": "客户端/云电脑客户端/out/index.html",
+    "query": "v=20261012-parallel-entry-v3",
+    "fragment": "login-entry",
+    "description": "已绑定短信找回，未绑定/原手机号不可用联系管理员；登录后补绑手机号。"
+  },
+  {
+    "end": "运营端",
+    "title": "运营管理后台",
+    "path": "运营端/OneLink运营后台-原型.html",
+    "description": "商品列表、新建商品、分类分组表单及机房管理。",
+    "primary": true
+  },
+  {
+    "end": "运营端",
+    "title": "云电脑实例 · 状态同步",
+    "path": "运营端/云电脑实例/index.html",
+    "description": "计时付费维护中实例，点击即同步；原按钮显示成功或失败，失败说明原因并可重试。"
+  },
+  {
+    "end": "运营端",
+    "title": "硬件终端管理",
+    "path": "运营端/硬件终端管理-交互原型.html",
+    "description": "设备导入、筛选、批量绑定、解绑、禁用及删除。"
+  },
+  {
+    "end": "运营端",
+    "title": "异常告警",
+    "path": "运营端/运营后台-异常告警-原型.html",
+    "description": "告警规则、联系人组、告警记录与送达详情。"
+  },
+  {
+    "end": "运营端",
+    "title": "客户端版本上传",
+    "path": "运营端/客户端版本上传/index.html",
+    "description": "版本列表、新增版本、客户端文件上传状态、最新版本及强制更新。"
+  },
+  {
+    "end": "租户端",
+    "title": "统一工作台",
+    "path": "租户端/统一工作台/dist/client/index.html",
+    "description": "控制台首页、产品切换、API Router、GPU Cloud、GPU 云电脑、组织与账户账单。",
+    "primary": true
+  },
+  {
+    "end": "租户端",
+    "title": "已选课表 · 时间区分",
+    "path": "租户端/租户管理端-旧版.html",
+    "query": "v=20261010-people-dedup",
+    "fragment": "timetable-review",
+    "description": "同名课程按上课日期和时段区分；验证选择反显、移除与合计。"
+  },
+  {
+    "end": "租户端",
+    "title": "租户管理端 · 单页版",
+    "path": "租户端/租户管理端-旧版.html",
+    "description": "组织与用户、课程排课、云电脑与云硬盘、镜像、终端和场所。"
+  },
+  {
+    "end": "租户端",
+    "title": "自定义镜像管理",
+    "path": "租户端/自定义镜像管理/index.html",
+    "description": "镜像列表、从云电脑创建镜像、可用性与兼容性、创建云电脑时选择镜像。"
+  }
+]

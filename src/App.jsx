@@ -1,9 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { consoleHomePage, createConsoleState, selectConsoleScope } from "./console-scope.js";
+import { ConsoleHome, UnifiedBills, ProductSwitcher, ProductBillingRecords } from "./ConsoleHub.jsx";
+import "./console-hub.css";
 import {
   ArrowClockwise,
   ArrowRight,
   ArrowUpRight,
+  ArrowsDownUp,
   Bell,
   BookOpen,
   Brain,
@@ -68,14 +71,16 @@ const TENANTS = [
 const PRODUCT_NAV = [
   {
     id: "api",
-    label: "API Router",
+    label: "AI 模型服务",
     icon: Key,
     items: [
+      { id: "api-dashboard", label: "可观测性" },
       { id: "models", label: "模型", external: "https://onelinkai.cloud/pricingList" },
       { id: "api-key", label: "API key" },
       { id: "memory", label: "团队记忆" },
       { id: "prompt", label: "提示词管理" },
       { id: "skill", label: "Skill托管" },
+      { id: "api-billing", label: "计费记录" },
     ],
   },
   {
@@ -100,6 +105,8 @@ const PRODUCT_NAV = [
           { id: "gpu-shared-data", label: "共享数据集" },
         ],
       },
+      { id: "gpu-orders", label: "订单" },
+      { id: "gpu-billing", label: "计费记录" },
     ],
   },
   {
@@ -111,6 +118,8 @@ const PRODUCT_NAV = [
       { id: "desk-disk", label: "云硬盘" },
       { id: "desk-terminal", label: "终端管理" },
       { id: "desk-place", label: "场所管理" },
+      { id: "desk-orders", label: "订单" },
+      { id: "desk-billing", label: "计费记录" },
       {
         id: "term-group",
         label: "课程管理",
@@ -134,8 +143,8 @@ const MANAGE_NAV = [
     icon: Wallet,
     items: [
       { id: "account-funds", label: "账户资金" },
-      { id: "orders", label: "订单" },
-      { id: "billing-details", label: "费用明细" },
+      { id: "bills", label: "账单" },
+      { id: "recharge-orders", label: "充值记录" },
       { id: "gift-records", label: "赠金记录" },
     ],
   },
@@ -152,28 +161,32 @@ const MANAGE_NAV = [
 ];
 
 const PAGE_LABELS = {
-  dashboard: "Dashboard",
+  dashboard: "首页",
   "api-key": "API key",
   memory: "团队记忆",
   prompt: "提示词管理",
   skill: "Skill托管",
+  "api-billing": "计费记录",
   "gpu-overview": "概览",
   "gpu-personal-instance": "个人实例",
   "gpu-org-instance": "组织实例",
   "gpu-public-data": "公开数据集",
   "gpu-shared-data": "共享数据集",
+  "gpu-orders": "订单",
+  "gpu-billing": "计费记录",
   "desk-computer": "云电脑管理",
   "desk-disk": "云硬盘",
   "desk-terminal": "终端管理",
   "desk-place": "场所管理",
+  "desk-orders": "订单",
+  "desk-billing": "计费记录",
   "term-year": "学期学年",
   "term-course": "课程档案",
   "term-task": "开课任务",
   "term-schedule": "排课管理",
   "term-mapping": "节次映射",
   "account-funds": "账户资金",
-  orders: "订单",
-  "billing-details": "费用明细",
+  "recharge-orders": "充值记录",
   "gift-records": "赠金记录",
   "user-list": "用户列表",
   "org-tree": "组织架构",
@@ -203,25 +216,78 @@ function NavButton({ icon: Icon, label, active, expanded, onClick, hasChildren }
   );
 }
 
-function Sidebar({ tenant, page, onNavigate }) {
-  const productNav = tenant ? PRODUCT_NAV : PERSONAL_PRODUCT_NAV;
-  const manageNav = tenant ? MANAGE_NAV : PERSONAL_MANAGE_NAV;
-  const [openGroups, setOpenGroups] = useState(() => ({ [[...productNav, ...manageNav].find((group) => containsPage(group.items, page))?.id ?? "api"]: true }));
-  const [openSubgroups, setOpenSubgroups] = useState({});
+function TenantSpaceSwitcher({ tenant, tenants, onSelect }) {
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef(null);
+  const triggerRef = useRef(null);
 
   useEffect(() => {
-    const allGroups = [...productNav, ...manageNav];
-    const matchedGroup = allGroups.find((group) => containsPage(group.items, page));
-    if (!matchedGroup) return;
-    setOpenGroups({ [matchedGroup.id]: true });
-    const matchedSubgroup = matchedGroup.items.find(
-      (item) => item.children && containsPage(item.children, page),
-    );
-    if (matchedSubgroup) setOpenSubgroups((current) => ({ ...current, [matchedSubgroup.id]: true }));
-  }, [page, tenant, productNav, manageNav]);
+    if (!open) return;
+    const dismiss = (event) => {
+      if (!wrapRef.current?.contains(event.target)) setOpen(false);
+    };
+    const escape = (event) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
+    document.addEventListener("pointerdown", dismiss);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("pointerdown", dismiss);
+      document.removeEventListener("keydown", escape);
+    };
+  }, [open]);
+
+  const choose = (nextTenant) => {
+    setOpen(false);
+    if ((tenant?.id ?? null) !== (nextTenant?.id ?? null)) onSelect(nextTenant);
+  };
+
+  const currentName = tenant?.name ?? "个人空间";
+
+  return (
+    <div className="tenant-wrap sidebar-tenant-switcher" ref={wrapRef}>
+      <button
+        className={`tenant-switch ${open ? "open" : ""}`}
+        ref={triggerRef}
+        aria-label={`切换空间，当前：${currentName}`}
+        aria-expanded={open}
+        aria-controls="sidebar-tenant-menu"
+        aria-haspopup="menu"
+        onClick={() => setOpen((current) => !current)}
+      >
+        <strong className="space-current">{currentName}</strong>
+        <ArrowsDownUp className="space-switch-icon" size={17} aria-hidden="true" />
+      </button>
+      {open ? (
+        <div className="tenant-menu space-menu" id="sidebar-tenant-menu" role="menu" aria-label="切换空间">
+          <button className="space-option" role="menuitemradio" aria-checked={!tenant} onClick={() => choose(null)}>
+            <span className="space-option-label">个人空间</span>
+            {!tenant ? <Check size={17} aria-hidden="true" /> : null}
+          </button>
+          <div className="menu-divider" />
+          {tenants.map((item) => (
+            <button className="space-option" role="menuitemradio" aria-checked={tenant?.id === item.id} key={item.id} onClick={() => choose(item)}>
+              <span className="space-option-label">{item.name}</span>
+              {tenant?.id === item.id ? <Check size={17} aria-hidden="true" /> : null}
+            </button>
+          ))}
+          <div className="menu-divider" />
+          <button className="space-option space-create" role="menuitem" onClick={() => { setOpen(false); window.alert("创建组织入口（演示）"); }}><span className="space-option-label">创建组织</span><Plus size={18} aria-hidden="true" /></button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function Sidebar({ tenant, tenants = [], page, onNavigate, onScopeChange }) {
+  const productNav = tenant ? PRODUCT_NAV : PERSONAL_PRODUCT_NAV;
+  const manageNav = tenant ? MANAGE_NAV : PERSONAL_MANAGE_NAV;
+  const currentProduct = tenant ? productNav.find(group => containsPage(group.items, page)) : null;
 
   const navigateDirect = (target) => {
-    setOpenGroups({});
     onNavigate(target);
   };
 
@@ -235,31 +301,24 @@ function Sidebar({ tenant, page, onNavigate }) {
       );
     }
     if (item.children) {
-      const expanded = Boolean(openSubgroups[item.id]);
       const active = containsPage(item.children, page);
       return (
         <div className={`nested-nav ${active ? "nested-active" : ""}`} key={item.id}>
-          <button
-            className={`nav-item nav-subitem nav-nested-toggle ${active ? "active" : ""}`}
-            onClick={() => setOpenSubgroups((current) => ({ ...current, [item.id]: !expanded }))}
-          >
+          <div className={`nav-item nav-subitem nav-nested-label ${active ? "nested-current" : ""}`}>
             <span className="nav-dot" />
             <span>{item.label}</span>
-            {expanded ? <CaretDown size={13} /> : <CaretRight size={13} />}
-          </button>
-          {expanded ? (
-            <div className="third-nav">
-              {item.children.map((child) => (
-                <button
-                  className={`nav-item nav-thirditem ${page === child.id ? "active" : ""}`}
-                  key={child.id}
-                  onClick={() => onNavigate(child.id)}
-                >
-                  <span>{child.label}</span>
-                </button>
-              ))}
-            </div>
-          ) : null}
+          </div>
+          <div className="third-nav">
+            {item.children.map((child) => (
+              <button
+                className={`nav-item nav-thirditem ${page === child.id ? "active" : ""}`}
+                key={child.id}
+                onClick={() => onNavigate(child.id)}
+              >
+                <span>{child.label}</span>
+              </button>
+            ))}
+          </div>
         </div>
       );
     }
@@ -279,18 +338,10 @@ function Sidebar({ tenant, page, onNavigate }) {
     if (isProduct && tenant && !tenant.enabledProducts.includes(group.id)) return null;
     const items = tenant ? visibleItems(group.items, tenant) : group.items;
     const active = containsPage(items, page);
-    const expanded = Boolean(openGroups[group.id]);
     return (
       <div className={`product-nav ${active ? "product-active" : ""}`} key={group.id}>
-        <NavButton
-          icon={group.icon}
-          label={group.label}
-          active={active}
-          expanded={expanded}
-          hasChildren
-          onClick={() => setOpenGroups(expanded ? {} : { [group.id]: true })}
-        />
-        {expanded ? <div className="subnav">{items.map(renderChild)}</div> : null}
+        <div className={`nav-item nav-group-label ${active ? "group-current" : ""}`}><group.icon size={18} weight={active ? "fill" : "regular"} /><span>{group.label}</span></div>
+        <div className="subnav">{items.map(renderChild)}</div>
       </div>
     );
   };
@@ -300,9 +351,11 @@ function Sidebar({ tenant, page, onNavigate }) {
       <a className="brand" href="#/home" title="返回 OneLinkAI 官网首页（本地演示）">
         <img src="./assets/onelinkai-logo.png" alt="OneLinkAI" />
       </a>
+      <TenantSpaceSwitcher tenant={tenant} tenants={tenants} onSelect={onScopeChange} />
       <nav className="main-nav" aria-label={tenant ? "租户控制台" : "个人控制台"}>
-        {tenant ? <NavButton icon={House} label="Dashboard" active={page === "dashboard"} onClick={() => navigateDirect("dashboard")} /> : null}
-        {productNav.map((group) => renderGroup(group, true))}
+        <NavButton icon={House} label="首页" active={page === (tenant ? "dashboard" : "personal-home")} onClick={() => navigateDirect(tenant ? "dashboard" : "personal-home")} />
+        {tenant && currentProduct ? <div className="hub-product-nav"><div className="hub-product-title">{currentProduct.label}</div>{visibleItems(currentProduct.items, tenant).map(renderChild)}</div> : null}
+        {!tenant ? productNav.map((group) => renderGroup(group, true)) : null}
         <div className="nav-section-label">管理</div>
         {manageNav.map((group) => renderGroup(group))}
         {!tenant ? <div className="personal-program-nav">{PERSONAL_PROGRAM_NAV.map((item) => <NavButton key={item.id} icon={item.icon} label={item.label} active={page === item.id} onClick={() => navigateDirect(item.id)} />)}</div> : null}
@@ -314,12 +367,7 @@ function Sidebar({ tenant, page, onNavigate }) {
 function ScopeOptions({ tenant, tenants, onSelect, onCreate }) {
   return (
     <>
-      <div className="profile-scopes" role="group" aria-label="切换个人或租户">
-        <button className={`scope-option ${!tenant ? "selected" : ""}`} aria-pressed={!tenant} onClick={() => onSelect(null)}>
-          <User size={18} />
-          <span className="scope-option-label"><strong>个人</strong><small>演示用户</small></span>
-          {!tenant ? <Check size={15} aria-hidden="true" /> : null}
-        </button>
+      <div className="profile-scopes" role="group" aria-label="切换组织空间">
         {tenants.map((item) => (
           <button className={`scope-option ${tenant?.id === item.id ? "selected" : ""}`} key={item.id} aria-pressed={tenant?.id === item.id} onClick={() => onSelect(item)}>
             <UsersThree size={18} />
@@ -333,7 +381,7 @@ function ScopeOptions({ tenant, tenants, onSelect, onCreate }) {
   );
 }
 
-function Topbar({ tenant, tenants, onScopeChange, onNavigate, website = false }) {
+function Topbar({ tenant, tenants, onScopeChange, onNavigate, page, website = false }) {
   const [profileOpen, setProfileOpen] = useState(false);
   const [darkSelected, setDarkSelected] = useState(false);
   const [toast, setToast] = useState("");
@@ -371,7 +419,7 @@ function Topbar({ tenant, tenants, onScopeChange, onNavigate, website = false })
       {website ? <>
         <a className="website-logo" href="#/home" aria-label="OneLinkAI 官网首页"><img src="./assets/website-logo.svg" alt="OneLinkAI" /></a>
         <nav className="website-nav" aria-label="官网导航">{["算力市场", "模型广场", "模型体验", "GPU 云电脑", "OLA Studio", "文档"].map((label) => <button key={label} onClick={() => notify(`${label}入口（演示），本次不展开官网子页面。`)}>{label}</button>)}</nav>
-      </> : <div className="topbar-spacer" />}
+      </> : <div className="topbar-spacer">{tenant ? <ProductSwitcher tenant={tenant} page={page} onNavigate={onNavigate} /> : null}</div>}
       <div className="topbar-actions">
         <button className="top-console-button" onClick={() => onNavigate(consoleHomePage(tenant))}><SquaresFour size={18} />{website ? "控制台" : "Console"}</button>
         {!website ? <><button className="top-icon-button" aria-label="文档" title="文档" onClick={() => notify("已打开文档入口")}><FileText size={20} /></button>
@@ -386,6 +434,7 @@ function Topbar({ tenant, tenants, onScopeChange, onNavigate, website = false })
           {profileOpen ? (
             <div className="profile-menu scope-profile-menu" id="profile-panel" role="dialog" aria-label="个人与租户切换">
               <ScopeOptions tenant={tenant} tenants={tenants} onSelect={selectScope} onCreate={() => notify("创建租户入口（演示）")} />
+              {tenant ? <><div className="menu-divider" /><button className="profile-return-personal" onClick={() => selectScope(null)}><User size={17} />返回个人版</button></> : null}
               <div className="menu-divider" />
               <button onClick={() => notify("中英文切换入口")}><Translate size={17} />中英文切换</button>
               <div className="menu-divider" />
@@ -429,7 +478,7 @@ function Dashboard() {
   ];
   return (
     <>
-      <PageHeader title="Dashboard"><button className="text-button"><ChartBar size={17} />指标管理</button><button className="text-button"><SlidersHorizontal size={17} />布局设置</button></PageHeader>
+      <PageHeader title="可观测性"><button className="text-button"><ChartBar size={17} />指标管理</button><button className="text-button"><SlidersHorizontal size={17} />布局设置</button></PageHeader>
       <div className="dashboard-tabs">{tabs.map((tab, index) => <button className={index === 0 ? "active" : ""} key={tab}>{tab}</button>)}</div>
       <div className="dashboard-filter"><button className="icon-button"><ArrowClockwise size={18} /></button><div className="filter-input"><Funnel size={16} />添加筛选项</div><div className="range-group"><button>近1小时</button><button className="selected">近1天</button><button>近30天</button><button>自定义</button></div></div>
       <div className="dashboard-metrics">
@@ -726,7 +775,7 @@ function GpuOrdersContent({ personal = false }) {
   </div>;
 }
 
-function OrdersPage({ initialTab = "desk" } = {}) {
+function OrdersPage({ initialTab = "desk", scoped = false } = {}) {
   const [tab, setTab] = useState(initialTab);
   const [filters, setFilters] = useState({});
   const [appliedFilters, setAppliedFilters] = useState({});
@@ -737,10 +786,10 @@ function OrdersPage({ initialTab = "desk" } = {}) {
   const rows = filterOrders(sourceRows, appliedFilters[tab] ?? {}, fields);
   return (
     <>
-      <PageHeader title="订单">{isOrderList ? <button className="primary-button desk-order-export" onClick={() => exportOrders(rows, headers.slice(0, -1), tab === "desk" ? "GPU 云电脑订单.csv" : "充值订单.csv")}><Export size={16} />导出数据</button> : null}</PageHeader>
-      <div className="content-card billing-card manage-record-card desk-order-tabs">
+      <PageHeader title={tab === "recharge" ? "充值记录" : "订单"}>{isOrderList ? <button className="primary-button desk-order-export" onClick={() => exportOrders(rows, headers.slice(0, -1), tab === "desk" ? "GPU 云电脑订单.csv" : "充值记录.csv")}><Export size={16} />导出数据</button> : null}</PageHeader>
+      {!scoped ? <div className="content-card billing-card manage-record-card desk-order-tabs">
         <div className="billing-tabs">{ORDER_TABS.map(([id, label]) => <button className={tab === id ? "active" : ""} onClick={() => setTab(id)} key={id}>{label}</button>)}</div>
-      </div>
+      </div> : null}
       {isOrderList ? <><OrderFilters key={tab} fields={fields} sourceRows={sourceRows} filters={filters[tab] ?? {}} onChange={(column, value) => setFilters((current) => ({ ...current, [tab]: { ...current[tab], [column]: value } }))} onQuery={() => setAppliedFilters((current) => ({ ...current, [tab]: filters[tab] ?? {} }))} onReset={() => { setFilters((current) => ({ ...current, [tab]: {} })); setAppliedFilters((current) => ({ ...current, [tab]: {} })); }} /><OrderTable rows={rows} headers={headers} label={tab === "desk" ? "GPU 云电脑订单" : "充值订单"} /></> : null}
       {tab === "gpu" ? <GpuOrdersContent /> : null}
     </>
@@ -818,13 +867,13 @@ function DeskBillingContent() {
   </div>;
 }
 
-function BillingDetailsPage({ tenant, initialTab = "api" } = {}) {
+function BillingDetailsPage({ tenant, initialTab = "api", scoped = false } = {}) {
   const [tab, setTab] = useState(initialTab);
   return (
     <>
-      <PageHeader title="费用明细" />
+      <PageHeader title="计费记录" />
       <div className={`content-card billing-card manage-record-card${tab === "gpu" ? " gpu-billing-record-card" : ""}`}>
-        <div className="billing-tabs">{BILLING_DETAIL_TABS.map(([id, label]) => <button className={tab === id ? "active" : ""} onClick={() => setTab(id)} key={id}>{label}</button>)}</div>
+        {!scoped ? <div className="billing-tabs">{BILLING_DETAIL_TABS.map(([id, label]) => <button className={tab === id ? "active" : ""} onClick={() => setTab(id)} key={id}>{label}</button>)}</div> : null}
         {tab === "api" ? <ApiLogContent /> : null}
         {tab === "gpu" ? <GpuBillingContent tenant={tenant} /> : null}
         {tab === "desk" ? <DeskBillingContent /> : null}
@@ -847,7 +896,15 @@ function GiftRecordsPage() {
 }
 
 function renderPage(page, onNavigate, tenant) {
-  if (page === "dashboard") return <Dashboard />;
+  if (page === "dashboard") return <ConsoleHome tenant={tenant} onNavigate={onNavigate} />;
+  if (page === "api-dashboard") return <Dashboard />;
+  if (page === "bills") return <UnifiedBills tenant={tenant} onNavigate={onNavigate} />;
+  if (page === "recharge-orders") return <OrdersPage initialTab="recharge" scoped />;
+  if (page === "gpu-orders") return <OrdersPage initialTab="gpu" scoped />;
+  if (page === "desk-orders") return <OrdersPage initialTab="desk" scoped />;
+  if (page === "api-billing") return <ProductBillingRecords tenant={tenant} product="api" onNavigate={onNavigate} />;
+  if (page === "gpu-billing") return <ProductBillingRecords tenant={tenant} product="gpu" onNavigate={onNavigate} />;
+  if (page === "desk-billing") return <ProductBillingRecords tenant={tenant} product="desk" onNavigate={onNavigate} />;
   if (page === "api-key") return <ApiKeyPage />;
   if (["memory", "prompt", "skill"].includes(page)) return <AssetPage page={page} />;
   if (page.startsWith("gpu-")) return <GpuPage page={page} />;
@@ -855,15 +912,13 @@ function renderPage(page, onNavigate, tenant) {
   if (["desk-disk", "desk-terminal", "desk-place", "term-year", "term-course", "term-task", "term-schedule", "term-mapping", "org-info", "user-list"].includes(page)) return <SimpleExistingPage title={PAGE_LABELS[page]} />;
   if (page === "org-tree") return <OrgTreePage />;
   if (page === "account-funds") return <AccountFundsPage onNavigate={onNavigate} />;
-  if (page === "orders") return <OrdersPage />;
-  if (page === "billing-details") return <BillingDetailsPage tenant={tenant} />;
   if (page === "gift-records") return <GiftRecordsPage />;
   return <Dashboard />;
 }
 
 // Personal context is not a tenant: only confirmed personal products and functions.
 const PERSONAL_PRODUCT_NAV = [
-  { id: "api", label: "API Router", icon: Key, items: [
+  { id: "api", label: "AI 模型服务", icon: Key, items: [
     { id: "personal-models", label: "模型", external: "https://onelinkai.cloud/pricingList" },
     { id: "personal-key", label: "API key" },
     { id: "personal-prompt", label: "提示词管理" },
@@ -887,6 +942,7 @@ const PERSONAL_PROGRAM_NAV = [
   { id: "personal-partner", label: "合作伙伴计划", icon: UsersThree },
 ];
 const PERSONAL_LOCAL_PAGES = [
+  "personal-home",
   ...PERSONAL_PRODUCT_NAV.flatMap(({ items }) => items.filter((item) => !item.external).map(({ id }) => id)),
   ...PERSONAL_MANAGE_NAV.flatMap(({ items }) => items.map(({ id }) => id)),
   ...PERSONAL_PROGRAM_NAV.map(({ id }) => id),
@@ -897,8 +953,8 @@ function personalPageOrHome(page) {
   return PERSONAL_LOCAL_PAGES.includes(page) ? page : consoleHomePage(null);
 }
 
-function PersonalSidebar({ page, onNavigate }) {
-  return <Sidebar tenant={null} page={page} onNavigate={onNavigate} />;
+function PersonalSidebar({ tenants = [], page, onNavigate, onScopeChange }) {
+  return <Sidebar tenant={null} tenants={tenants} page={page} onNavigate={onNavigate} onScopeChange={onScopeChange} />;
 }
 
 const PERSONAL_BILLING_TABS = [["api", "API调用"], ["gpu", "GPU Cloud"]];
@@ -922,7 +978,7 @@ function PersonalWalletPage({ onNavigate, initialTab = "api" }) {
   const [notice, setNotice] = useState("");
   const notify = (action) => setNotice(`${action}为演示入口，未连接个人资金系统，不会产生交易。`);
   return <><PageHeader title="钱包" /><div className="content-card personal-wallet-card">
-    <div className="billing-tabs">{[["api", "API Router"], ["gpu", "GPU Cloud"]].map(([id, label]) => <button key={id} className={tab === id ? "active" : ""} onClick={() => { setTab(id); setNotice(""); }}>{label}</button>)}</div>
+    <div className="billing-tabs">{[["api", "AI 模型服务"], ["gpu", "GPU Cloud"]].map(([id, label]) => <button key={id} className={tab === id ? "active" : ""} onClick={() => { setTab(id); setNotice(""); }}>{label}</button>)}</div>
     {tab === "api" ? <div className="personal-wallet-body">
       <div className="personal-wallet-balances">
         <section><h2>余额</h2><strong>0 <small>元</small></strong><button className="secondary-button" onClick={() => notify("发票开具")}>发票开具</button></section>
@@ -942,7 +998,8 @@ function PersonalPage({ page, onNavigate }) {
   useEffect(() => setNotice(""), [page]);
   const notify = (action) => setNotice(`${action}沿用现有功能，本轮仅演示入口，不修改真实个人账户或资源。`);
   let content;
-  if (page === "personal-account") {
+  if (page === "personal-home") content = <ConsoleHome onNavigate={onNavigate} />;
+  else if (page === "personal-account") {
     content = (
       <div className="content-card account-card personal-account-existing">
         <PageHeader title="个人资料" />
@@ -1003,17 +1060,40 @@ function getPrototypeSurface(hash) {
   return hash === "#/home" ? "home" : "console";
 }
 
+function tenantPageFromHash(hash, tenant) {
+  const slug = hash.replace(/^#\/console\/?/, '') || 'home';
+  const page = slug === 'home' ? 'dashboard' : slug;
+  if (['dashboard', 'bills', 'api-billing', 'gpu-billing', 'desk-billing'].includes(page)) return page;
+  if (MANAGE_NAV.some(group => containsPage(group.items, page))) return page;
+  if (PRODUCT_NAV.some(group => tenant.enabledProducts.includes(group.id) && containsPage(visibleItems(group.items, tenant), page))) return page;
+  return 'dashboard';
+}
+
 export function App({ availableTenants = TENANTS, initialSurface } = {}) {
-  const [scope, setScope] = useState(() => createConsoleState(availableTenants[0] ?? null));
+  const [scope, setScope] = useState(() => {
+    const initial = createConsoleState(availableTenants[0] ?? null);
+    if (initial.tenant && typeof window !== 'undefined') initial.page = tenantPageFromHash(window.location.hash, initial.tenant);
+    return initial;
+  });
   const [surface, setSurface] = useState(() => initialSurface ?? getPrototypeSurface(typeof window === "undefined" ? "" : window.location.hash));
   useEffect(() => {
-    const syncSurface = () => setSurface(getPrototypeSurface(window.location.hash));
+    const syncSurface = () => {
+      setSurface(getPrototypeSurface(window.location.hash));
+      if (window.location.hash.startsWith('#/console')) setScope(current => ({...current, page:current.tenant ? tenantPageFromHash(window.location.hash, current.tenant) : personalPageOrHome(window.location.hash.replace(/^#\/console\/?/, ''))}));
+    };
     window.addEventListener("hashchange", syncSurface);
     return () => window.removeEventListener("hashchange", syncSurface);
   }, []);
   const { tenant, page } = scope;
-  const setPage = (nextPage) => setScope((current) => ({ ...current, page: current.tenant ? nextPage : personalPageOrHome(nextPage) }));
-  const changeScope = (nextTenant) => setScope((current) => selectConsoleScope(current, nextTenant));
+  const setPage = (nextPage) => {
+    const safePage = tenant ? tenantPageFromHash(`#/console/${nextPage === 'dashboard' ? 'home' : nextPage}`, tenant) : personalPageOrHome(nextPage);
+    setScope(current => ({...current, page:safePage}));
+    window.location.hash = `/console/${safePage === 'dashboard' ? 'home' : safePage}`;
+  };
+  const changeScope = (nextTenant) => {
+    setScope((current) => selectConsoleScope(current, nextTenant));
+    if (surface !== 'home') window.location.hash = `/console/${nextTenant ? 'home' : consoleHomePage(null)}`;
+  };
   const enterConsole = () => {
     setPage(consoleHomePage(tenant));
     setSurface("console");
@@ -1022,9 +1102,9 @@ export function App({ availableTenants = TENANTS, initialSurface } = {}) {
   if (surface === "home") return <WebsiteHome tenant={tenant} tenants={availableTenants} onScopeChange={changeScope} onEnterConsole={enterConsole} />;
   return (
     <div className="app-shell">
-      {tenant ? <Sidebar key={tenant.id} tenant={tenant} page={page} onNavigate={setPage} /> : <PersonalSidebar page={page} onNavigate={setPage} />}
+      {tenant ? <Sidebar key={tenant.id} tenant={tenant} tenants={availableTenants} page={page} onNavigate={setPage} onScopeChange={changeScope} /> : <PersonalSidebar tenants={availableTenants} page={page} onNavigate={setPage} onScopeChange={changeScope} />}
       <main className="workspace">
-        <Topbar tenant={tenant} tenants={availableTenants} onScopeChange={changeScope} onNavigate={setPage} />
+        <Topbar tenant={tenant} tenants={availableTenants} onScopeChange={changeScope} onNavigate={setPage} page={page} />
         <section className="page-content" key={tenant?.id ?? "personal"}>{tenant ? renderPage(page, setPage, tenant) : <PersonalPage page={page} onNavigate={setPage} />}</section>
       </main>
     </div>

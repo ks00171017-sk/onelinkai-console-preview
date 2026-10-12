@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="zh-CN"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>运营后台 · 异常告警</title>
+<style>
+:root{
+  --teal:#13b5a6;--teal-d:#0fa294;--blue:#3b82f6;--blue-d:#2563eb;
+  --text:#1f2329;--text2:#646a73;--text3:#8f959e;--border:#e5e6eb;--bg:#f5f6f7;
+  --red:#f54a45;--green:#00b578;--orange:#ff8800;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;color:var(--text);font-size:14px;background:#fff}
+button{font-family:inherit;cursor:pointer;border:none;background:none;font-size:14px}
+input,select,textarea{font-family:inherit;font-size:14px;outline:none}
+.hidden{display:none!important}
+
+.topbar{height:60px;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:10px}
+.logo-mark{width:28px;height:28px;border-radius:8px;background:#2b6df6;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+.logo-txt{font-size:18px;font-weight:600}
+.topbar .sp{flex:1}
+.avatar{width:30px;height:30px;border-radius:50%;background:#eceefe;display:inline-flex;align-items:center;justify-content:center;font-size:13px;color:#5558e8;margin-right:8px}
+
+.wrap{display:flex;min-height:calc(100vh - 60px)}
+.side{width:220px;border-right:1px solid var(--border);padding:12px 0;background:#fff;flex:none}
+.side .it{padding:10px 22px;color:var(--text2);display:flex;align-items:center;gap:10px;cursor:pointer}
+.side .it:hover{background:#f7f8fa}
+.side .it.on{background:#eef4ff;color:#2b6df6;font-weight:500;border-right:2px solid #2b6df6}
+.side .sub{padding-left:44px;font-size:13.5px;cursor:pointer}
+.side .sub.on{background:#eef4ff;color:#2b6df6;font-weight:500;border-right:2px solid #2b6df6}
+.side .new-tag{background:var(--teal);color:#fff;border-radius:3px;font-size:10px;padding:1px 5px;margin-left:6px}
+
+.main{flex:1;background:var(--bg);padding:20px 24px}
+.crumb{color:var(--text2);font-size:13.5px;margin-bottom:16px}
+.crumb b{color:var(--text);font-weight:500}
+.panel{background:#fff;border-radius:10px;padding:22px 24px;margin-bottom:16px}
+.p-hd{display:flex;align-items:center;margin-bottom:18px}
+.p-hd h2{font-size:17px;font-weight:600;border-left:4px solid var(--teal);padding-left:10px}
+.p-hd .sp{flex:1}
+
+table.tb{width:100%;border-collapse:collapse;font-size:13.5px}
+table.tb th{text-align:left;color:var(--text2);font-weight:400;padding:11px 12px;background:#fafbfc;border-bottom:1px solid var(--border);white-space:nowrap}
+table.tb td{padding:12px;border-bottom:1px solid #f2f3f5;vertical-align:middle}
+table.tb tr:hover td{background:#fcfcfd}
+.lk{color:var(--blue);cursor:pointer}
+.lk.del{color:var(--red)}
+.lk+.lk{margin-left:12px}
+.lk.dis{color:var(--text3);cursor:default;text-decoration:none}
+
+.tag{display:inline-block;border-radius:4px;font-size:12px;padding:2px 9px;white-space:nowrap}
+.tag.fs{background:#e8f7f4;color:#0d9488}
+.tag.sms{background:#eef4ff;color:#2b6df6}
+.tag.grp{background:#fff4e6;color:#c2410c}
+.tag.own-t{background:#eef4ff;color:#2b6df6}
+.tag.own-p{background:#f4eefe;color:#7c3aed}
+.tag.ok{background:#e8f8f1;color:#0a7d55}
+.tag.fail{background:#fff1f0;color:var(--red)}
+.tag.ing{background:#fff7e8;color:#b45309}
+.st-on{color:var(--green)}
+.st-off{color:var(--text3)}
+
+.btn-p{background:var(--teal);color:#fff;border-radius:8px;padding:9px 18px;font-weight:500}
+.btn-p:hover{background:var(--teal-d)}
+.btn-o{border:1px solid var(--border);border-radius:8px;padding:8px 16px;color:var(--text2);background:#fff}
+.btn-o:hover{border-color:var(--teal);color:var(--teal)}
+.btn-plain{background:#f2f3f5;color:var(--text2);border-radius:8px;padding:9px 22px}
+.btn-blue{background:var(--blue);color:#fff;border-radius:8px;padding:9px 24px;font-weight:500}
+.btn-line{border:1px solid var(--border);border-radius:6px;padding:6px 13px;color:var(--text2);font-size:13px;background:#fff}
+.btn-line:hover{border-color:var(--teal);color:var(--teal)}
+.btn-line.testing{color:var(--text3);border-color:var(--border);cursor:default}
+.btn-line:disabled{cursor:default}
+.test-tip{font-size:12.5px;margin-top:8px;line-height:1.6}
+.test-tip.ok{color:#0a7d55}
+.test-tip.warn{color:#b45309}
+.test-tip.err{color:var(--red)}
+.test-tip .fail-li{color:var(--text2);margin-left:14px}
+.test-tip .fail-li b{color:#b45309;font-weight:500}
+
+/* 筛选区：每组 label+控件包成一个单元，避免换行被拆散 */
+.filter{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.fg{display:flex;align-items:center;gap:8px}
+.fg label{color:var(--text2);font-size:13.5px;white-space:nowrap}
+.fg .ipt{border:1px solid var(--border);border-radius:8px;padding:8px 11px;background:#fff;width:150px}
+.date-box{display:flex;align-items:center;border:1px solid var(--border);border-radius:8px;padding:8px 11px;gap:6px;color:#b8bcc4;width:196px;background:#fff;font-size:13px}
+
+/* 弹窗 */
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;display:none;align-items:flex-start;justify-content:center;overflow:auto;padding:40px 20px}
+.mask.open{display:flex}
+.modal{background:#fff;border-radius:12px;width:720px;max-width:96vw}
+.modal.sm{width:560px}
+.modal.lg{width:820px}
+.m-hd{display:flex;align-items:center;justify-content:space-between;padding:20px 26px;border-bottom:1px solid var(--border)}
+.m-hd h3{font-size:18px;font-weight:600}
+.m-close{font-size:20px;color:var(--text2);cursor:pointer;line-height:1}
+.m-bd{padding:22px 26px;max-height:68vh;overflow:auto}
+.m-ft{display:flex;justify-content:flex-end;gap:12px;padding:16px 26px;border-top:1px solid var(--border)}
+
+.f-item{margin-bottom:18px}
+.f-lb{font-size:14px;margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.f-lb .req{color:var(--red)}
+.ipt{width:100%;border:1px solid var(--border);border-radius:8px;padding:10px 12px;background:#f7f8fa}
+.ipt.ro{color:var(--text3)}
+.hint{color:var(--text3);font-size:12.5px;margin-top:7px;line-height:1.6}
+.cbrow{display:inline-flex;align-items:center;gap:8px;margin-right:22px;cursor:pointer}
+.cbrow input{width:16px;height:16px;accent-color:var(--blue);cursor:pointer}
+
+.nblk{border:1px solid var(--border);border-radius:10px;padding:16px 18px;margin-bottom:12px;background:#fcfcfd;position:relative}
+.nblk .rm{position:absolute;right:14px;top:14px;color:var(--red);font-size:13px;cursor:pointer}
+.nblk .t{font-size:13.5px;font-weight:500;margin-bottom:12px}
+.btn-add{border:1px dashed #c9cdd4;border-radius:8px;padding:11px 0;width:100%;color:var(--text2);font-size:13.5px;background:#fcfcfd}
+.btn-add:hover{border-color:var(--teal);color:var(--teal)}
+
+.prev-tabs{display:flex;gap:6px;margin:10px 0}
+.prev-tabs span{padding:5px 12px;border-radius:6px;font-size:12.5px;cursor:pointer;color:var(--text2);background:#f2f3f5}
+.prev-tabs span.on{background:var(--text);color:#fff}
+.fs-card{border:1px solid #e0e2e6;border-radius:10px;overflow:hidden;font-size:12.8px;line-height:1.85}
+.fs-hd{padding:9px 13px;color:#fff;font-weight:600;font-size:13px;background:#f54a45}
+.fs-bd{padding:11px 13px;background:#fff}
+.fs-bd .k{color:var(--text2)}
+.fs-bd hr{border:none;border-top:1px solid #f0f1f3;margin:9px 0}
+.sms-box{border:1px solid var(--border);border-radius:8px;padding:12px 14px;background:#fff;line-height:1.8;font-size:13px}
+
+.rcv-tb{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:8px}
+.rcv-tb th{text-align:left;color:var(--text2);font-weight:400;padding:6px 8px;border-bottom:1px solid var(--border)}
+.rcv-tb td{padding:7px 8px;border-bottom:1px solid #f2f3f5}
+.rcv-tb input{border:1px solid var(--border);border-radius:6px;padding:6px 9px;width:100%}
+.empty{text-align:center;color:var(--text3);padding:26px 0;font-size:13px}
+
+.switch{width:44px;height:24px;border-radius:12px;background:#c9cdd4;position:relative;cursor:pointer;transition:.2s;display:inline-block;vertical-align:middle}
+.switch.on{background:var(--blue)}
+.switch i{position:absolute;top:2.5px;left:2.5px;width:19px;height:19px;border-radius:50%;background:#fff;transition:.2s}
+.switch.on i{left:22.5px}
+
+.toast{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:#fff;box-shadow:0 4px 18px rgba(0,0,0,.14);border-radius:10px;padding:12px 20px;font-size:14.5px;z-index:300;display:none;align-items:center;gap:10px}
+.toast .ic{width:20px;height:20px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px}
+.pager{display:flex;align-items:center;gap:14px;color:var(--text2);font-size:13px;padding-top:14px}
+.pager .pg{border:1px solid var(--border);border-radius:6px;padding:4px 11px;cursor:pointer;background:#fff}
+.pager .pg.on{background:var(--teal);color:#fff;border-color:var(--teal)}
+.pager .pg.dis{color:var(--text3);cursor:not-allowed}
+.dlv-tb{width:100%;border-collapse:collapse;font-size:13px}
+.dlv-tb th{text-align:left;color:var(--text2);font-weight:400;padding:8px 10px;background:#fafbfc;border-bottom:1px solid var(--border)}
+.dlv-tb td{padding:9px 10px;border-bottom:1px solid #f2f3f5}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo-mark">◈</div><div class="logo-txt">OneLink AI</div>
+  <span class="sp"></span><span class="avatar">SK</span><span style="color:var(--text2)">演示用户</span>
+</div>
+
+<div class="wrap">
+  <div class="side">
+    <div class="it" style="color:var(--primary)" onclick="location.href='OneLink运营后台-原型.html'">← 返回运营后台</div>
+    <div class="it" onclick="location.href='OneLink运营后台-原型.html'">📦 商品管理</div><div class="it" onclick="location.href='OneLink运营后台-原型.html'">🖥 云电脑管理</div><div class="it">👤 用户管理</div>
+    <div class="it">🧾 订单管理</div><div class="it">💳 账单中心</div><div class="it">⚙️ 系统管理</div>
+    <div class="it">🔔 消息通知</div>
+    <div class="it sub" style="color:var(--text3);cursor:default">（面向 C 端用户，不动）</div>
+    <div class="it on">🚨 异常告警<span class="new-tag">新增</span></div>
+    <div class="it sub on" id="nav-rule" onclick="go('rule')">告警规则</div>
+    <div class="it sub" id="nav-grp" onclick="go('grp')">告警联系人组</div>
+    <div class="it sub" id="nav-log" onclick="go('log')">告警记录</div>
+  </div>
+
+  <div class="main">
+
+    <!-- ============ 告警规则 ============ -->
+    <div id="pg-rule">
+      <div class="crumb">异常告警 / <b>告警规则</b></div>
+      <div class="panel">
+        <div class="p-hd"><h2>告警规则</h2></div>
+        <table class="tb">
+          <thead><tr>
+            <th style="width:210px">告警名称</th><th style="width:250px">触发事件</th>
+            <th>通知配置</th><th style="width:100px">状态</th><th style="width:140px">操作</th>
+          </tr></thead>
+          <tbody id="rule-body"></tbody>
+        </table>
+        <div class="pager"><span id="rule-count"></span></div>
+      </div>
+    </div>
+
+    <!-- ============ 告警联系人组 ============ -->
+    <div id="pg-grp" class="hidden">
+      <div class="crumb">异常告警 / <b>告警联系人组</b></div>
+      <div class="panel">
+        <div class="p-hd"><h2>告警联系人组</h2><span class="sp"></span>
+          <button class="btn-p" onclick="openGrp(null)">＋ 新建联系人组</button></div>
+        <table class="tb">
+          <!-- 无「飞书群机器人」列：飞书为必填，该列恒为「已配置」，不承载任何信息 -->
+          <thead><tr><th>组名</th><th style="width:110px">成员数</th><th style="width:130px">被引用规则</th><th style="width:160px">更新时间</th><th style="width:130px">操作</th></tr></thead>
+          <tbody id="grp-body"></tbody>
+        </table>
+        <div class="pager"><span id="grp-count"></span></div>
+      </div>
+    </div>
+
+    <!-- ============ 告警记录 ============ -->
+    <div id="pg-log" class="hidden">
+      <div class="crumb">异常告警 / <b>告警记录</b></div>
+      <div class="panel">
+        <div class="p-hd"><h2>告警记录</h2>
+          <span class="sp"></span>
+          <span style="color:var(--muted)" title="原文件夹未提供对应页面">飞书推送效果示例（文件未提供）</span>
+        </div>
+        <div class="filter">
+          <div class="fg"><label>告警时间</label>
+            <div class="date-box"><span style="flex:1">开始时间</span>~<span style="flex:1">结束时间</span>🗓</div></div>
+          <div class="fg"><label>客户类型</label>
+            <select class="ipt" id="f-own" style="width:104px"><option value="">全部</option><option value="t">租户</option><option value="p">个人</option></select></div>
+          <div class="fg"><label>送达结果</label>
+            <select class="ipt" id="f-res" style="width:118px"><option value="">全部</option><option value="ok">全部成功</option><option value="fail">存在失败</option></select></div>
+          <div class="fg"><label>通知对象组</label>
+            <select class="ipt" id="f-grp" style="width:132px"><option value="">全部</option><option>云电脑运维组</option><option>夜间值班组</option></select></div>
+          <div class="fg"><label>云电脑ID</label>
+            <input class="ipt" id="f-id" placeholder="支持模糊查询" style="width:138px"></div>
+          <button class="btn-o" onclick="qLog()">查询</button><button class="btn-o" onclick="rstLog()">重置</button>
+        </div>
+        <table class="tb">
+          <thead><tr>
+            <th style="width:150px">告警时间</th><th style="width:180px">云电脑ID</th>
+            <th style="width:150px">机房/宿主机</th><th style="width:235px">所属客户</th>
+            <th style="width:190px">通知对象 · 渠道</th><th style="width:130px">送达结果</th><th style="width:110px">操作</th>
+          </tr></thead>
+          <tbody id="log-body"></tbody>
+        </table>
+        <div id="log-empty" class="empty hidden">暂无符合条件的告警记录</div>
+        <div class="pager">
+          <span id="log-count"></span>
+          <span style="flex:1"></span>
+          <span class="pg" id="pg-prev" onclick="pgGo(-1)">上一页</span>
+          <span id="pg-nums"></span>
+          <span class="pg" id="pg-next" onclick="pgGo(1)">下一页</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ============ 弹窗：规则配置 ============ -->
+<div class="mask" id="m-rule" onclick="if(event.target===this)cl('m-rule')">
+  <div class="modal">
+    <div class="m-hd"><h3>告警规则配置 · 云电脑异常离线</h3><span class="m-close" onclick="cl('m-rule')">✕</span></div>
+    <div class="m-bd">
+      <div class="f-item">
+        <div class="f-lb">触发事件</div>
+        <input class="ipt ro" value="云电脑状态转为「维护中」时立即触发" readonly>
+        <div class="hint">系统预置，不可修改。每台云电脑各触发一条，本期不做聚合（研发已确认）。</div>
+      </div>
+
+      <div class="f-lb" style="margin:22px 0 10px">通知配置
+        <span style="color:var(--text3);font-weight:400;font-size:12.5px">：可配置多条，分别指定「通知谁 · 什么渠道」</span></div>
+      <div id="nblk-wrap"></div>
+      <button class="btn-add" onclick="addNblk()">＋ 添加通知配置</button>
+
+      <div class="f-item" style="margin-top:22px">
+        <div class="f-lb">告警内容</div>
+        <div class="hint" style="margin:-2px 0 10px">一条规则只有一份告警内容，所有通知配置共用。飞书卡片由系统固定拼装，不可编辑；短信内容由所选的已报备模板决定。</div>
+        <div class="prev-tabs">
+          <span class="on" onclick="pv(0,this)">飞书</span><span onclick="pv(1,this)">短信</span>
+        </div>
+        <div id="p0">
+          <div class="fs-card"><div class="fs-hd">🔴 云电脑异常离线告警</div>
+            <div class="fs-bd">
+              <span class="k">故障类型：</span>云电脑异常离线，已转入「维护中」<br>
+              <span class="k">云电脑ID：</span>CPC-900000000000000001<br>
+              <span class="k">机房/宿主机：</span>鲍山机房 / host-07<br>
+              <span class="k">规格：</span>8核/16G · RTX 4090<br>
+              <span class="k">所属客户：</span><span class="tag own-t">租户</span> 示例科技大学济南校区<br>
+              <span class="k">触发时间：</span>2026-07-28 09:12:35
+              <hr>请尽快在<b>资源纳管平台</b>处理，并将该实例置为「<b>已关机</b>」；系统将按受影响课时自动赔付。
+            </div></div>
+        </div>
+        <div id="p1" class="hidden">
+          <div class="f-item" style="margin-bottom:12px">
+            <div class="f-lb"><span class="req" id="tpl-req">*</span>短信模板</div>
+            <select class="ipt" id="rule-tpl" onchange="draftTpl=this.value;paintSmsSel()">
+              <option value="">请选择已报备的短信模板</option>
+            </select>
+            <div class="hint" id="tpl-hint">从短信服务商已报备通过的模板中选择，不支持手工填写编号，避免填错导致告警发不出去。</div>
+          </div>
+          <div class="sms-box" id="sms-prev"></div>
+        </div>
+      </div>
+
+      <div class="f-item" style="margin-bottom:0">
+        <div class="f-lb">规则状态</div>
+        <span class="switch on" id="rule-sw" onclick="this.classList.toggle('on')"><i></i></span>
+      </div>
+    </div>
+    <div class="m-ft"><button class="btn-plain" onclick="cl('m-rule')">取消</button><button class="btn-blue" onclick="saveRule()">保存</button></div>
+  </div>
+</div>
+
+<!-- ============ 弹窗：联系人组 ============ -->
+<div class="mask" id="m-grp" onclick="if(event.target===this)cl('m-grp')">
+  <div class="modal sm">
+    <div class="m-hd"><h3 id="grp-title">新建联系人组</h3><span class="m-close" onclick="cl('m-grp')">✕</span></div>
+    <div class="m-bd">
+      <div class="f-item">
+        <div class="f-lb"><span class="req">*</span>组名</div>
+        <input class="ipt" id="g-name" placeholder="如：云电脑运维组">
+      </div>
+      <!-- 不设「群备注名」：手填的名称无法与飞书实际群校验，改名了系统也不知道，
+           只会给出虚假的确定感。真正能确认发对群的手段是下方的「发送测试消息」。 -->
+      <div class="f-item">
+        <div class="f-lb"><span class="req">*</span>飞书群机器人</div>
+        <input class="ipt" id="g-hook" placeholder="https://open.feishu.cn/open-apis/bot/v2/hook/xxxx" oninput="clearTestResult('fs')">
+      </div>
+      <div class="f-item">
+        <div class="f-lb"><span class="req">*</span>签名密钥</div>
+        <input class="ipt" id="g-sign" placeholder="飞书机器人安全设置「签名校验」的密钥" oninput="clearTestResult('fs')">
+        <div class="hint">机器人安全设置必须启用「签名校验」，密钥为必填项。</div>
+        <div style="margin-top:10px"><button class="btn-line" id="btn-fs" onclick="testFs()">发送测试消息</button></div>
+        <div class="test-tip hidden" id="tip-fs" role="status" aria-live="polite"></div>
+      </div>
+      <div class="f-item" style="margin-bottom:0">
+        <div class="f-lb">短信接收成员</div>
+        <table class="rcv-tb">
+          <thead><tr><th style="width:38%">姓名</th><th style="width:46%">手机号</th><th style="width:16%">操作</th></tr></thead>
+          <tbody id="rcv-body"></tbody>
+        </table>
+        <div id="rcv-empty" class="empty hidden" style="padding:16px 0">暂无成员，仅通过飞书群接收告警</div>
+        <div style="margin-top:10px">
+          <span class="lk" onclick="addRow()">＋ 添加成员</span>
+        </div>
+        <div style="margin-top:12px"><button class="btn-line" id="btn-sms" onclick="testSms()">发送测试短信</button></div>
+        <div class="test-tip hidden" id="tip-sms" role="status" aria-live="polite"></div>
+        <div class="hint" style="margin-top:8px">测试短信使用平台内置测试模板（内容："【OneLink AI】告警通道测试，无需处理。"），与告警规则中的业务模板无关，仅用于验证手机号可达。</div>
+      </div>
+    </div>
+    <div class="m-ft"><button class="btn-plain" onclick="cl('m-grp')">取消</button><button class="btn-blue" onclick="saveGrp()">保存</button></div>
+  </div>
+</div>
+
+<!-- ============ 弹窗：删除确认 ============ -->
+<div class="mask" id="m-del" onclick="if(event.target===this)cl('m-del')">
+  <div class="modal sm" style="width:460px">
+    <div class="m-hd"><h3>删除联系人组</h3><span class="m-close" onclick="cl('m-del')">✕</span></div>
+    <div class="m-bd" id="del-body" style="font-size:14px;line-height:1.9"></div>
+    <div class="m-ft" id="del-foot"></div>
+  </div>
+</div>
+
+<!-- ============ 弹窗：告警详情 ============ -->
+<div class="mask" id="m-detail" onclick="if(event.target===this)cl('m-detail')">
+  <div class="modal lg">
+    <div class="m-hd"><h3>告警详情</h3><span class="m-close" onclick="cl('m-detail')">✕</span></div>
+    <div class="m-bd" id="detail-body"></div>
+    <div class="m-ft"><button class="btn-plain" onclick="cl('m-detail')">关闭</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span class="ic">✓</span><span id="toast-msg"></span></div>
+
+<script>
+/* ================= Mock 数据 ================= */
+/* hook 用真实形态的随机 token —— 早前夹具把群名硬编码在 URL 尾部再截出来当群名用，
+   按真实 webhook 跑只会显示成乱码，属于用假数据掩盖了"群名无处可取"这个缺陷 */
+let GROUPS=[
+  {id:1,name:'云电脑运维组',
+   hook:'https://open.feishu.cn/open-apis/bot/v2/hook/9d8c1e2a-4b71-4f3c-a6e0-1f77b23c7a5d',sign:'Xk9pQm2vT7',members:[
+    {n:'张运维',p:'138****0000'},{n:'李值班',p:'138****0000'},{n:'王工',p:'138****0000'}],ref:1,up:'2026-07-28 10:12'},
+  {id:2,name:'夜间值班组',
+   hook:'https://open.feishu.cn/open-apis/bot/v2/hook/3e5a90b7-c214-48d6-9f0b-7ac4e8d1602f',sign:'Rm4tW8zL1c',
+   members:[{n:'赵夜班',p:'138****0000'},{n:'钱备份',p:'138****0000'}],ref:1,up:'2026-07-26 18:40'}
+]
+const SMS_TPLS=[
+  {id:'SMS_505075040',name:'云电脑异常离线告警',
+   text:'【OneLink AI】云电脑异常离线告警：{机房}-{云电脑ID} 已转入维护中，请在纳管平台处理并置为已关机。'},
+  {id:'SMS_505075041',name:'云电脑维护恢复通知',
+   text:'【OneLink AI】云电脑 {云电脑ID} 已恢复为已关机（系统盘已还原），云盘数据不受影响。'}
+]
+/* 预览用示例值 */
+const SMS_VARS={'{机房}':'鲍山机房','{宿主机}':'host-07','{云电脑ID}':'CPC-900000000000000001'}
+function smsText(id){
+  const t=SMS_TPLS.find(x=>x.id===id)
+  if(!t)return ''
+  return Object.entries(SMS_VARS).reduce((a,[k,v])=>a.split(k).join(v),t.text)
+}
+let RULE={name:'云电脑异常离线',sub:'维护中告警',ev:'云电脑状态转为「维护中」',on:true,
+  tpl:'SMS_505075040',   /* 短信模板属于规则级：一条规则只有一份告警内容 */
+  notis:[{grp:1,fs:true,sms:true},{grp:2,fs:false,sms:true}]}
+
+/* 归属主体：ty='t' 租户（学校/企业）· ty='p' 个人。同一字段承载两类主体，运维据此判断影响面与赔付路径 */
+const T1={ty:'t',n:'示例科技大学济南校区'},T2={ty:'t',n:'青岛职业技术学院'},T3={ty:'t',n:'济南工程职业学院'}
+const P1={ty:'p',n:'张明 138****0000'},P2={ty:'p',n:'李慧 138****0000'}
+function ownTag(o){
+  return o.ty==='p'
+    ? `<span class="tag own-p">个人</span> ${o.n}`
+    : `<span class="tag own-t">租户</span> ${o.n}`
+}
+let LOGS=[
+  {t:'2026-07-28 09:12:35',id:'CPC-900000000000000001',room:'鲍山机房',host:'host-07',tn:T1,grp:'云电脑运维组',ch:['fs','sms'],res:'ok',
+   dlv:[{c:'飞书',r:'飞书群',t:'09:12:36',s:'ok'},{c:'短信',r:'张运维 138****0000',t:'09:12:37',s:'ok'},{c:'短信',r:'李值班 138****0000',t:'09:12:37',s:'ok'},{c:'短信',r:'王工 138****0000',t:'09:12:38',s:'ok'}]},
+  {t:'2026-07-28 09:12:36',id:'CPC-900000000000000002',room:'鲍山机房',host:'host-07',tn:T1,grp:'云电脑运维组',ch:['fs','sms'],res:'fail',
+   dlv:[{c:'飞书',r:'飞书群',t:'09:12:37',s:'ok'},{c:'短信',r:'张运维 138****0000',t:'09:12:38',s:'fail',e:'模板未报备'},{c:'短信',r:'李值班 138****0000',t:'09:12:38',s:'fail',e:'模板未报备'},{c:'短信',r:'王工 138****0000',t:'09:12:38',s:'fail',e:'模板未报备'}]},
+  {t:'2026-07-28 09:12:38',id:'CPC-900000000000000003',room:'鲍山机房',host:'host-07',tn:T1,grp:'云电脑运维组',ch:['fs','sms'],res:'ok',
+   dlv:[{c:'飞书',r:'飞书群',t:'09:12:39',s:'ok'},{c:'短信',r:'张运维 138****0000',t:'09:12:40',s:'ok'}]},
+  {t:'2026-07-28 09:05:14',id:'CPC-900000000000000004',room:'鲍山机房',host:'host-08',tn:P1,grp:'云电脑运维组',ch:['fs','sms'],res:'ok',
+   dlv:[{c:'飞书',r:'飞书群',t:'09:05:15',s:'ok'},{c:'短信',r:'张运维 138****0000',t:'09:05:16',s:'ok'}]},
+  {t:'2026-07-28 08:47:02',id:'CPC-900000000000000005',room:'鲍山机房',host:'host-03',tn:T2,grp:'云电脑运维组',ch:['fs','sms'],res:'ok',
+   dlv:[{c:'飞书',r:'飞书群',t:'08:47:03',s:'ok'},{c:'短信',r:'张运维 138****0000',t:'08:47:04',s:'ok'}]},
+  {t:'2026-07-27 22:52:08',id:'CPC-900000000000000006',room:'鲍山机房',host:'host-08',tn:P2,grp:'云电脑运维组',ch:['fs'],res:'ok',
+   dlv:[{c:'飞书',r:'飞书群',t:'22:52:09',s:'ok'}]},
+  {t:'2026-07-27 22:15:40',id:'CPC-900000000000000007',room:'鲍山机房',host:'host-05',tn:T1,grp:'夜间值班组',ch:['sms'],res:'ok',
+   dlv:[{c:'短信',r:'赵夜班 138****0000',t:'22:15:41',s:'ok'},{c:'短信',r:'钱备份 138****0000',t:'22:15:41',s:'ok'}]},
+  {t:'2026-07-27 21:08:11',id:'CPC-900000000000000008',room:'鲍山机房',host:'host-02',tn:T2,grp:'云电脑运维组',ch:['fs','sms'],res:'fail',
+   dlv:[{c:'飞书',r:'飞书群',t:'21:08:12',s:'fail',e:'Webhook 地址无效（19001）'},{c:'短信',r:'张运维 138****0000',t:'21:08:13',s:'ok'}]},
+  {t:'2026-07-27 14:33:09',id:'CPC-900000000000000009',room:'鲍山机房',host:'host-01',tn:T1,grp:'云电脑运维组',ch:['fs','sms'],res:'ok',
+   dlv:[{c:'飞书',r:'飞书群',t:'14:33:10',s:'ok'},{c:'短信',r:'张运维 138****0000',t:'14:33:11',s:'ok'}]},
+  {t:'2026-07-27 10:02:55',id:'CPC-900000000000000010',room:'鲍山机房',host:'host-04',tn:T3,grp:'云电脑运维组',ch:['fs','sms'],res:'ok',
+   dlv:[{c:'飞书',r:'飞书群',t:'10:02:56',s:'ok'},{c:'短信',r:'李值班 138****0000',t:'10:02:57',s:'ok'}]},
+  {t:'2026-07-26 16:44:12',id:'CPC-900000000000000011',room:'鲍山机房',host:'host-03',tn:T2,grp:'云电脑运维组',ch:['fs','sms'],res:'ok',
+   dlv:[{c:'飞书',r:'飞书群',t:'16:44:13',s:'ok'},{c:'短信',r:'王工 138****0000',t:'16:44:14',s:'ok'}]},
+  {t:'2026-07-26 03:21:47',id:'CPC-900000000000000012',room:'鲍山机房',host:'host-06',tn:T1,grp:'夜间值班组',ch:['sms'],res:'fail',
+   dlv:[{c:'短信',r:'赵夜班 138****0000',t:'03:21:48',s:'fail',e:'手机号停机或空号'},{c:'短信',r:'钱备份 138****0000',t:'03:21:48',s:'ok'}]}
+]
+
+/* ================= 页面切换 ================= */
+function go(p){
+  ['rule','grp','log'].forEach(k=>{
+    document.getElementById('pg-'+k).classList.toggle('hidden',k!==p)
+    document.getElementById('nav-'+k).classList.toggle('on',k===p)
+  })
+  window.scrollTo(0,0)
+}
+function op(id){document.getElementById(id).classList.add('open')}
+function cl(id){document.getElementById(id).classList.remove('open')}
+let tt=null
+function toast(m){
+  document.getElementById('toast-msg').textContent=m
+  const t=document.getElementById('toast');t.style.display='flex'
+  clearTimeout(tt);tt=setTimeout(()=>t.style.display='none',2600)
+}
+const gName=id=>(GROUPS.find(g=>g.id===id)||{}).name||'—'
+
+/* ================= 规则列表 ================= */
+function renderRule(){
+  const cfg=RULE.notis.map(n=>{
+    const chs=(n.fs?'<span class="tag fs">飞书</span>':'')+(n.sms?'<span class="tag sms" style="margin-left:4px">短信</span>':'')
+    return `<span class="tag grp">${gName(n.grp)}</span> ${chs||'<span style="color:var(--text3);font-size:12px">未选渠道</span>'}`
+  }).join('<br>')
+  document.getElementById('rule-body').innerHTML=`
+    <tr>
+      <td><b>${RULE.name}</b><br><span style="color:var(--text3);font-size:12px">${RULE.sub}</span></td>
+      <td>${RULE.ev}</td>
+      <td style="line-height:2">${cfg}</td>
+      <td><span class="switch ${RULE.on?'on':''}" onclick="tgRule(this)"><i></i></span></td>
+      <td><span class="lk" onclick="openRule()">配置</span><span class="lk" onclick="go('log')">记录</span></td>
+    </tr>`
+  document.getElementById('rule-count').textContent='显示第 1 条-第 1 条，共 1 条'
+}
+function tgRule(el){
+  RULE.on=!RULE.on
+  renderRule()
+  toast(RULE.on?'规则已启用':'规则已禁用，将不再发送告警')
+}
+
+/* ================= 规则配置弹窗 ================= */
+function openRule(){
+  renderNblk()
+  document.getElementById('rule-sw').classList.toggle('on',RULE.on)
+  op('m-rule')
+}
+let draft=[]
+function renderNblk(){
+  draft=JSON.parse(JSON.stringify(RULE.notis))
+  draftTpl=RULE.tpl||''
+  paintNblk();paintSmsSel()
+}
+/* 短信模板下拉与预览：模板是规则级的，预览始终只有一份，与所选模板一致 */
+let draftTpl=''
+function paintSmsSel(){
+  const sel=document.getElementById('rule-tpl')
+  if(!sel)return
+  const anySms=draft.some(n=>n.sms)
+  sel.innerHTML='<option value="">请选择已报备的短信模板</option>'+
+    SMS_TPLS.map(t=>`<option value="${t.id}" ${draftTpl===t.id?'selected':''}>${t.id} · ${t.name}</option>`).join('')
+  sel.disabled=!anySms
+  document.getElementById('tpl-req').style.visibility=anySms?'visible':'hidden'
+  document.getElementById('tpl-hint').textContent=anySms
+    ? '从短信服务商已报备通过的模板中选择，不支持手工填写编号，避免填错导致告警发不出去。'
+    : '当前没有任何通知配置勾选短信渠道，无需选择模板。'
+  const box=document.getElementById('sms-prev')
+  box.textContent=anySms?(smsText(draftTpl)||'选择模板后显示短信内容')
+    : '未启用短信渠道，不发送短信。'
+  box.style.color=anySms&&draftTpl?'':'var(--text3)'
+}
+function paintNblk(){
+  document.getElementById('nblk-wrap').innerHTML=draft.map((n,i)=>`
+    <div class="nblk">
+      ${draft.length>1?`<span class="rm" onclick="rmNblk(${i})">移除</span>`:''}
+      <div class="t">通知配置 ${'①②③④⑤'[i]||'#'+(i+1)}</div>
+      <div class="f-item">
+        <div class="f-lb"><span class="req">*</span>通知对象组</div>
+        <select class="ipt" onchange="draft[${i}].grp=+this.value">
+          ${GROUPS.map(g=>`<option value="${g.id}" ${g.id===n.grp?'selected':''}>${g.name}（${g.members.length} 人）</option>`).join('')}
+        </select>
+        <div class="hint">在「告警联系人组」中维护 <span class="lk" onclick="cl('m-rule');go('grp')">前往管理</span></div>
+      </div>
+      <div class="f-item" style="margin-bottom:0">
+        <div class="f-lb">发送渠道</div>
+        <label class="cbrow"><input type="checkbox" ${n.fs?'checked':''} onchange="draft[${i}].fs=this.checked;paintNblk();paintSmsSel()"> 🤖 飞书群机器人</label>
+        <label class="cbrow"><input type="checkbox" ${n.sms?'checked':''} onchange="draft[${i}].sms=this.checked;paintNblk();paintSmsSel()"> 💬 短信</label>
+      </div>
+    </div>`).join('')
+}
+function addNblk(){draft.push({grp:GROUPS[0].id,fs:true,sms:true});paintNblk();paintSmsSel()}
+function rmNblk(i){draft.splice(i,1);paintNblk();paintSmsSel()}
+function saveRule(){
+  if(draft.some(n=>!n.fs&&!n.sms)){toast('每条通知配置至少选择一个渠道');return}
+  if(draft.some(n=>n.sms)&&!draftTpl){
+    toast('已启用短信渠道，请在「告警内容 · 短信」中选择模板')
+    pv(1,document.querySelectorAll('.prev-tabs span')[1]);return}
+  RULE.notis=draft;RULE.tpl=draftTpl
+  RULE.on=document.getElementById('rule-sw').classList.contains('on')
+  renderRule();cl('m-rule');toast('规则已保存')
+}
+function pv(i,el){
+  el.parentElement.querySelectorAll('span').forEach(s=>s.classList.remove('on'))
+  el.classList.add('on')
+  ;[0,1].forEach(k=>document.getElementById('p'+k).classList.toggle('hidden',k!==i))
+}
+
+/* ================= 联系人组 ================= */
+function renderGrp(){
+  document.getElementById('grp-body').innerHTML=GROUPS.map(g=>`
+    <tr>
+      <td><b>${g.name}</b></td>
+      <td>${g.members.length} 人</td>
+      <td>${g.ref} 条</td>
+      <td>${g.up}</td>
+      <td><span class="lk" onclick="openGrp(${g.id})">编辑</span><span class="lk del" onclick="delGrp(${g.id})">删除</span></td>
+    </tr>`).join('')
+  document.getElementById('grp-count').textContent=`显示第 1 条-第 ${GROUPS.length} 条，共 ${GROUPS.length} 条`
+}
+let editGrpId=null
+function openGrp(id){
+  editGrpId=id
+  const g=id?GROUPS.find(x=>x.id===id):null
+  document.getElementById('grp-title').textContent=g?'编辑联系人组':'新建联系人组'
+  document.getElementById('g-name').value=g?g.name:''
+  document.getElementById('g-hook').value=g?g.hook:''
+  document.getElementById('g-sign').value=g?g.sign:''
+  paintRcv(g?g.members:[])
+  ;[['btn-fs','发送测试消息','tip-fs'],['btn-sms','发送测试短信','tip-sms']].forEach(([b,t,ti])=>{
+    const el=document.getElementById(b);el.className='btn-line';el.textContent=t;el.disabled=false
+    document.getElementById(ti).classList.add('hidden')
+  })
+  op('m-grp')
+}
+function paintRcv(list){
+  document.getElementById('rcv-body').innerHTML=list.map(m=>rowHtml(m.n,m.p)).join('')
+  chkRcv()
+}
+function rowHtml(n,p){
+  return `<tr><td><input value="${n||''}" placeholder="姓名" oninput="clearTestResult('sms')"></td><td><input value="${p||''}" placeholder="手机号" oninput="clearTestResult('sms')"></td><td><span class="lk del" onclick="delRow(this)">删除</span></td></tr>`
+}
+function addRow(){document.getElementById('rcv-body').insertAdjacentHTML('beforeend',rowHtml());chkRcv();clearTestResult('sms')}
+function delRow(el){el.closest('tr').remove();chkRcv();clearTestResult('sms')}
+function chkRcv(){
+  const n=document.querySelectorAll('#rcv-body tr').length
+  document.getElementById('rcv-empty').classList.toggle('hidden',n>0)
+}
+function clearTestResult(channel){
+  document.getElementById('tip-'+channel).classList.add('hidden')
+}
+/* 只在按钮下方展示一条结果；发送失败后原按钮即为重试入口。 */
+function runTest(btnId,tipId,label,check,run){
+  const btn=document.getElementById(btnId),tip=document.getElementById(tipId)
+  const issue=check()
+  if(issue){
+    const msg=typeof issue==='string'?issue:issue.msg
+    const target=typeof issue==='object'?issue.target:null
+    toast(msg)
+    if(target)(typeof target==='string'?document.getElementById(target):target)?.focus()
+    return
+  }
+  btn.className='btn-line testing';btn.textContent='发送中…';btn.disabled=true
+  tip.classList.add('hidden')
+  setTimeout(()=>{
+    const r=run?run():{st:'ok',msg:'已于 '+new Date().toTimeString().slice(0,8)+' 发送，请到对应渠道确认是否收到'}
+    const M={ok:['ok','✓ '],warn:['warn','⚠ '],fail:['err','✕ ']}[r.st]
+    btn.className='btn-line';btn.textContent=label;btn.disabled=false
+    tip.className='test-tip '+M[0];tip.innerHTML=M[1]+r.msg
+  },1200)
+}
+function testFs(){
+  runTest('btn-fs','tip-fs','发送测试消息',()=>{
+    if(!document.getElementById('g-hook').value.trim())return {msg:'请先填写飞书 Webhook 地址',target:'g-hook'}
+    if(!document.getElementById('g-sign').value.trim())return {msg:'请先填写签名密钥',target:'g-sign'}
+    return ''
+  },()=>{
+    const hook=document.getElementById('g-hook').value.trim()
+    const sign=document.getElementById('g-sign').value.trim()
+    /* 原型演示：Webhook 以 /invalid 结尾或密钥填 invalid 时返回失败。 */
+    if(hook.endsWith('/invalid')||sign==='invalid')
+      return {st:'fail',msg:'发送失败，请检查飞书机器人配置后重试。'}
+    return {st:'ok',msg:'已于 '+new Date().toTimeString().slice(0,8)+' 推送到飞书群，请确认是否收到'}
+  })
+}
+/* 演示用：模拟运营商侧的送达失败（真实环境由短信服务商回执决定） */
+const SMS_UNREACHABLE={'138****0000':'手机号停机或空号'}
+function testSms(){
+  let rows=[]
+  runTest('btn-sms','tip-sms','发送测试短信',()=>{
+    rows=[...document.querySelectorAll('#rcv-body tr')].map(tr=>{
+      const i=tr.querySelectorAll('input');return {n:i[0].value.trim(),p:i[1].value.trim(),target:i[1]}
+    }).filter(m=>m.n||m.p)
+    if(!rows.length)return '请先添加短信接收成员'
+    const bad=rows.find(m=>!/^1[3-9]\d{9}$|^1\d{2}\*{4}\d{4}$/.test(m.p))
+    if(bad)return {msg:`成员「${bad.n||'未填姓名'}」的手机号格式不正确`,target:bad.target}
+    return ''
+  },()=>{
+    const fails=rows.filter(m=>SMS_UNREACHABLE[m.p])
+    const okN=rows.length-fails.length
+    if(!fails.length)
+      return {st:'ok',msg:`已向 ${rows.length} 位成员全部发送成功（内置测试模板），请确认是否收到`}
+    if(!okN)
+      return {st:'fail',msg:'发送失败，请检查短信通道配置或成员手机号后重试。'}
+    // 部分成功：点名到人，否则用户还要自己猜是谁
+    const show=fails.slice(0,3).map(m=>
+      `<div class="fail-li">· ${m.n||'未填姓名'} ${m.p} —— <b>${SMS_UNREACHABLE[m.p]}</b></div>`).join('')
+    const more=fails.length>3?`<div class="fail-li">· 等其余 ${fails.length-3} 人</div>`:''
+    return {st:'warn',msg:`${rows.length} 位成员中 <b>${okN} 人成功、${fails.length} 人失败</b>${show}${more}`+
+      `<div style="margin-top:4px">短信通道本身正常，请核对上述成员的手机号后重新测试。</div>`}
+  })
+}
+
+function saveGrp(){
+  const name=document.getElementById('g-name').value.trim()
+  if(!name){toast('请填写组名');return}
+  const members=[...document.querySelectorAll('#rcv-body tr')].map(tr=>{
+    const i=tr.querySelectorAll('input');return {n:i[0].value.trim(),p:i[1].value.trim()}
+  }).filter(m=>m.n||m.p)
+  const hook=document.getElementById('g-hook').value.trim()
+  const sign=document.getElementById('g-sign').value.trim()
+  if(!hook){toast('请填写飞书群机器人 Webhook 地址');return}
+  if(!sign){toast('签名密钥为必填项');return}
+  const now='2026-07-28 '+new Date().toTimeString().slice(0,5)
+  if(editGrpId){
+    const g=GROUPS.find(x=>x.id===editGrpId)
+    Object.assign(g,{name,hook,sign,members,up:now})
+  }else{
+    GROUPS.push({id:Date.now(),name,hook,sign,members,ref:0,up:now})
+  }
+  renderGrp();renderRule();cl('m-grp');toast(editGrpId?'联系人组已更新':'联系人组已创建')
+}
+function delGrp(id){
+  const g=GROUPS.find(x=>x.id===id)
+  const body=document.getElementById('del-body'),foot=document.getElementById('del-foot')
+  if(g.ref>0){
+    body.innerHTML=`联系人组「<b>${g.name}</b>」正被 <b style="color:var(--red)">${g.ref} 条</b>告警规则引用，无法删除。<br><span style="color:var(--text2);font-size:13px">请先在告警规则中移除对该组的引用。</span>`
+    foot.innerHTML=`<button class="btn-plain" onclick="cl('m-del')">知道了</button><button class="btn-blue" onclick="cl('m-del');go('rule')">去处理</button>`
+  }else{
+    body.innerHTML=`确定删除联系人组「<b>${g.name}</b>」吗？删除后不可恢复。`
+    foot.innerHTML=`<button class="btn-plain" onclick="cl('m-del')">取消</button><button class="btn-blue" style="background:var(--red)" onclick="doDelGrp(${id})">确认删除</button>`
+  }
+  op('m-del')
+}
+function doDelGrp(id){
+  GROUPS=GROUPS.filter(g=>g.id!==id)
+  renderGrp();cl('m-del');toast('联系人组已删除')
+}
+
+/* ================= 告警记录 ================= */
+let filtered=LOGS.slice(),page=1
+const SIZE=5
+function chTag(ch){
+  return (ch.includes('fs')?'<span class="tag fs">飞书</span>':'')+(ch.includes('sms')?'<span class="tag sms" style="margin-left:4px">短信</span>':'')
+}
+function renderLog(){
+  const total=filtered.length,pages=Math.max(1,Math.ceil(total/SIZE))
+  if(page>pages)page=pages
+  const rows=filtered.slice((page-1)*SIZE,page*SIZE)
+  document.getElementById('log-body').innerHTML=rows.map((r,i)=>{
+    const idx=LOGS.indexOf(r)
+    const res=r.res==='ok'?'<span class="tag ok">全部成功</span>':'<span class="tag fail">存在失败</span>'
+    const act=`<span class="lk" onclick="openDetail(${idx})">详情</span>`
+    return `<tr>
+      <td>${r.t}</td><td>${r.id}</td>
+      <td>${r.room}<br><span style="color:var(--text3);font-size:12px">${r.host}</span></td>
+      <td>${ownTag(r.tn)}</td>
+      <td>${r.grp}<br>${chTag(r.ch)}</td>
+      <td>${res}</td><td>${act}</td>
+    </tr>`}).join('')
+  document.getElementById('log-empty').classList.toggle('hidden',total>0)
+  document.getElementById('log-count').textContent=total?`显示第 ${(page-1)*SIZE+1} 条-第 ${Math.min(page*SIZE,total)} 条，共 ${total} 条`:''
+  let nums='';for(let i=1;i<=pages;i++)nums+=`<span class="pg ${i===page?'on':''}" onclick="pgSet(${i})">${i}</span> `
+  document.getElementById('pg-nums').innerHTML=nums
+  document.getElementById('pg-prev').className='pg'+(page===1?' dis':'')
+  document.getElementById('pg-next').className='pg'+(page===pages?' dis':'')
+}
+function pgGo(d){
+  const pages=Math.max(1,Math.ceil(filtered.length/SIZE))
+  page=Math.min(pages,Math.max(1,page+d));renderLog()
+}
+function pgSet(i){page=i;renderLog()}
+function qLog(){
+  const o=document.getElementById('f-own').value
+  const r=document.getElementById('f-res').value
+  const g=document.getElementById('f-grp').value,id=document.getElementById('f-id').value.trim()
+  filtered=LOGS.filter(x=>(!o||x.tn.ty===o)&&(!r||(r==='ok'?x.res==='ok':x.res==='fail'))&&(!g||x.grp===g)&&(!id||x.id.includes(id)))
+  page=1;renderLog()
+  toast(`查询完成，共 ${filtered.length} 条`)
+}
+function rstLog(){
+  ['f-own','f-res','f-grp'].forEach(i=>document.getElementById(i).selectedIndex=0)
+  document.getElementById('f-id').value=''
+  filtered=LOGS.slice();page=1;renderLog()
+}
+function openDetail(i){
+  const r=LOGS[i]
+  document.getElementById('detail-body').innerHTML=`
+    <div class="f-item">
+      <div class="f-lb">告警信息</div>
+      <div class="fs-card"><div class="fs-hd">🔴 云电脑异常离线告警</div>
+        <div class="fs-bd">
+          <span class="k">故障类型：</span>云电脑异常离线，已转入「维护中」<br>
+          <span class="k">云电脑ID：</span>${r.id}<br>
+          <span class="k">机房/宿主机：</span>${r.room} / ${r.host}<br>
+          <span class="k">所属客户：</span>${ownTag(r.tn)}<br>
+          <span class="k">触发时间：</span>${r.t}
+          <hr>请尽快在<b>资源纳管平台</b>处理，并将该实例置为「<b>已关机</b>」${r.tn.ty==='p'?'':'；系统将按受影响课时自动赔付'}。
+        </div></div>
+    </div>
+    <div class="f-item" style="margin-bottom:0">
+      <div class="f-lb">送达明细 · 通知对象组：${r.grp}</div>
+      <table class="dlv-tb">
+        <thead><tr><th style="width:80px">渠道</th><th>接收方</th><th style="width:110px">发送时间</th><th style="width:200px">结果</th></tr></thead>
+        <tbody>${r.dlv.map(d=>`<tr>
+          <td><span class="tag ${d.c==='飞书'?'fs':'sms'}">${d.c}</span></td>
+          <td>${d.r}</td><td>${d.t}</td>
+          <td>${d.s==='ok'?'<span class="tag ok">成功</span>':`<span class="tag fail">失败</span> <span style="color:var(--text3);font-size:12px">${d.e||''}</span>`}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+      ${r.res==='fail'?'<div class="hint">送达失败通常由渠道配置问题引起（模板未报备、Webhook 无效、手机号异常），请到「告警联系人组」核对并用「发送测试」验证。</div>':''}
+    </div>`
+  op('m-detail')
+}
+
+/* ================= 初始化 ================= */
+renderRule();renderGrp();renderLog()
+
+/* 支持从运营后台侧边栏按 #rule / #grp / #log 直达对应页 */
+function fromHash(){
+  const h=(location.hash||'').replace('#','')
+  if(['rule','grp','log'].includes(h)) go(h)
+}
+fromHash()
+window.addEventListener('hashchange',fromHash)
+</script>
+</body></html>

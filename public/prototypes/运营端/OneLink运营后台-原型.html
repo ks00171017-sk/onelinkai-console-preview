@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OneLink 运营后台 · 商品管理 · 单页分组表单原型</title>
+<style>
+:root{
+  --primary:#2b6cf6;--primary-l:#eaf1ff;--text:#1f2329;--text2:#646a73;--text3:#9aa0a8;
+  --border:#e5e6eb;--split:#f0f1f3;--bg:#f5f6f8;--red:#f0413c;--red-l:#fff1f0;--green:#12b76a;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;font-size:14px;color:var(--text);background:var(--bg)}
+button{font-family:inherit;cursor:pointer;border:none;background:none;font-size:14px}
+input,select,textarea{font-family:inherit;font-size:14px;outline:none}
+.hidden{display:none!important}
+/* ===== 布局 ===== */
+.top{display:flex;align-items:center;justify-content:space-between;background:#fff;padding:14px 24px;border-bottom:1px solid var(--border)}
+.logo{display:flex;align-items:center;gap:10px;font-size:19px;font-weight:800}
+.logo .mk{width:30px;height:30px;border-radius:8px;background:conic-gradient(from 210deg,#17191d 0 55%,#5b6bf0 55% 70%,#17191d 70% 100%)}
+.top .u{display:flex;align-items:center;gap:14px;color:var(--text)}
+.wrap{display:flex}
+.side{width:230px;background:#fff;border-right:1px solid var(--border);min-height:calc(100vh - 59px);padding:12px 10px;flex:none}
+.si{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;color:var(--text);cursor:pointer;font-size:14px}
+.si:hover{background:#f5f6f8}
+.si .arr{margin-left:auto;color:var(--text3);font-size:11px}
+.si.sub{padding-left:38px;color:var(--text2)}
+.si.active{background:var(--primary-l);color:var(--primary);font-weight:600}
+.main{flex:1;padding:20px 26px;min-width:0}
+.crumb{color:var(--text3);margin-bottom:16px}
+.crumb b{color:var(--text);font-weight:600}
+.card{background:#fff;border-radius:10px;padding:20px 22px;margin-bottom:16px}
+.f-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px 40px;margin-bottom:18px}
+.f-grid label{display:block;font-weight:600;margin-bottom:8px}
+.ipt{width:100%;border:1px solid var(--border);border-radius:8px;padding:9px 12px;background:#f7f8fa;color:var(--text)}
+.ipt::placeholder{color:#b8bcc4}
+select.ipt{appearance:none;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239aa0a8' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center #f7f8fa}
+.btn-p{background:var(--primary);color:#fff;border-radius:8px;padding:9px 20px;font-weight:500}
+.btn-p:hover{background:#1e5ce0}
+.btn-o{background:#f2f3f5;color:var(--text2);border-radius:8px;padding:9px 18px}
+.sel-bar{background:var(--primary-l);border:1px solid #cfe0ff;border-radius:8px;padding:12px 16px;color:var(--primary);margin-bottom:14px}
+table.tb{width:100%;border-collapse:collapse}
+table.tb th{background:#f7f8fa;text-align:left;padding:12px;color:var(--text2);font-weight:500;border-bottom:1px solid var(--border)}
+table.tb td{padding:14px 12px;border-bottom:1px solid var(--split);vertical-align:middle}
+.pill-on{display:inline-flex;align-items:center;gap:8px;background:var(--primary);color:#fff;border-radius:16px;padding:4px 8px 4px 14px;font-size:13px}
+.pill-on i{width:16px;height:16px;border-radius:50%;background:#fff;display:inline-block}
+.pill-off{display:inline-flex;align-items:center;gap:8px;background:#c9cdd4;color:#fff;border-radius:16px;padding:4px 14px 4px 8px;font-size:13px}
+.pill-off i{width:16px;height:16px;border-radius:50%;background:#fff;display:inline-block}
+.lk{color:var(--primary);cursor:pointer}
+.lk.d{color:var(--red)}
+.mini-tag{display:inline-block;background:#f2f3f5;border-radius:4px;padding:2px 8px;font-size:12px;color:var(--text2);margin-top:6px}
+/* ===== toast ===== */
+#toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:3000;display:none;align-items:center;gap:10px;background:#fff;box-shadow:0 6px 24px rgba(0,0,0,.14);border-radius:10px;padding:11px 18px}
+#toast .ic{width:20px;height:20px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+#toast.success .ic{background:var(--green)}
+#toast.error .ic{background:var(--red)}
+/* ===== 新建商品独立页 ===== */
+.pgc-flex{display:flex;gap:18px;align-items:flex-start}
+.pgc-main{flex:1;min-width:0}
+/* 右侧竖排锚点导航 */
+.anchors{width:160px;flex:none;position:sticky;top:16px;background:#fff;border-radius:10px;padding:10px 8px;box-shadow:0 1px 6px rgba(0,0,0,.05);display:flex;flex-direction:column;gap:2px}
+.anchors .an{padding:10px 12px;cursor:pointer;color:var(--text2);font-size:14px;display:flex;align-items:center;gap:7px;border-left:2px solid transparent;border-radius:0 6px 6px 0}
+.anchors .an:hover{background:#f5f6f8}
+.anchors .an.on{color:var(--primary);font-weight:600;border-left-color:var(--primary);background:var(--primary-l)}
+.anchors .an .err-badge{margin-left:auto}
+.err-badge{min-width:17px;height:17px;border-radius:9px;background:var(--red);color:#fff;font-size:11px;display:none;align-items:center;justify-content:center;padding:0 5px;font-weight:600}
+.err-badge.show{display:inline-flex}
+/* 分区卡片 */
+.sec{background:#fff;border-radius:10px;padding:22px 26px;margin-bottom:16px;scroll-margin-top:16px}
+.sec-h{display:flex;align-items:center;gap:10px;font-size:15px;font-weight:600;margin-bottom:18px}
+.sec-h::before{content:"";width:4px;height:15px;border-radius:2px;background:var(--primary)}
+.sec-h .opt{font-weight:400;font-size:12.5px;color:var(--text3)}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:0 26px}
+.fi{margin-bottom:20px}
+.fi .lbl{display:block;font-weight:600;margin-bottom:8px}
+.fi .lbl .req{color:var(--red);margin-right:3px}
+.fi .lbl .hint{font-weight:400;color:var(--text3);font-size:12.5px}
+.fi .cnt-wrap{position:relative}
+.fi .cnt{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:12px}
+textarea.ipt{resize:vertical;min-height:88px}
+.err-msg{display:none;color:var(--red);font-size:12.5px;margin-top:6px}
+.fi.err .ipt,.fi.err .node,.fi.err .chk-line{border-color:var(--red)!important;background:var(--red-l)}
+.fi.err .err-msg{display:block}
+.fi.flash .ipt,.fi.flash .node,.fi.flash .chk-line{box-shadow:0 0 0 3px rgba(240,65,60,.18);transition:box-shadow .3s}
+.switch{width:40px;height:22px;border-radius:11px;background:#c9cdd4;position:relative;cursor:pointer;display:inline-block}
+.switch::after{content:"";position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:2px;left:2px;transition:left .15s}
+.switch.on{background:var(--primary)}
+.switch.on::after{left:20px}
+.node{border:1px solid var(--border);border-radius:8px;padding:12px 14px;display:flex;gap:9px;align-items:flex-start;cursor:pointer;background:#fff;font-size:13.5px;line-height:1.5}
+.node.stale{background:#f7f8fa;color:var(--text3);cursor:not-allowed;border-style:dashed}
+.node.stale input{pointer-events:none}
+.stale-tag{display:inline-block;background:#fff1f0;color:var(--red);border-radius:4px;padding:1px 7px;font-size:11.5px;margin-left:6px;white-space:nowrap}
+.nodes-empty{grid-column:1/-1;border:1px dashed var(--border);border-radius:8px;padding:26px 14px;text-align:center;color:var(--text3);font-size:13px;background:#fafbfc}
+.nodes-hint{display:none;color:#8a5a00;background:#fff7e8;border:1px solid #ffe3b3;border-radius:8px;padding:9px 12px;font-size:12.5px;margin-top:8px;line-height:1.6}
+.nodes-hint.show{display:block}
+.node input{margin-top:2px;accent-color:var(--primary)}
+.nodes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chk-line{display:flex;gap:26px;padding:6px 2px;border:1px solid transparent;border-radius:8px;flex-wrap:wrap}
+.chk-line label{display:flex;align-items:center;gap:7px;cursor:pointer}
+.chk-line input{width:16px;height:16px;accent-color:var(--primary)}
+/* 错误汇总 + 底部操作栏 */
+.v-summary{display:none;gap:10px;background:var(--red-l);border:1px solid #f7c6c4;border-radius:10px;padding:12px 20px;font-size:13px;color:#a12b27;line-height:2;margin-bottom:12px}
+.v-summary.show{display:flex}
+.v-summary .go{color:var(--red);text-decoration:underline;cursor:pointer;margin-right:12px;white-space:nowrap}
+.actbar{position:sticky;bottom:12px;background:#fff;border-radius:10px;padding:14px 22px;display:flex;justify-content:flex-end;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(0,0,0,.10);z-index:100}
+/* ===== 弹窗 ===== */
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:2000;display:none;align-items:center;justify-content:center}
+.mask.show{display:flex}
+.dlg{background:#fff;border-radius:12px;width:480px;max-width:92vw;padding:24px 26px;box-shadow:0 12px 40px rgba(0,0,0,.18)}
+.dlg-h{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:600;margin-bottom:14px}
+.dlg-h .wic{width:22px;height:22px;border-radius:50%;background:var(--red);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex:none}
+.dlg-h .x{margin-left:auto;color:var(--text3);cursor:pointer;font-size:16px}
+.dlg-b{color:var(--text2);line-height:1.8;font-size:14px}
+.dlg-b b{color:var(--text)}
+.dlg-f{display:flex;justify-content:flex-end;gap:12px;margin-top:24px}
+.btn-d{background:var(--red);color:#fff;border-radius:8px;padding:9px 20px;font-weight:500}
+.btn-d:hover{background:#d63631}
+/* ===== 商品列表机房筛选状态条 ===== */
+.filter-bar{display:none;align-items:center;gap:10px;background:#fff7e8;border:1px solid #ffe3b3;border-radius:8px;padding:11px 16px;color:#8a5a00;margin-bottom:14px;font-size:13.5px;line-height:1.6}
+.filter-bar.show{display:flex}
+.filter-bar .lk{white-space:nowrap}
+/* ===== 资源条 ===== */
+.res-bar{width:110px;height:6px;border-radius:3px;background:#eceef1;overflow:hidden;display:inline-block;vertical-align:middle}
+.res-bar i{display:block;height:100%;background:var(--primary);border-radius:3px}
+</style>
+</head>
+<body>
+
+<div id="toast"><span class="ic">✓</span><span id="toast-msg"></span></div>
+
+<div class="top">
+  <div class="logo"><span class="mk"></span>OneLink AI</div>
+  <div class="u">⬇ <b>admin</b></div>
+</div>
+<div class="wrap">
+  <div class="side">
+    <div class="si">▦ 数据概览</div>
+    <div class="si">🏭 厂商管理 <span class="arr">▾</span></div>
+    <div class="si">🌐 供应商管理 <span class="arr">▾</span></div>
+    <div class="si">⚛ 模型管理 <span class="arr">▾</span></div>
+    <div class="si" style="color:var(--primary)">▦ 商品管理 <span class="arr">▴</span></div>
+    <div class="si sub active" id="nav-goods" onclick="showPage('list')">☰ 商品列表</div>
+    <div class="si sub">☰ 分类列表</div>
+    <div class="si sub">☰ 数据盘管理</div>
+    <div class="si" style="color:var(--primary)">🖥 云电脑管理 <span class="arr">▴</span></div>
+    <div class="si sub" onclick="location.href='云电脑实例/index.html'">☰ 云电脑列表</div>
+    <div class="si sub">☰ 云硬盘管理</div>
+    <div class="si sub" onclick="location.href='硬件终端管理-交互原型.html'">☰ 硬件终端管理</div>
+    <div class="si sub">☰ 客户端版本</div>
+    <div class="si sub">☰ 场所列表</div>
+    <div class="si sub" id="nav-room" onclick="showPage('room')">☰ 机房管理</div>
+    <div class="si sub">☰ 服务器管理</div>
+    <div class="si">👤 用户管理 <span class="arr">▾</span></div>
+    <div class="si">👥 代理商管理 <span class="arr">▾</span></div>
+    <div class="si">🛒 订单管理 <span class="arr">▾</span></div>
+    <div class="si">🧾 账单中心 <span class="arr">▾</span></div>
+    <div class="si">📊 数据中心 <span class="arr">▾</span></div>
+    <div class="si">📄 文档管理 <span class="arr">▾</span></div>
+    <div class="si">🎯 营销管理 <span class="arr">▾</span></div>
+    <div class="si">💰 财务管理 <span class="arr">▾</span></div>
+    <div class="si">⚙️ 系统管理 <span class="arr">▾</span></div>
+    <div class="si">🔐 权限管理 <span class="arr">▾</span></div>
+  </div>
+  <div class="main">
+    <!-- ============ 商品列表页 ============ -->
+    <div id="pg-list">
+    <div class="crumb">商品管理 / <b>商品列表</b></div>
+    <div class="card">
+      <div class="f-grid">
+        <div><label>商品名称</label><input class="ipt" placeholder="请输入商品名称"></div>
+        <div><label>商品分类</label><select class="ipt"><option>全部</option></select></div>
+        <div><label>是否上架</label><select class="ipt"><option>全部</option></select></div>
+        <div><label>CPU核心数</label><select class="ipt"><option>全部</option></select></div>
+        <div><label>内存容量</label><select class="ipt"><option>全部</option></select></div>
+        <div><label>GPU型号</label><select class="ipt"><option>全部</option></select></div>
+        <div><label>所属机房</label><select class="ipt" id="f-room-filter" onchange="applyRoomFilter(this.value)">
+          <option value="">全部</option>
+          <option>下现在重新注册中心出现在相处中行政村现场</option>
+          <option>是的和i说的佛i文化佛IE很佛诶话费 我iehjfioweh</option>
+          <option>MM机房名称-0001xx</option>
+          <option>鲍山机房</option>
+        </select></div>
+      </div>
+      <button class="btn-p" onclick="applyRoomFilter(document.getElementById('f-room-filter').value)">🔍 查询</button>
+      <button class="btn-o" style="margin-left:10px" onclick="goodsReset()">⟳ 重置</button>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-bottom:14px">
+      <button class="btn-p" onclick="openCreate()">＋ 添加商品</button>
+    </div>
+    <div class="filter-bar" id="room-filter-bar">📍 <span id="room-filter-txt"></span>　<span class="lk" onclick="clearRoomFilter()">清除筛选</span>　<span class="lk" onclick="showPage('room')">返回机房管理</span></div>
+    <div class="sel-bar">已选择 0 项</div>
+    <div class="card">
+      <table class="tb">
+        <thead><tr><th style="width:36px"><input type="checkbox"></th><th>排序</th><th style="width:14%">商品名称</th><th style="width:16%">商品分类</th><th>是否上架</th><th style="width:24%">配置规格</th><th style="width:16%">节点信息</th><th>操作</th></tr></thead>
+        <tbody id="goods-tbody">
+          <tr data-room="下现在重新注册中心出现在相处中行政村现场"><td><input type="checkbox"></td><td>999</td><td><b>新增</b><br><span class="mini-tag">非企业</span></td><td><b>MM-2核4G20内存xxx</b></td><td><span class="pill-on">已上架 <i></i></span></td><td style="font-size:13px;line-height:1.8">CPU: 4核 / 内存容量: 32G / 系统盘 (GB): 9GB / 数据盘 (GB): 9GB</td><td>下现在重新注册中心出现在相处中行政村现场</td><td><span class="lk" onclick="openEdit('999')">✎ 编辑</span>　<span class="lk d">🗑 删除</span></td></tr>
+          <tr data-room="鲍山机房"><td><input type="checkbox"></td><td>213</td><td><b>21312</b></td><td><b>GPU服务器</b></td><td><span class="pill-on">已上架 <i></i></span></td><td style="font-size:13px;line-height:1.8">CPU: 2核 / 内存容量: 32G / 系统盘 (GB): 123GB / 数据盘 (GB): 213GB / GPU型号: GeForce RTX 4090 8G</td><td>鲍山机房</td><td><span class="lk" onclick="openEdit('213')">✎ 编辑</span>　<span class="lk d">🗑 删除</span></td></tr>
+          <tr data-room="鲍山机房"><td><input type="checkbox"></td><td>106</td><td><b>测试商品22</b></td><td><b>MM-SSD</b> <span style="color:var(--text3)">/ MM-SSD二级0002</span></td><td><span class="pill-off"><i></i> 未上架</span></td><td style="font-size:13px;line-height:1.8">CPU: 16核 / 内存容量: 16G / 系统盘 (GB): 93GB / 数据盘 (GB): 98GB / GPU型号: GeForce RTX 4090 8G</td><td>鲍山机房</td><td><span class="lk" onclick="openEdit('106')">✎ 编辑</span>　<span class="lk d">🗑 删除</span></td></tr>
+          <tr data-room="鲍山机房"><td><input type="checkbox"></td><td>100</td><td><b>钟老师教学</b></td><td><b>云电脑</b> <span style="color:var(--text3)">/ 标准型</span></td><td><span class="pill-on">已上架 <i></i></span></td><td style="font-size:13px;line-height:1.8">CPU: 8核 / 内存容量: 16G / 系统盘 (GB): 100GB</td><td>鲍山机房</td><td><span class="lk" onclick="openEdit('100')">✎ 编辑</span>　<span class="lk d">🗑 删除</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    </div><!-- /pg-list -->
+
+    <!-- ============ 新建商品：独立页面，从上往下分区配置 ============ -->
+    <div id="pg-create" class="hidden">
+    <div class="crumb">商品管理 / <span class="lk" onclick="backList()">商品列表</span> / <b id="crumb-mode">新建商品</b></div>
+
+    <div class="pgc-flex">
+    <div class="pgc-main">
+      <!-- ① 基本信息 -->
+      <div class="sec" id="sec0">
+        <div class="sec-h">基本信息</div>
+        <div class="fg">
+          <div class="fi" data-f="name"><label class="lbl"><span class="req">*</span>商品名称</label>
+            <div class="cnt-wrap"><input class="ipt" id="f-name" placeholder="请输入商品名称" maxlength="30" oninput="reval()"><span class="cnt">0/30</span></div>
+            <div class="err-msg">请输入商品名称</div>
+          </div>
+          <div class="fi" data-f="cat"><label class="lbl"><span class="req">*</span>一级分类 / 二级分类</label>
+            <select class="ipt" id="f-cat" onchange="reval()"><option value="">请选择分类</option><option>云电脑 / 标准型</option><option>MM-2核4G20内存xxx</option><option>GPU服务器</option><option>MM-SSD / MM-SSD二级0002</option></select>
+            <div class="err-msg">请选择商品分类</div>
+          </div>
+        </div>
+        <div class="fi"><label class="lbl">商品简介</label>
+          <div class="cnt-wrap"><textarea class="ipt" id="f-intro" placeholder="请输入商品简介" maxlength="200"></textarea><span class="cnt" style="top:auto;bottom:10px;transform:none">0/200</span></div>
+        </div>
+        <div class="fg">
+          <div class="fi"><label class="lbl">是否上架</label><span class="switch" id="f-onsale" onclick="this.classList.toggle('on')"></span></div>
+          <div class="fi" data-f="weight"><label class="lbl"><span class="req">*</span>排序权重</label>
+            <input class="ipt" id="f-weight" value="0" oninput="reval()">
+            <div class="err-msg">请输入排序权重</div>
+          </div>
+        </div>
+        <div class="fi" style="max-width:calc(50% - 13px)"><label class="lbl">标签</label><select class="ipt" id="f-tag"><option value="">输入标签文字</option><option>非企业</option></select></div>
+      </div>
+
+      <!-- ② 配置规格 -->
+      <div class="sec" id="sec1">
+        <div class="sec-h">配置规格</div>
+        <div class="fi"><label class="lbl">配置类型</label>
+          <label style="display:inline-flex;gap:8px;align-items:center"><input type="radio" checked style="accent-color:var(--primary)"> 服务器</label>
+        </div>
+        <div class="fg">
+          <div class="fi" data-f="cpu"><label class="lbl"><span class="req">*</span>CPU核心数</label>
+            <select class="ipt" id="f-cpu" onchange="reval()"><option value="">请选择CPU核心数</option><option>2核</option><option>4核</option><option>8核</option><option>16核</option></select>
+            <div class="err-msg">请选择CPU核心数</div>
+          </div>
+          <div class="fi" data-f="mem"><label class="lbl"><span class="req">*</span>内存容量</label>
+            <select class="ipt" id="f-mem" onchange="reval()"><option value="">请选择内存容量</option><option>4G</option><option>16G</option><option>32G</option></select>
+            <div class="err-msg">请选择内存容量</div>
+          </div>
+          <div class="fi" data-f="sysdisk"><label class="lbl"><span class="req">*</span>系统盘 (GB)</label>
+            <input class="ipt" id="f-sysdisk" placeholder="请输入系统盘大小" oninput="reval()">
+            <div class="err-msg">请输入系统盘大小</div>
+          </div>
+          <div class="fi"><label class="lbl">数据盘 (GB)</label><input class="ipt" id="f-datadisk" value="0"></div>
+        </div>
+        <div class="fi" style="max-width:calc(50% - 13px)"><label class="lbl">GPU型号</label>
+          <select class="ipt" id="f-gpu" onchange="onGpuChange()"><option value="">请选择GPU型号</option><option>GeForce RTX 4090 8G</option><option>NVIDIA A100 80G</option></select>
+        </div>
+      </div>
+
+      <!-- ③ 售卖规则 -->
+      <div class="sec" id="sec2">
+        <div class="sec-h">售卖规则</div>
+        <div class="fg">
+          <div class="fi" data-f="limit"><label class="lbl"><span class="req">*</span>每人限购 (填 0 则表示不限购)</label>
+            <input class="ipt" id="f-limit" placeholder="请输入每人限购数量" oninput="reval()">
+            <div class="err-msg">请输入每人限购数量（不限购请填 0）</div>
+          </div>
+          <div class="fi" data-f="price"><label class="lbl"><span class="req">*</span>原价</label>
+            <input class="ipt" id="f-price" placeholder="请输入原价" oninput="reval()">
+            <div class="err-msg">请输入原价</div>
+          </div>
+        </div>
+        <div class="fi" data-f="nodes"><label class="lbl"><span class="req">*</span>售卖节点　<span class="lk" style="font-size:13px;font-weight:400" onclick="nodesAll(true)">全选</span>　<span class="lk" style="font-size:13px;font-weight:400" onclick="nodesAll(false)">清空</span></label>
+          <div class="nodes" id="f-nodes">
+            <label class="node"><input type="checkbox" onchange="reval()"> 下现在重新注册中心出现在相处中行政村现场</label>
+            <label class="node"><input type="checkbox" onchange="reval()"> 是的和i说的佛i文化佛IE很佛诶话费 我iehjfioweh</label>
+            <label class="node"><input type="checkbox" onchange="reval()"> MM机房名称-0001xx</label>
+            <label class="node"><input type="checkbox" onchange="reval()"> 鲍山机房</label>
+          </div>
+          <div class="nodes-hint" id="nodes-hint"></div>
+          <div class="err-msg">请至少选择 1 个售卖节点</div>
+        </div>
+        <div class="fg">
+          <div class="fi" data-f="period"><label class="lbl"><span class="req">*</span>销售时段</label>
+            <div class="chk-line" id="f-period">
+              <label><input type="radio" name="period" onchange="reval()"> 长期有效</label>
+              <label><input type="radio" name="period" onchange="reval()"> 时间范围</label>
+            </div>
+            <div class="err-msg">请选择销售时段</div>
+          </div>
+          <div class="fi" data-f="aud"><label class="lbl"><span class="req">*</span>售卖对象类型</label>
+            <div class="chk-line" id="f-aud">
+              <label><input type="checkbox" onchange="reval()"> 普通用户</label>
+              <label><input type="checkbox" onchange="reval()"> 学校用户</label>
+              <label><input type="checkbox" onchange="reval()"> 企业用户</label>
+            </div>
+            <div class="err-msg">请至少选择 1 类售卖对象</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ④ 收费方式 -->
+      <div class="sec" id="sec3">
+        <div class="sec-h">收费方式</div>
+        <div class="fi" data-f="charge"><label class="lbl"><span class="req">*</span>收费方式</label>
+          <div class="chk-line" id="f-charge" style="max-width:240px">
+            <label><input type="checkbox" onchange="reval()"> 计时付费</label>
+          </div>
+          <div class="err-msg">请选择收费方式</div>
+        </div>
+      </div>
+
+    <!-- 错误汇总（点击直达） -->
+    <div class="v-summary" id="v-summary">⚠ <div id="v-list" style="flex:1"></div></div>
+
+    <!-- 底部吸底操作栏 -->
+    <div class="actbar">
+      <span id="v-count" style="margin-right:auto;color:var(--text3);font-size:13px"></span>
+      <button class="btn-o" onclick="backList()">取消</button>
+      <button class="btn-p" id="btn-submit" onclick="confirmAdd()">确认添加</button>
+    </div>
+    </div><!-- /pgc-main -->
+
+    <!-- 右侧锚点导航：随滚动高亮，校验后显示分区错误数 -->
+    <div class="anchors">
+      <span class="an on" data-sec="sec0" onclick="gosec('sec0')">基本信息 <span class="err-badge" id="eb0"></span></span>
+      <span class="an" data-sec="sec1" onclick="gosec('sec1')">配置规格 <span class="err-badge" id="eb1"></span></span>
+      <span class="an" data-sec="sec2" onclick="gosec('sec2')">售卖规则 <span class="err-badge" id="eb2"></span></span>
+      <span class="an" data-sec="sec3" onclick="gosec('sec3')">收费方式 <span class="err-badge" id="eb3"></span></span>
+    </div>
+    </div><!-- /pgc-flex -->
+    </div><!-- /pg-create -->
+
+    <!-- ============ 机房管理页 ============ -->
+    <div id="pg-room" class="hidden">
+    <div class="crumb">云电脑管理 / <b>机房管理</b></div>
+    <div class="card">
+      <div class="f-grid">
+        <div><label>机房ID</label><input class="ipt" placeholder="请输入机房ID"></div>
+        <div><label>省份</label><select class="ipt"><option>请选择省份</option></select></div>
+        <div><label>城市</label><select class="ipt"><option>请选择城市</option></select></div>
+      </div>
+      <button class="btn-p">🔍 查询</button>
+      <button class="btn-o" style="margin-left:10px">⟳ 重置</button>
+    </div>
+    <div class="card">
+      <table class="tb">
+        <thead><tr><th style="width:18%">机房名称 / 编码</th><th style="width:22%">地址</th><th>服务器数量</th><th>存储资源</th><th>CPU资源</th><th>显卡资源</th><th style="width:200px">操作</th></tr></thead>
+        <tbody id="room-tbody">
+          <tr><td><b>下现在重新注册中心出现在相处中行政村现场</b><br><span style="color:var(--text3);font-size:12.5px">JF-BJ-0003</span></td><td style="font-size:13px;line-height:1.7">北京市 市辖区<br>三从四德吃大餐</td><td>服务器: 2台</td><td><span class="res-bar"><i style="width:36%"></i></span> 36%</td><td>16核心 / 64T内存</td><td>-</td><td><span class="lk">👁 查看详情</span>　<span class="lk">✎ 编辑</span>　<span class="lk d" onclick="delRoom('下现在重新注册中心出现在相处中行政村现场',1,this)">🗑 删除</span></td></tr>
+          <tr><td><b>是的和i说的佛i文化佛IE很佛诶话费 我iehjfioweh</b><br><span style="color:var(--text3);font-size:12.5px">JF-BJ-0002</span></td><td style="font-size:13px;line-height:1.7">北京市 市辖区<br>的发vdfvdfvjh</td><td>服务器: 0台</td><td><span class="res-bar"><i style="width:0%"></i></span> 0%</td><td>0核心 / 0T内存</td><td>-</td><td><span class="lk">👁 查看详情</span>　<span class="lk">✎ 编辑</span>　<span class="lk d" onclick="delRoom('是的和i说的佛i文化佛IE很佛诶话费 我iehjfioweh',0,this)">🗑 删除</span></td></tr>
+          <tr><td><b>MM机房名称-0001xx</b><br><span style="color:var(--text3);font-size:12.5px">MM机房编码-0001xx</span></td><td style="font-size:13px;line-height:1.7">山东省 青岛市 市北区 敦化路街道<br>龙泉碧桂园莱蒙湖理想国 五四...</td><td>服务器: 0台</td><td><span class="res-bar"><i style="width:0%"></i></span> 0%</td><td>0核心 / 0T内存</td><td>-</td><td><span class="lk">👁 查看详情</span>　<span class="lk">✎ 编辑</span>　<span class="lk d" onclick="delRoom('MM机房名称-0001xx',0,this)">🗑 删除</span></td></tr>
+          <tr><td><b>鲍山机房</b><br><span style="color:var(--text3);font-size:12.5px">JF-SD-0001</span></td><td style="font-size:13px;line-height:1.7">山东省 济南市 历城区<br>鲍山街道</td><td>服务器: 8台</td><td><span class="res-bar"><i style="width:62%"></i></span> 62%</td><td>128核心 / 512T内存</td><td>RTX 4090 × 16</td><td><span class="lk">👁 查看详情</span>　<span class="lk">✎ 编辑</span>　<span class="lk d" onclick="delRoom('鲍山机房',3,this)">🗑 删除</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    </div><!-- /pg-room -->
+  </div>
+</div>
+
+<!-- 弹窗①：有关联商品 → 拦截 -->
+<div class="mask" id="dlg-block">
+  <div class="dlg">
+    <div class="dlg-h"><span class="wic">!</span>无法删除机房<span class="x" onclick="closeDlg('dlg-block')">✕</span></div>
+    <div class="dlg-b">机房「<b id="blk-name"></b>」下有 <b id="blk-cnt" style="color:var(--red)"></b> 个关联商品，需先将商品下架或更换机房后才能删除。</div>
+    <div class="dlg-f">
+      <button class="btn-o" onclick="closeDlg('dlg-block')">我知道了</button>
+      <button class="btn-p" onclick="goHandle()">去处理</button>
+    </div>
+  </div>
+</div>
+
+<!-- 弹窗②：无关联商品 → 确认删除 -->
+<div class="mask" id="dlg-confirm">
+  <div class="dlg">
+    <div class="dlg-h">确认删除<span class="x" onclick="closeDlg('dlg-confirm')">✕</span></div>
+    <div class="dlg-b">确定删除机房「<b id="cfm-name"></b>」吗？删除后不可恢复。</div>
+    <div class="dlg-f">
+      <button class="btn-o" onclick="closeDlg('dlg-confirm')">取消</button>
+      <button class="btn-d" onclick="confirmDelRoom()">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ===== 必填字段（与线上一致，共 12 项） ===== */
+const FIELDS=[
+  {sec:0,key:'name',  label:'商品名称',  ok:()=>document.getElementById('f-name').value.trim()!==''},
+  {sec:0,key:'cat',   label:'商品分类',  ok:()=>document.getElementById('f-cat').value!==''},
+  {sec:0,key:'weight',label:'排序权重',  ok:()=>document.getElementById('f-weight').value.trim()!==''},
+  {sec:1,key:'cpu',   label:'CPU核心数', ok:()=>document.getElementById('f-cpu').value!==''},
+  {sec:1,key:'mem',   label:'内存容量',  ok:()=>document.getElementById('f-mem').value!==''},
+  {sec:1,key:'sysdisk',label:'系统盘',   ok:()=>document.getElementById('f-sysdisk').value.trim()!==''},
+  {sec:2,key:'limit', label:'每人限购',  ok:()=>document.getElementById('f-limit').value.trim()!==''},
+  {sec:2,key:'price', label:'原价',      ok:()=>document.getElementById('f-price').value.trim()!==''},
+  {sec:2,key:'nodes', label:'售卖节点',  ok:()=>document.querySelectorAll('#f-nodes input:checked').length>0},
+  {sec:2,key:'period',label:'销售时段',  ok:()=>document.querySelectorAll('#f-period input:checked').length>0},
+  {sec:2,key:'aud',   label:'售卖对象类型',ok:()=>document.querySelectorAll('#f-aud input:checked').length>0},
+  {sec:3,key:'charge',label:'收费方式',  ok:()=>document.querySelectorAll('#f-charge input:checked').length>0},
+]
+const SECNAMES=['基本信息','配置规格','售卖规则','收费方式']
+let submitted=false
+
+let editMode=false
+function openCreate(){
+  editMode=false
+  resetForm()
+  document.getElementById('crumb-mode').textContent='新建商品'
+  document.getElementById('btn-submit').textContent='确认添加'
+  document.getElementById('pg-list').classList.add('hidden')
+  document.getElementById('pg-create').classList.remove('hidden')
+  window.scrollTo(0,0)
+}
+/* ===== 编辑商品：同一表单，预填 + 保存 ===== */
+const PRODUCTS={
+ '999':{name:'新增',cat:'MM-2核4G20内存xxx',intro:'',on:true,weight:'999',tag:'非企业',cpu:'4核',mem:'32G',sysdisk:'9',datadisk:'9',gpu:'',limit:'0',price:'0.37',nodes:['下现在重新注册中心出现在相处中行政村现场'],period:0,aud:[0],charge:[0]},
+ '213':{name:'21312',cat:'GPU服务器',intro:'',on:true,weight:'213',tag:'',cpu:'2核',mem:'32G',sysdisk:'123',datadisk:'213',gpu:'GeForce RTX 4090 8G',limit:'0',price:'1.20',nodes:[],avail:['MM机房名称-0001xx'],stale:['鲍山机房'],period:0,aud:[0],charge:[0]},
+ '106':{name:'测试商品22',cat:'MM-SSD / MM-SSD二级0002',intro:'',on:false,weight:'106',tag:'',cpu:'16核',mem:'16G',sysdisk:'93',datadisk:'98',gpu:'GeForce RTX 4090 8G',limit:'2',price:'2.50',nodes:['鲍山机房'],period:0,aud:[0,1],charge:[0]},
+ '100':{name:'钟老师教学',cat:'云电脑 / 标准型',intro:'',on:true,weight:'100',tag:'',cpu:'8核',mem:'16G',sysdisk:'100',datadisk:'0',gpu:'',limit:'1',price:'0.99',nodes:['鲍山机房'],period:0,aud:[1],charge:[0]}
+}
+/* 机房列表按 GPU 实时获取：avail=满足条件的机房；stale=原勾选但已失效的机房（置灰展示） */
+const ALL_ROOMS=['下现在重新注册中心出现在相处中行政村现场','是的和i说的佛i文化佛IE很佛诶话费 我iehjfioweh','MM机房名称-0001xx','鲍山机房']
+/* GPU→机房实时映射（演示数据）：A100 无机房配备 */
+const GPU_ROOMS={'':ALL_ROOMS,'GeForce RTX 4090 8G':['MM机房名称-0001xx'],'NVIDIA A100 80G':[]}
+function onGpuChange(){
+  const g=document.getElementById('f-gpu').value
+  const avail=GPU_ROOMS[g]||ALL_ROOMS
+  const checked=[...document.querySelectorAll('#f-nodes input:checked')].map(c=>c.closest('.node').textContent.trim())
+  renderNodes(avail,[],checked.filter(n=>avail.some(a=>n.includes(a))))
+  reval()
+}
+function renderNodes(avail,stale,checked){
+  const box=document.getElementById('f-nodes')
+  box.innerHTML=''
+  if(avail.length===0&&stale.length===0){
+    box.innerHTML='<div class="nodes-empty">暂无可选机房</div>'
+  }
+  avail.forEach(n=>{
+    const lb=document.createElement('label');lb.className='node'
+    lb.innerHTML=`<input type="checkbox" onchange="reval()"${checked.includes(n)?' checked':''}> ${n}`
+    box.appendChild(lb)
+  })
+  stale.forEach(n=>{
+    const lb=document.createElement('label');lb.className='node stale'
+    lb.innerHTML=`<input type="checkbox" disabled> ${n}<span class="stale-tag">GPU 已下架/更换</span>`
+    box.appendChild(lb)
+  })
+  const hint=document.getElementById('nodes-hint')
+  if(avail.length===0){
+    hint.textContent='暂无机房配备该型号 GPU，请更换 GPU 型号，或联系机房管理员配置后再试'
+    hint.classList.add('show')
+  }else if(stale.length){
+    hint.textContent='当前 GPU 型号在原售卖机房已下架或更换，请重新勾选机房，或调整 GPU 型号'
+    hint.classList.add('show')
+  }else{
+    hint.classList.remove('show')
+  }
+}
+function resetForm(){
+  submitted=false
+  renderNodes(ALL_ROOMS,[],[])
+  ;['f-name','f-intro','f-sysdisk','f-limit','f-price'].forEach(id=>document.getElementById(id).value='')
+  document.getElementById('f-weight').value='0'
+  document.getElementById('f-datadisk').value='0'
+  ;['f-cat','f-tag','f-cpu','f-mem','f-gpu'].forEach(id=>document.getElementById(id).selectedIndex=0)
+  document.getElementById('f-onsale').classList.remove('on')
+  document.querySelectorAll('#f-nodes input,#f-period input,#f-aud input,#f-charge input').forEach(c=>c.checked=false)
+  render([])
+}
+function openEdit(key){
+  const p=PRODUCTS[key]
+  if(!p)return
+  editMode=true
+  resetForm()
+  document.getElementById('f-name').value=p.name
+  document.getElementById('f-cat').value=p.cat
+  document.getElementById('f-intro').value=p.intro
+  document.getElementById('f-weight').value=p.weight
+  if(p.tag)document.getElementById('f-tag').value=p.tag
+  document.getElementById('f-onsale').classList.toggle('on',p.on)
+  document.getElementById('f-cpu').value=p.cpu
+  document.getElementById('f-mem').value=p.mem
+  document.getElementById('f-sysdisk').value=p.sysdisk
+  document.getElementById('f-datadisk').value=p.datadisk
+  if(p.gpu)document.getElementById('f-gpu').value=p.gpu
+  renderNodes(p.avail||ALL_ROOMS,p.stale||[],p.nodes)
+  document.getElementById('f-limit').value=p.limit
+  document.getElementById('f-price').value=p.price
+  document.querySelectorAll('#f-period input')[p.period].checked=true
+  p.aud.forEach(i=>document.querySelectorAll('#f-aud input')[i].checked=true)
+  p.charge.forEach(i=>document.querySelectorAll('#f-charge input')[i].checked=true)
+  document.getElementById('crumb-mode').textContent='编辑商品'
+  document.getElementById('btn-submit').textContent='保存修改'
+  document.getElementById('pg-list').classList.add('hidden')
+  document.getElementById('pg-create').classList.remove('hidden')
+  /* 打开即全量校验：存在失效机房且有效勾选为 0 时，直接标红 */
+  if((p.stale||[]).length&&document.querySelectorAll('#f-nodes input:checked').length===0){
+    submitted=true
+    render(validate())
+  }
+  window.scrollTo(0,0)
+}
+function backList(){
+  document.getElementById('pg-create').classList.add('hidden')
+  document.getElementById('pg-list').classList.remove('hidden')
+  window.scrollTo(0,0)
+}
+function toast(msg,type){
+  const t=document.getElementById('toast')
+  t.className=type;t.style.display='flex'
+  t.querySelector('.ic').textContent=type==='success'?'✓':'!'
+  document.getElementById('toast-msg').textContent=msg
+  setTimeout(()=>t.style.display='none',2600)
+}
+function nodesAll(v){
+  document.querySelectorAll('#f-nodes input').forEach(c=>c.checked=v)
+  reval()
+}
+/* 锚点：点击滚动到分区 */
+function gosec(id){
+  document.getElementById(id).scrollIntoView({behavior:'smooth',block:'start'})
+}
+/* 锚点：页面滚动监听高亮 */
+function spyAnchor(){
+  let cur='sec0'
+  ;['sec0','sec1','sec2','sec3'].forEach(id=>{
+    if(document.getElementById(id).getBoundingClientRect().top<=130)cur=id
+  })
+  document.querySelectorAll('.anchors .an').forEach(a=>a.classList.toggle('on',a.dataset.sec===cur))
+}
+window.addEventListener('scroll',()=>{
+  if(!document.getElementById('pg-create').classList.contains('hidden'))spyAnchor()
+})
+/* 校验 */
+function validate(){return FIELDS.filter(f=>!f.ok())}
+function render(errs){
+  FIELDS.forEach(f=>{
+    document.querySelector(`.fi[data-f="${f.key}"]`).classList.toggle('err',errs.some(e=>e.key===f.key))
+  })
+  ;[0,1,2,3].forEach(i=>{
+    const n=errs.filter(e=>e.sec===i).length
+    const b=document.getElementById('eb'+i)
+    b.textContent=n;b.classList.toggle('show',n>0)
+  })
+  const s=document.getElementById('v-summary'),list=document.getElementById('v-list')
+  if(errs.length){
+    list.innerHTML='还有 <b>'+errs.length+'</b> 项必填未完成，点击直达：'+
+      errs.map(e=>`<span class="go" onclick="goto('${e.key}','sec${e.sec}')">${e.label}</span>`).join('')
+    s.classList.add('show')
+    document.getElementById('v-count').textContent=`必填完成 ${FIELDS.length-errs.length}/${FIELDS.length}`
+  }else{
+    s.classList.remove('show')
+    document.getElementById('v-count').textContent=submitted?`必填完成 ${FIELDS.length}/${FIELDS.length} ✓`:''
+  }
+}
+function goto(key,sec){
+  const fi=document.querySelector(`.fi[data-f="${key}"]`)
+  fi.scrollIntoView({behavior:'smooth',block:'center'})
+  const ctl=fi.querySelector('input,select')
+  if(ctl)setTimeout(()=>ctl.focus(),260)
+  fi.classList.add('flash')
+  setTimeout(()=>fi.classList.remove('flash'),1200)
+}
+function reval(){if(submitted)render(validate())}
+
+/* ===== 页面切换 ===== */
+function showPage(p){
+  document.getElementById('pg-list').classList.toggle('hidden',p!=='list')
+  document.getElementById('pg-room').classList.toggle('hidden',p!=='room')
+  document.getElementById('pg-create').classList.add('hidden')
+  document.getElementById('nav-goods').classList.toggle('active',p==='list')
+  document.getElementById('nav-room').classList.toggle('active',p==='room')
+  window.scrollTo(0,0)
+}
+
+/* ===== 机房删除：前置校验 ===== */
+let pendingRoom=null,pendingRow=null
+function delRoom(name,linkedCnt,el){
+  pendingRoom=name;pendingRow=el.closest('tr')
+  if(linkedCnt>0){
+    // 有关联商品 → 拦截弹窗（不出现确认删除）
+    document.getElementById('blk-name').textContent=name
+    document.getElementById('blk-cnt').textContent=linkedCnt
+    document.getElementById('dlg-block').classList.add('show')
+  }else{
+    // 无关联商品 → 二次确认
+    document.getElementById('cfm-name').textContent=name
+    document.getElementById('dlg-confirm').classList.add('show')
+  }
+}
+function closeDlg(id){document.getElementById(id).classList.remove('show')}
+function confirmDelRoom(){
+  closeDlg('dlg-confirm')
+  if(pendingRow)pendingRow.remove()
+  toast('机房删除成功','success')
+}
+/* 去处理：跳转商品列表并按机房自动过滤 */
+function goHandle(){
+  closeDlg('dlg-block')
+  showPage('list')
+  document.getElementById('f-room-filter').value=pendingRoom
+  applyRoomFilter(pendingRoom)
+}
+
+/* ===== 商品列表：按机房过滤 ===== */
+function applyRoomFilter(room){
+  let n=0
+  document.querySelectorAll('#goods-tbody tr').forEach(tr=>{
+    const hit=!room||tr.dataset.room===room
+    tr.classList.toggle('hidden',!hit)
+    if(hit)n++
+  })
+  const bar=document.getElementById('room-filter-bar')
+  if(room){
+    document.getElementById('room-filter-txt').innerHTML=`已按机房「<b>${room}</b>」筛选，共 ${n} 个关联商品。将商品下架或更换机房后，即可返回删除该机房。`
+    bar.classList.add('show')
+  }else{
+    bar.classList.remove('show')
+  }
+}
+function clearRoomFilter(){
+  document.getElementById('f-room-filter').value=''
+  applyRoomFilter('')
+}
+function goodsReset(){
+  document.querySelectorAll('#pg-list .f-grid .ipt').forEach(c=>{if(c.tagName==='SELECT')c.selectedIndex=0;else c.value=''})
+  clearRoomFilter()
+}
+/* 支持 #room 直达机房管理（供硬件终端管理页返回） */
+if(location.hash==='#room')showPage('room')
+function confirmAdd(){
+  submitted=true
+  const errs=validate()
+  render(errs)
+  if(errs.length){goto(errs[0].key,'sec'+errs[0].sec);return}
+  toast(editMode?'商品修改成功':'商品添加成功','success')
+  backList()
+}
+</script>
+</body>
+</html>

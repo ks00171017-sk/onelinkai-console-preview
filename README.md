@@ -1,24 +1,15 @@
-# OneLinkAI Console Preview
+# OneLinkAI 原型预览
 
-OneLinkAI 统一控制台交互原型，包含租户与个人视图。
+客户端、运营端、租户端共 11 个原型入口。页面中的数据均为演示值，操作不连接真实业务系统。
 
-- 租户：API Router、GPU Cloud、GPU 云电脑及账户/组织管理。
-- 个人：API Router、GPU Cloud 及个人账户管理。
-- 官网首页：通过左上角 Logo 进入；右上角“控制台”返回控制台。
-- 右上角菜单可切换个人、学校租户和企业租户。
+- [三端原型导航](https://ks00171017-sk.github.io/onelinkai-console-preview/prototypes/)
+- [云电脑客户端 · 登录入口](https://ks00171017-sk.github.io/onelinkai-console-preview/prototypes/客户端/云电脑客户端/out/index.html#login-entry)
+- [统一控制台](https://ks00171017-sk.github.io/onelinkai-console-preview/)
 
-这是脱敏后的展示副本。学校/企业名称、用户信息和交易标识均为演示值，不包含原始调研资料或截图。资金、充值、密钥和资源管理动作不连接真实业务系统。
+本仓库只包含发布副本和运行所需资源，不包含原始调研截图或内部评审资料。
 
-## 本地预览
+## 本地运行与发布
 
-```sh
-npm ci
-npm run dev
-```
+运行 `npm ci`、`npm run dev`。运行 `npm run build` 生成 `dist/client`；推送 main 后由 GitHub Actions 发布到 GitHub Pages。
 
-## 发布
-
-在仓库的 Settings → Pages 中选择 GitHub Actions。推送到 main 后会构建并发布 `dist/client`。
-主页使用 Hash 路由和相对资源路径，支持 GitHub Pages 的仓库子路径。
-
-部署配置参考 [Vite 官方 GitHub Pages 指南](https://vite.dev/guide/static-deploy.html#github-pages)。
+更新日期：2026-10-12。

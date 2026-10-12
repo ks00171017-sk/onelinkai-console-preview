@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>硬件终端管理 - 交互原型</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif; }
+  body { background:#f5f6f8; color:#1f2329; font-size:14px; }
+  .layout { display:flex; min-height:100vh; }
+  /* 顶栏 */
+  .topbar { position:fixed; top:0; left:0; right:0; height:56px; background:#fff; border-bottom:1px solid #e5e7eb; display:flex; align-items:center; padding:0 24px; z-index:100; }
+  .logo { font-size:18px; font-weight:700; display:flex; align-items:center; gap:8px; }
+  .logo .mark { width:28px; height:28px; background:#111; border-radius:6px; color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; }
+  .topbar .right { margin-left:auto; color:#374151; }
+  /* 侧栏 */
+  .sidebar { width:220px; background:#fff; border-right:1px solid #e5e7eb; padding-top:72px; flex-shrink:0; }
+  .nav-group { padding:4px 12px; }
+  .nav-item { padding:10px 12px; border-radius:6px; color:#4b5563; cursor:pointer; display:flex; align-items:center; gap:8px; }
+  .nav-item.parent { color:#2563eb; font-weight:600; }
+  .nav-item.sub { padding-left:34px; font-size:13px; }
+  .nav-item.active { background:#eff3fe; color:#2563eb; font-weight:600; }
+  .nav-item:hover { background:#f3f4f6; }
+  .nav-item.dim { color:#9ca3af; cursor:default; }
+  .nav-item.dim:hover { background:none; }
+  /* 主区 */
+  .main { flex:1; padding:80px 24px 40px; min-width:0; }
+  .card { background:#fff; border-radius:8px; padding:20px; margin-bottom:16px; }
+  /* 筛选区 */
+  .filters { display:grid; grid-template-columns:repeat(3,1fr); gap:14px 32px; }
+  .field label { display:block; font-size:13px; color:#374151; margin-bottom:6px; }
+  .field .control { height:34px; background:#f5f6f8; border:1px solid #e5e7eb; border-radius:6px; padding:0 10px; display:flex; align-items:center; color:#9ca3af; }
+  .btn { display:inline-flex; align-items:center; gap:6px; height:34px; padding:0 16px; border-radius:6px; border:1px solid transparent; cursor:pointer; font-size:14px; }
+  .btn-primary { background:#2563eb; color:#fff; }
+  .btn-primary:hover { background:#1d4ed8; }
+  .btn-default { background:#fff; color:#374151; border-color:#d1d5db; }
+  .btn-default:hover { border-color:#2563eb; color:#2563eb; }
+  .btn-ghost-blue { background:#fff; color:#2563eb; border-color:#bfd0f8; }
+  .btn:disabled { opacity:.45; cursor:not-allowed; }
+  .btn-sm { height:28px; padding:0 12px; font-size:13px; }
+  /* 标签页 */
+  .tabs { display:inline-flex; border:1px solid #e5e7eb; border-radius:6px; overflow:hidden; }
+  .tab { padding:8px 28px; cursor:pointer; color:#4b5563; background:#fff; border-right:1px solid #e5e7eb; }
+  .tab:last-child { border-right:none; }
+  .tab.active { color:#2563eb; font-weight:600; background:#fff; box-shadow:inset 0 -2px 0 #2563eb; }
+  /* 表格 */
+  table { width:100%; border-collapse:collapse; }
+  th { text-align:left; font-weight:600; font-size:13px; color:#374151; background:#fafafa; padding:12px 10px; border-bottom:1px solid #e5e7eb; white-space:nowrap; }
+  td { padding:14px 10px; border-bottom:1px solid #f0f1f3; font-size:13px; color:#1f2329; }
+  tr.selected td { background:#f5f8ff; }
+  .tag { display:inline-block; padding:2px 10px; border-radius:4px; font-size:12px; }
+  .tag-green { background:#e8f7ef; color:#16a34a; }
+  .tag-orange { background:#fef3e6; color:#ea8600; }
+  .tag-blue { background:#e8f0fe; color:#2563eb; }
+  .tag-gray { background:#f3f4f6; color:#6b7280; }
+  .tag-red { background:#fdecec; color:#dc2626; }
+  .ops a { color:#2563eb; text-decoration:none; margin-right:14px; font-size:13px; cursor:pointer; }
+  .ops a.danger { color:#dc2626; }
+  input[type=checkbox] { width:15px; height:15px; accent-color:#2563eb; cursor:pointer; }
+  input[type=checkbox]:disabled { cursor:not-allowed; }
+  /* 批量操作栏 */
+  .batch-bar { display:none; align-items:center; gap:12px; background:#eff3fe; border:1px solid #bfd0f8; border-radius:6px; padding:10px 16px; margin-bottom:12px; }
+  .batch-bar.show { display:flex; }
+  .batch-bar .count { color:#2563eb; font-weight:600; }
+  .batch-bar .hint { color:#6b7280; font-size:12px; margin-left:auto; }
+  /* NEW 标记 */
+  .new-badge { display:inline-block; background:#ff6b35; color:#fff; font-size:10px; padding:1px 5px; border-radius:3px; margin-left:6px; vertical-align:middle; font-weight:600; }
+  /* 弹窗 */
+  .overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:200; align-items:flex-start; justify-content:center; padding-top:8vh; }
+  .overlay.show { display:flex; }
+  .modal { background:#fff; border-radius:10px; width:720px; max-width:94vw; max-height:82vh; display:flex; flex-direction:column; }
+  .modal.narrow { width:520px; }
+  .modal-head { padding:18px 24px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid #f0f1f3; }
+  .modal-head h3 { font-size:16px; }
+  .modal-close { cursor:pointer; color:#9ca3af; font-size:18px; border:none; background:none; }
+  .modal-body { padding:20px 24px; overflow-y:auto; }
+  .modal-foot { padding:14px 24px; border-top:1px solid #f0f1f3; display:flex; justify-content:flex-end; gap:10px; }
+  .form-row { margin-bottom:16px; }
+  .form-row label { display:block; font-size:13px; margin-bottom:6px; color:#374151; }
+  .form-row label .req { color:#dc2626; margin-right:2px; }
+  select, .modal input[type=text] { width:100%; height:36px; border:1px solid #d1d5db; border-radius:6px; padding:0 10px; font-size:14px; background:#fff; color:#1f2329; }
+  select:focus, .modal input[type=text]:focus { outline:none; border-color:#2563eb; }
+  select:disabled { background:#f3f4f6; color:#6b7280; }
+  .section-title { font-size:14px; font-weight:600; margin:4px 0 12px; }
+  .bind-block { border:1px dashed #bfd0f8; background:#f8faff; border-radius:8px; padding:16px; margin-top:18px; }
+  .bind-block .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .muted { color:#6b7280; font-size:12px; }
+  .manual-row { display:grid; grid-template-columns:150px 1fr 1fr 1fr 30px; gap:10px; margin-bottom:10px; align-items:center; }
+  .summary-box { background:#f8faff; border:1px solid #dbe4fb; border-radius:8px; padding:14px 16px; margin-bottom:16px; font-size:13px; line-height:1.9; }
+  .warn-box { background:#fef8ec; border:1px solid #f5dfa9; border-radius:8px; padding:12px 16px; margin-bottom:16px; font-size:13px; color:#92600a; line-height:1.8; }
+  .result-stats { display:flex; gap:24px; margin-bottom:16px; }
+  .result-stats .stat { font-size:13px; }
+  .result-stats b { font-size:20px; margin-right:4px; }
+  .link-blue { color:#2563eb; cursor:pointer; text-decoration:none; }
+  .prototype-note { background:#fffbe6; border:1px solid #ffe58f; border-radius:8px; padding:12px 16px; margin-bottom:16px; font-size:13px; color:#7a5c00; line-height:1.8; }
+  .toolbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .toolbar .right { display:flex; gap:10px; }
+  .venue-import-note { background:#e8f0fe; border-radius:6px; padding:10px 14px; margin-bottom:16px; font-size:13px; color:#1d4ed8; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo"><span class="mark">⊘</span> OneLink AI</div>
+  <div class="right">admin</div>
+</div>
+<div class="layout">
+  <div class="sidebar">
+    <div class="nav-group">
+      <div class="nav-item dim">▤ 数据概览</div>
+      <div class="nav-item dim">▤ 厂商管理</div>
+      <div class="nav-item dim">▤ 供应商管理</div>
+      <div class="nav-item dim">▤ 模型管理</div>
+      <div class="nav-item parent">▤ 商品管理</div>
+      <div class="nav-item sub" onclick="location.href='OneLink运营后台-原型.html'">商品列表</div>
+      <div class="nav-item sub dim">分类列表</div>
+      <div class="nav-item sub dim">数据盘管理</div>
+      <div class="nav-item parent">🖥 云电脑管理</div>
+      <div class="nav-item sub dim">云电脑列表</div>
+      <div class="nav-item sub dim">云硬盘管理</div>
+      <div class="nav-item sub active" id="navTerminal" onclick="switchPage('terminal')">硬件终端管理</div>
+      <div class="nav-item sub dim">客户端版本</div>
+      <div class="nav-item sub" id="navVenue" onclick="switchPage('venue')">场所列表 <span class="new-badge">改</span></div>
+      <div class="nav-item sub" onclick="location.href='OneLink运营后台-原型.html#room'">机房管理</div>
+      <div class="nav-item sub dim">服务器管理</div>
+      <div class="nav-item dim">▤ 用户管理</div>
+      <div class="nav-item dim">▤ 代理商管理</div>
+      <div class="nav-item dim">▤ 订单管理</div>
+      <div class="nav-item dim">▤ 账单中心</div>
+      <div class="nav-item dim">▤ 数据中心</div>
+      <div class="nav-item dim">▤ 文档管理</div>
+      <div class="nav-item dim">▤ 营销管理</div>
+      <div class="nav-item dim">▤ 财务管理</div>
+      <div class="nav-item dim">▤ 系统管理</div>
+      <div class="nav-item dim">▤ 权限管理</div>
+      <div class="nav-item dim">▤ 消息通知</div>
+      <div class="nav-item dim">▤ 资源管理</div>
+      <div class="nav-item dim">▤ 商品中心</div>
+      <div class="nav-item dim">▤ 订单财务</div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="prototype-note">
+      <b>原型说明</b>：橙色 <span class="new-badge" style="position:relative;top:-1px;">NEW</span> 标记为本次新增能力 ——
+      ① 列表支持勾选 + 批量绑定/解绑/禁用/删除；② 导入设备时可选"绑定设置"（整批统一，模板支持按行）；③ 场所列表新增「导入并绑定终端」入口；④ 批量操作有确认摘要与结果报告，使用中设备自动跳过。
+    </div>
+
+    <!-- ===================== 页面一：硬件终端管理 ===================== -->
+    <div id="pageTerminal">
+      <div class="card">
+        <div class="filters">
+          <div class="field"><label>设备型号</label><div class="control">设备型号</div></div>
+          <div class="field"><label>序列号SN</label><div class="control">序列号SN</div></div>
+          <div class="field"><label>租户</label><div class="control">租户</div></div>
+          <div class="field"><label>场所</label><div class="control">场所</div></div>
+          <div class="field"><label>使用状态</label><div class="control">使用状态</div></div>
+          <div class="field"><label>绑定时间</label><div class="control">开始日期 - 结束日期</div></div>
+          <div class="field"><label>创建时间</label><div class="control">开始日期 - 结束日期</div></div>
+        </div>
+        <div style="margin-top:16px; display:flex; gap:10px;">
+          <button class="btn btn-primary">🔍 查询</button>
+          <button class="btn btn-default">↻ 重置</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="toolbar">
+          <div class="tabs">
+            <div class="tab" onclick="filterTab(this,'bound')">已绑定</div>
+            <div class="tab" onclick="filterTab(this,'unbound')">未绑定</div>
+            <div class="tab active" onclick="filterTab(this,'all')">全部</div>
+          </div>
+          <div class="right">
+            <button class="btn btn-ghost-blue">⚙ 版本管理</button>
+            <button class="btn btn-primary" onclick="openImport(null)">⇪ 导入设备</button>
+          </div>
+        </div>
+
+        <div class="batch-bar" id="batchBar">
+          <span class="count">已选 <span id="selCount">0</span> 台</span>
+          <button class="btn btn-primary btn-sm" id="btnBatchBind" onclick="openBatchBind()">批量绑定</button>
+          <button class="btn btn-default btn-sm" id="btnBatchUnbind" onclick="openBatchUnbind()">批量解绑</button>
+          <button class="btn btn-default btn-sm" id="btnBatchDisable" onclick="openBatchDisable()">批量禁用</button>
+          <button class="btn btn-default btn-sm" id="btnBatchDelete" style="color:#dc2626;" onclick="openBatchDelete()">批量删除</button>
+          <a class="link-blue" style="font-size:13px;" onclick="clearSelection()">取消选择</a>
+          <span class="hint">绑定→未绑定设备；解绑/禁用→非使用中设备；删除→仅未绑定设备</span>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width:36px;"><input type="checkbox" id="checkAll" onchange="toggleAll(this)"> <span class="new-badge">NEW</span></th>
+              <th>序列号SN</th><th>设备型号</th><th>绑定状态</th><th>租户</th><th>场所</th><th>绑定时间</th><th>使用状态</th><th>当前使用者</th><th>最近开机时间</th><th>创建时间</th><th>创建人</th><th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="deviceTbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ===================== 页面二：场所列表 ===================== -->
+    <div id="pageVenue" style="display:none;">
+      <div class="card">
+        <div class="toolbar">
+          <div style="font-size:16px; font-weight:600;">场所列表</div>
+          <button class="btn btn-primary">+ 新建场所</button>
+        </div>
+        <table>
+          <thead>
+            <tr><th>场所名称</th><th>所属租户</th><th>已绑定终端数</th><th>创建时间</th><th>操作</th></tr>
+          </thead>
+          <tbody id="venueTbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== 弹窗：导入设备 ===================== -->
+<div class="overlay" id="importOverlay">
+  <div class="modal">
+    <div class="modal-head"><h3>导入设备</h3><button class="modal-close" onclick="closeModal('importOverlay')">✕</button></div>
+    <div class="modal-body">
+      <div class="venue-import-note" id="venueContextNote" style="display:none;"></div>
+      <div style="margin-bottom:18px;">
+        <span style="font-size:13px;">使用模板批量导入：</span>
+        <a class="link-blue" style="font-size:13px;">下载模板</a>
+        <span class="new-badge">NEW</span>
+        <span class="muted">（模板新增可选「租户」「场所」列，按行填写可实现混合绑定导入）</span>
+        <div style="margin-top:10px;"><button class="btn btn-primary btn-sm">批量导入</button></div>
+      </div>
+      <div class="section-title">手动导入</div>
+      <div class="manual-row" style="margin-bottom:4px;">
+        <span class="muted">设备型号 <span style="color:#dc2626;">*</span></span>
+        <span class="muted">设备SN <span style="color:#dc2626;">*</span></span>
+        <span class="muted">无线MAC</span><span class="muted">有线MAC</span><span></span>
+      </div>
+      <div id="manualRows"></div>
+      <button class="btn btn-ghost-blue btn-sm" onclick="addManualRow()">＋ 继续添加</button>
+
+      <div class="bind-block" id="bindBlock">
+        <div class="section-title" style="margin-top:0;">绑定设置（可选）<span class="new-badge">NEW</span></div>
+        <div class="muted" style="margin-bottom:12px;">选择后，本次导入的全部设备将自动绑定至该租户及场所；不选择则设备导入后为「未绑定」状态。模板导入时，模板内按行填写的租户/场所优先于此处设置。</div>
+        <div class="grid2">
+          <div class="form-row" style="margin-bottom:0;">
+            <label>租户</label>
+            <select id="importTenant" onchange="cascadeVenue('importTenant','importVenue')"><option value="">不绑定（默认）</option></select>
+          </div>
+          <div class="form-row" style="margin-bottom:0;">
+            <label>场所</label>
+            <select id="importVenue" disabled><option value="">请先选择租户</option></select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeModal('importOverlay')">取消</button>
+      <button class="btn btn-primary" onclick="doImport()">导入设备</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== 弹窗：批量绑定 ===================== -->
+<div class="overlay" id="batchBindOverlay">
+  <div class="modal narrow">
+    <div class="modal-head"><h3>批量绑定设备 <span class="new-badge">NEW</span></h3><button class="modal-close" onclick="closeModal('batchBindOverlay')">✕</button></div>
+    <div class="modal-body">
+      <div class="summary-box" id="bindSummary"></div>
+      <div class="warn-box" id="bindSkipWarn" style="display:none;"></div>
+      <div class="form-row">
+        <label><span class="req">*</span>租户</label>
+        <select id="bindTenant" onchange="cascadeVenue('bindTenant','bindVenue')"><option value="">请选择租户</option></select>
+      </div>
+      <div class="form-row">
+        <label><span class="req">*</span>场所</label>
+        <select id="bindVenue" disabled><option value="">请先选择租户</option></select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeModal('batchBindOverlay')">取消</button>
+      <button class="btn btn-primary" onclick="doBatchBind()">确认绑定</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== 弹窗：批量解绑 ===================== -->
+<div class="overlay" id="batchUnbindOverlay">
+  <div class="modal narrow">
+    <div class="modal-head"><h3>批量解绑设备 <span class="new-badge">NEW</span></h3><button class="modal-close" onclick="closeModal('batchUnbindOverlay')">✕</button></div>
+    <div class="modal-body">
+      <div class="summary-box" id="unbindSummary"></div>
+      <div class="warn-box" id="unbindSkipWarn" style="display:none;"></div>
+      <div class="muted">解绑后设备将与租户、场所解除关联，恢复为「未绑定」状态，可重新绑定至其他场所。</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeModal('batchUnbindOverlay')">取消</button>
+      <button class="btn btn-primary" style="background:#dc2626;" onclick="doBatchUnbind()">确认解绑</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== 弹窗：批量禁用 ===================== -->
+<div class="overlay" id="batchDisableOverlay">
+  <div class="modal narrow">
+    <div class="modal-head"><h3>批量禁用设备 <span class="new-badge">NEW</span></h3><button class="modal-close" onclick="closeModal('batchDisableOverlay')">✕</button></div>
+    <div class="modal-body">
+      <div class="summary-box" id="disableSummary"></div>
+      <div class="warn-box" id="disableSkipWarn" style="display:none;"></div>
+      <div class="muted">禁用后设备将无法开机使用，绑定关系保留；可随时重新启用。</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeModal('batchDisableOverlay')">取消</button>
+      <button class="btn btn-primary" style="background:#ea8600;" onclick="doBatchDisable()">确认禁用</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== 弹窗：批量删除 ===================== -->
+<div class="overlay" id="batchDeleteOverlay">
+  <div class="modal narrow">
+    <div class="modal-head"><h3>批量删除设备</h3><button class="modal-close" onclick="closeModal('batchDeleteOverlay')">✕</button></div>
+    <div class="modal-body">
+      <div class="summary-box" id="deleteSummary"></div>
+      <div class="warn-box" id="deleteSkipWarn" style="display:none;"></div>
+      <div class="warn-box" style="background:#fef2f2;border-color:#fecaca;color:#b91c1c;">⚠ 删除后设备记录不可恢复。如需再次接入，须重新导入设备。已绑定设备请先解绑。</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default" onclick="closeModal('batchDeleteOverlay')">取消</button>
+      <button class="btn btn-primary" style="background:#dc2626;" onclick="doBatchDelete()">确认删除</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== 弹窗：操作结果报告 ===================== -->
+<div class="overlay" id="resultOverlay">
+  <div class="modal">
+    <div class="modal-head"><h3 id="resultTitle">操作结果</h3><button class="modal-close" onclick="closeModal('resultOverlay')">✕</button></div>
+    <div class="modal-body">
+      <div class="result-stats">
+        <div class="stat"><b style="color:#16a34a;" id="resultSuccess">0</b>成功</div>
+        <div class="stat"><b style="color:#ea8600;" id="resultSkipped">0</b>跳过</div>
+        <div class="stat"><b style="color:#dc2626;" id="resultFailed">0</b>失败</div>
+      </div>
+      <table>
+        <thead><tr><th>序列号SN</th><th>结果</th><th>说明</th></tr></thead>
+        <tbody id="resultTbody"></tbody>
+      </table>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-default">导出结果</button>
+      <button class="btn btn-primary" onclick="closeModal('resultOverlay')">完成</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------------- 数据 ---------------- */
+const tenants = {
+  '国美美的学校': ['MMXY1-实训室1', 'MMXY1-实训室2'],
+  '学校-累计消费测试': ['测试场所A'],
+  '0506企业': ['总部办公区', '分部机房'],
+  'MM学院2-2026年4月23日': ['MM-泰山区-教室03', 'MM-泰山区-教室04'],
+  'MMXY3-学校': ['MMXY3-实训室01']
+};
+let devices = [
+  { sn:'3', model:'OLA-1', bound:true,  tenant:'国美美的学校', place:'MMXY1-实训室1', time:'2026-06-16 16:17:47', use:'关机中', user:'', lastBoot:'', created:'2026-06-10 13:57:21', creator:'DHHt26031845' },
+  { sn:'2', model:'OLA-2', bound:false, tenant:'学校-累计消费测试', place:'-', time:'-', use:'关机中', user:'', lastBoot:'', created:'2026-06-10 13:57:08', creator:'DHHt26031845' },
+  { sn:'24431ced26eb55f6', model:'OLA-1', bound:false, tenant:'0506企业', place:'-', time:'-', use:'关机中', user:'', lastBoot:'2026-06-25 18:30:31', created:'2026-06-01 14:14:54', creator:'Z.' },
+  { sn:'JPX53POBYZ', model:'MM-004', bound:false, tenant:'0506企业', place:'-', time:'-', use:'关机中', user:'', lastBoot:'2026-06-01 16:35:21', created:'2026-06-01 14:04:43', creator:'Z.' },
+  { sn:'SNMM-052', model:'MM-004', bound:true, tenant:'MM学院2-2026年4月23日', place:'MM-泰山区-教室03', time:'2026-05-26 19:10:32', use:'使用中', user:'茅丝录01-XS', lastBoot:'2026-07-15 08:02:11', created:'2026-05-26 13:41:48', creator:'GMM' },
+  { sn:'SNMM-051', model:'MM-004', bound:true, tenant:'MMXY3-学校', place:'MMXY3-实训室01', time:'2026-06-17 09:47:23', use:'关机中', user:'', lastBoot:'2026-07-10 15:20:07', created:'2026-05-26 13:41:48', creator:'GMM' },
+  { sn:'SNMM-050', model:'MM-004', bound:false, tenant:'MM学院2-2026年4月23日', place:'-', time:'-', use:'关机中', user:'', lastBoot:'', created:'2026-05-26 13:41:48', creator:'GMM' },
+  { sn:'SNMM-049', model:'MM-004', bound:false, tenant:'MM学院2-2026年4月23日', place:'-', time:'-', use:'关机中', user:'', lastBoot:'', created:'2026-05-26 13:41:48', creator:'GMM' },
+  { sn:'SNMM-048', model:'MM-004', bound:false, tenant:'MM学院2-2026年4月23日', place:'-', time:'-', use:'关机中', user:'', lastBoot:'', created:'2026-05-26 13:41:48', creator:'GMM' },
+  { sn:'SNMM-047', model:'MM-004', bound:false, tenant:'MM学院2-2026年4月23日', place:'-', time:'-', use:'关机中', user:'', lastBoot:'', created:'2026-05-26 13:41:48', creator:'GMM' },
+  { sn:'SNMM-046', model:'MM-004', bound:false, tenant:'MM学院2-2026年4月23日', place:'-', time:'-', use:'关机中', user:'', lastBoot:'', created:'2026-05-26 13:41:48', creator:'GMM' },
+  { sn:'SNMM-045', model:'MM-004', bound:false, tenant:'MM学院2-2026年4月23日', place:'-', time:'-', use:'关机中', user:'', lastBoot:'', created:'2026-05-26 13:41:48', creator:'GMM' },
+  { sn:'SNMM-044', model:'MM-004', bound:false, tenant:'MM学院2-2026年4月23日', place:'-', time:'-', use:'关机中', user:'', lastBoot:'', created:'2026-05-26 13:41:48', creator:'GMM' },
+  { sn:'SNMM-043', model:'MM-004', bound:false, tenant:'MM学院2-2026年4月23日', place:'-', time:'-', use:'关机中', user:'', lastBoot:'', created:'2026-05-26 13:41:48', creator:'GMM' },
+];
+const venues = [
+  { name:'MMXY1-实训室1', tenant:'国美美的学校', count:1, created:'2026-04-10 10:22:00' },
+  { name:'MM-泰山区-教室03', tenant:'MM学院2-2026年4月23日', count:1, created:'2026-04-23 09:00:00' },
+  { name:'MMXY3-实训室01', tenant:'MMXY3-学校', count:1, created:'2026-05-02 15:31:00' },
+  { name:'总部办公区', tenant:'0506企业', count:0, created:'2026-05-06 11:08:00' },
+];
+let selected = new Set();
+let currentTab = 'all';
+let venueContext = null; // 场所入口带入的 {tenant, venue}
+
+/* ---------------- 渲染 ---------------- */
+function renderDevices() {
+  const tb = document.getElementById('deviceTbody');
+  tb.innerHTML = '';
+  devices.filter(d => currentTab==='all' || (currentTab==='bound')===d.bound).forEach(d => {
+    const tr = document.createElement('tr');
+    if (selected.has(d.sn)) tr.className = 'selected';
+    tr.innerHTML = `
+      <td><input type="checkbox" ${selected.has(d.sn)?'checked':''} onchange="toggleRow('${d.sn}',this)"></td>
+      <td>${d.sn}</td><td>${d.model}</td>
+      <td><span class="tag ${d.bound?'tag-green':'tag-orange'}">${d.bound?'已绑定':'未绑定'}</span></td>
+      <td>${d.tenant||'-'}</td><td>${d.place}</td><td>${d.time}</td>
+      <td><span class="tag ${d.use==='使用中'?'tag-blue':(d.use==='已禁用'?'tag-orange':'tag-gray')}">${d.use}</span></td>
+      <td>${d.user||'-'}</td><td>${d.lastBoot||'-'}</td><td>${d.created||'-'}</td><td>${d.creator||'-'}</td>
+      <td class="ops"><a>📎 绑定</a><a>禁用</a><a>👁 查看详情</a><a>✎ 编辑</a><a class="danger">🗑 删除</a></td>`;
+    tb.appendChild(tr);
+  });
+  updateBatchBar();
+}
+function renderVenues() {
+  const tb = document.getElementById('venueTbody');
+  tb.innerHTML = '';
+  venues.forEach((v,i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${v.name}</td><td>${v.tenant}</td><td>${v.count}</td><td>${v.created}</td>
+      <td class="ops"><a>👁 查看详情</a><a>✎ 编辑</a>
+        <a onclick="openImport(${i})" style="font-weight:600;">⇪ 导入并绑定终端</a><span class="new-badge">NEW</span></td>`;
+    tb.appendChild(tr);
+  });
+}
+function switchPage(p) {
+  document.getElementById('pageTerminal').style.display = p==='terminal'?'':'none';
+  document.getElementById('pageVenue').style.display = p==='venue'?'':'none';
+  document.getElementById('navTerminal').classList.toggle('active', p==='terminal');
+  document.getElementById('navVenue').classList.toggle('active', p==='venue');
+}
+function filterTab(el, tab) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  currentTab = tab;
+  renderDevices();
+}
+
+/* ---------------- 选择与批量栏 ---------------- */
+function toggleRow(sn, cb) { cb.checked ? selected.add(sn) : selected.delete(sn); renderDevices(); }
+function toggleAll(cb) {
+  devices.filter(d => currentTab==='all' || (currentTab==='bound')===d.bound)
+    .forEach(d => cb.checked ? selected.add(d.sn) : selected.delete(d.sn));
+  renderDevices();
+}
+function clearSelection() { selected.clear(); document.getElementById('checkAll').checked=false; renderDevices(); }
+function updateBatchBar() {
+  const bar = document.getElementById('batchBar');
+  bar.classList.toggle('show', selected.size>0);
+  document.getElementById('selCount').textContent = selected.size;
+  const sel = devices.filter(d=>selected.has(d.sn));
+  document.getElementById('btnBatchBind').disabled = !sel.some(d=>!d.bound);
+  document.getElementById('btnBatchUnbind').disabled = !sel.some(d=>d.bound && d.use!=='使用中');
+  document.getElementById('btnBatchDisable').disabled = !sel.some(d=>d.use!=='使用中' && d.use!=='已禁用');
+  document.getElementById('btnBatchDelete').disabled = !sel.some(d=>!d.bound);
+}
+
+/* ---------------- 级联选择 ---------------- */
+function fillTenants(selId, placeholder) {
+  const s = document.getElementById(selId);
+  s.innerHTML = `<option value="">${placeholder}</option>` + Object.keys(tenants).map(t=>`<option>${t}</option>`).join('');
+}
+function cascadeVenue(tenantId, venueId) {
+  const t = document.getElementById(tenantId).value;
+  const v = document.getElementById(venueId);
+  if (!t) { v.disabled=true; v.innerHTML='<option value="">请先选择租户</option>'; return; }
+  v.disabled=false;
+  v.innerHTML = '<option value="">请选择场所</option>' + tenants[t].map(x=>`<option>${x}</option>`).join('');
+}
+
+/* ---------------- 导入设备 ---------------- */
+function addManualRow() {
+  const div = document.createElement('div');
+  div.className = 'manual-row';
+  div.innerHTML = `
+    <select><option value="">请选择型号</option><option>OLA-1</option><option>OLA-2</option><option>MM-004</option></select>
+    <input type="text" placeholder="请输入设备SN">
+    <input type="text" placeholder="请输入无线MAC">
+    <input type="text" placeholder="请输入有线MAC">
+    <a style="color:#dc2626;cursor:pointer;" onclick="this.parentNode.remove()">🗑</a>`;
+  document.getElementById('manualRows').appendChild(div);
+}
+function openImport(venueIdx) {
+  venueContext = venueIdx===null ? null : venues[venueIdx];
+  const note = document.getElementById('venueContextNote');
+  const tSel = document.getElementById('importTenant'), vSel = document.getElementById('importVenue');
+  fillTenants('importTenant','不绑定（默认）');
+  if (venueContext) {
+    note.style.display='';
+    note.innerHTML = `📍 从场所入口进入：本次导入的设备将自动绑定至 <b>${venueContext.tenant} / ${venueContext.name}</b>`;
+    tSel.value = venueContext.tenant; cascadeVenue('importTenant','importVenue');
+    vSel.value = venueContext.name;
+    tSel.disabled = true; vSel.disabled = true;
+  } else {
+    note.style.display='none';
+    tSel.disabled = false;
+    vSel.disabled = true; vSel.innerHTML='<option value="">请先选择租户</option>';
+  }
+  document.getElementById('manualRows').innerHTML='';
+  addManualRow();
+  document.getElementById('importOverlay').classList.add('show');
+}
+function doImport() {
+  const rows = document.querySelectorAll('#manualRows .manual-row');
+  const t = document.getElementById('importTenant').value;
+  const v = document.getElementById('importVenue').value;
+  const results = [];
+  let n = 0;
+  rows.forEach(r => {
+    const sn = r.querySelectorAll('input')[0].value.trim() || ('SN-DEMO-'+(++n).toString().padStart(3,'0'));
+    const model = r.querySelector('select').value || 'MM-004';
+    const bind = !!(t && v);
+    devices.unshift({ sn, model, bound:bind, tenant:bind?t:'', place:bind?v:'-', time:bind?nowStr():'-', use:'关机中' });
+    results.push({ sn, ok:'success', msg: bind?`导入成功，已绑定至 ${t} / ${v}`:'导入成功，未绑定' });
+  });
+  closeModal('importOverlay');
+  renderDevices();
+  showResult('导入结果', results);
+}
+
+/* ---------------- 批量绑定 ---------------- */
+function openBatchBind() {
+  const sel = devices.filter(d=>selected.has(d.sn));
+  const eligible = sel.filter(d=>!d.bound);
+  const skipped = sel.filter(d=>d.bound);
+  document.getElementById('bindSummary').innerHTML =
+    `本次将绑定 <b style="color:#2563eb;">${eligible.length}</b> 台设备：<br>` +
+    eligible.map(d=>`· ${d.sn}（${d.model}）`).join('<br>');
+  const w = document.getElementById('bindSkipWarn');
+  if (skipped.length) { w.style.display=''; w.innerHTML = `⚠ ${skipped.length} 台已绑定设备将自动跳过：${skipped.map(d=>d.sn).join('、')}`; }
+  else w.style.display='none';
+  fillTenants('bindTenant','请选择租户');
+  document.getElementById('bindVenue').disabled=true;
+  document.getElementById('bindVenue').innerHTML='<option value="">请先选择租户</option>';
+  document.getElementById('batchBindOverlay').classList.add('show');
+}
+function doBatchBind() {
+  const t = document.getElementById('bindTenant').value;
+  const v = document.getElementById('bindVenue').value;
+  if (!t || !v) { alert('请选择租户和场所'); return; }
+  const results = [];
+  devices.forEach(d => {
+    if (!selected.has(d.sn)) return;
+    if (d.bound) { results.push({sn:d.sn, ok:'skip', msg:'已绑定，跳过'}); return; }
+    d.bound=true; d.tenant=t; d.place=v; d.time=nowStr();
+    results.push({sn:d.sn, ok:'success', msg:`已绑定至 ${t} / ${v}`});
+  });
+  closeModal('batchBindOverlay');
+  clearSelection();
+  showResult('批量绑定结果', results);
+}
+
+/* ---------------- 批量禁用 ---------------- */
+function openBatchDisable() {
+  const sel = devices.filter(d=>selected.has(d.sn));
+  const eligible = sel.filter(d=>d.use!=='使用中' && d.use!=='已禁用');
+  const inUse = sel.filter(d=>d.use==='使用中');
+  const already = sel.filter(d=>d.use==='已禁用');
+  document.getElementById('disableSummary').innerHTML =
+    `本次将禁用 <b style="color:#ea8600;">${eligible.length}</b> 台设备：<br>` +
+    eligible.map(d=>`· ${d.sn}（${d.model}）${d.bound?` —— ${d.tenant} / ${d.place}`:''}`).join('<br>');
+  const warns=[];
+  if (inUse.length) warns.push(`⚠ ${inUse.length} 台设备使用中，将自动跳过：${inUse.map(d=>d.sn).join('、')}`);
+  if (already.length) warns.push(`⚠ ${already.length} 台设备已是禁用状态，将自动跳过：${already.map(d=>d.sn).join('、')}`);
+  const w=document.getElementById('disableSkipWarn');
+  if (warns.length){w.style.display='';w.innerHTML=warns.join('<br>');}else w.style.display='none';
+  document.getElementById('batchDisableOverlay').classList.add('show');
+}
+function doBatchDisable() {
+  const results=[];
+  devices.forEach(d=>{
+    if(!selected.has(d.sn))return;
+    if(d.use==='使用中'){results.push({sn:d.sn,ok:'skip',msg:'使用中，跳过'});return;}
+    if(d.use==='已禁用'){results.push({sn:d.sn,ok:'skip',msg:'已禁用，跳过'});return;}
+    d.use='已禁用';
+    results.push({sn:d.sn,ok:'success',msg:'已禁用'});
+  });
+  closeModal('batchDisableOverlay');
+  clearSelection();
+  showResult('批量禁用结果', results);
+}
+
+/* ---------------- 批量删除 ---------------- */
+function openBatchDelete() {
+  const sel = devices.filter(d=>selected.has(d.sn));
+  const eligible = sel.filter(d=>!d.bound);
+  const bound = sel.filter(d=>d.bound);
+  document.getElementById('deleteSummary').innerHTML =
+    `本次将删除 <b style="color:#dc2626;">${eligible.length}</b> 台设备：<br>` +
+    eligible.map(d=>`· ${d.sn}（${d.model}）`).join('<br>');
+  const w=document.getElementById('deleteSkipWarn');
+  if (bound.length){w.style.display='';w.innerHTML=`⚠ ${bound.length} 台设备已绑定，将自动跳过（请先解绑）：${bound.map(d=>d.sn).join('、')}`;}
+  else w.style.display='none';
+  document.getElementById('batchDeleteOverlay').classList.add('show');
+}
+function doBatchDelete() {
+  const results=[];
+  const toDel=new Set();
+  devices.forEach(d=>{
+    if(!selected.has(d.sn))return;
+    if(d.bound){results.push({sn:d.sn,ok:'skip',msg:'已绑定，跳过（请先解绑）'});return;}
+    toDel.add(d.sn);
+    results.push({sn:d.sn,ok:'success',msg:'已删除'});
+  });
+  devices = devices.filter(d=>!toDel.has(d.sn));
+  closeModal('batchDeleteOverlay');
+  clearSelection();
+  showResult('批量删除结果', results);
+}
+
+/* ---------------- 批量解绑 ---------------- */
+function openBatchUnbind() {
+  const sel = devices.filter(d=>selected.has(d.sn));
+  const eligible = sel.filter(d=>d.bound && d.use!=='使用中');
+  const inUse = sel.filter(d=>d.bound && d.use==='使用中');
+  const unbound = sel.filter(d=>!d.bound);
+  document.getElementById('unbindSummary').innerHTML =
+    `本次将解绑 <b style="color:#dc2626;">${eligible.length}</b> 台设备：<br>` +
+    eligible.map(d=>`· ${d.sn} —— 当前绑定：${d.tenant} / ${d.place}`).join('<br>');
+  const warns = [];
+  if (inUse.length) warns.push(`⚠ ${inUse.length} 台设备使用中，将自动跳过：${inUse.map(d=>d.sn).join('、')}`);
+  if (unbound.length) warns.push(`⚠ ${unbound.length} 台设备未绑定，将自动跳过：${unbound.map(d=>d.sn).join('、')}`);
+  const w = document.getElementById('unbindSkipWarn');
+  if (warns.length) { w.style.display=''; w.innerHTML = warns.join('<br>'); } else w.style.display='none';
+  document.getElementById('batchUnbindOverlay').classList.add('show');
+}
+function doBatchUnbind() {
+  const results = [];
+  devices.forEach(d => {
+    if (!selected.has(d.sn)) return;
+    if (!d.bound) { results.push({sn:d.sn, ok:'skip', msg:'未绑定，跳过'}); return; }
+    if (d.use==='使用中') { results.push({sn:d.sn, ok:'skip', msg:'设备使用中，跳过（请先关机后重试）'}); return; }
+    d.bound=false; d.tenant=''; d.place='-'; d.time='-';
+    results.push({sn:d.sn, ok:'success', msg:'解绑成功'});
+  });
+  closeModal('batchUnbindOverlay');
+  clearSelection();
+  showResult('批量解绑结果', results);
+}
+
+/* ---------------- 结果报告 ---------------- */
+function showResult(title, results) {
+  document.getElementById('resultTitle').textContent = title;
+  const s = results.filter(r=>r.ok==='success').length;
+  const k = results.filter(r=>r.ok==='skip').length;
+  const f = results.filter(r=>r.ok==='fail').length;
+  document.getElementById('resultSuccess').textContent = s;
+  document.getElementById('resultSkipped').textContent = k;
+  document.getElementById('resultFailed').textContent = f;
+  document.getElementById('resultTbody').innerHTML = results.map(r=>`
+    <tr><td>${r.sn}</td>
+      <td><span class="tag ${r.ok==='success'?'tag-green':r.ok==='skip'?'tag-orange':'tag-red'}">${r.ok==='success'?'成功':r.ok==='skip'?'跳过':'失败'}</span></td>
+      <td>${r.msg}</td></tr>`).join('');
+  document.getElementById('resultOverlay').classList.add('show');
+}
+
+/* ---------------- 工具 ---------------- */
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+function nowStr() {
+  const d = new Date(), p = n=>String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+}
+renderDevices();
+renderVenues();
+</script>
+</body>
+</html>
