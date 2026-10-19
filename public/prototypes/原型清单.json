@@ -72,5 +72,17 @@
     "title": "自定义镜像管理",
     "path": "租户端/自定义镜像管理/index.html",
     "description": "镜像列表、从云电脑创建镜像、可用性与兼容性、创建云电脑时选择镜像。"
+  },
+  {
+    "end": "运营端",
+    "title": "GPU 专属折扣 · 配置",
+    "path": "../gpu-discounts/admin.html",
+    "description": "个人用户与企业／学校租户折扣配置、范围、时间、价格预览、确认及停止。"
+  },
+  {
+    "end": "租户端",
+    "title": "GPU 租赁 · 专属折扣",
+    "path": "../gpu-discounts/market.html",
+    "description": "个人与组织空间选卡，卡片左下角折后价、专属标签及创建费用明细。"
   }
 ]

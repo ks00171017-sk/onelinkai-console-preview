@@ -1,0 +1,2871 @@
+<!doctype html>
+<html lang="zh-CN" data-visualize-standalone>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src 'unsafe-inline' blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>GPU 租赁 · 专属折扣选卡原型</title>
+<style>:root{color-scheme:light dark;background:light-dark(rgb(255 255 255), rgb(24 24 24))}html,body{margin:0}body{box-sizing:border-box;padding:1rem;background:inherit}iframe{display:block;width:100%;height:calc(100vh - 2rem);margin:0 auto;border:0}</style>
+
+</head>
+<body>
+<iframe id="codex-visualization" sandbox="allow-scripts" referrerpolicy="no-referrer" title="GPU 租赁 · 专属折扣选卡原型" data-srcdoc="&lt;!doctype html&gt;
+&lt;html lang=&quot;en&quot; data-visualize-standalone&gt;
+&lt;head&gt;
+&lt;meta charset=&quot;utf-8&quot;&gt;
+&lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+&lt;meta name=&quot;referrer&quot; content=&quot;no-referrer&quot;&gt;
+&lt;meta http-equiv=&quot;Content-Security-Policy&quot; content=&quot;default-src &#x27;none&#x27;; script-src &#x27;unsafe-inline&#x27; &#x27;unsafe-eval&#x27; &#x27;wasm-unsafe-eval&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; style-src &#x27;unsafe-inline&#x27; blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; img-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; font-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; media-src blob: data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://esm.sh https://fonts.bunny.net https://fonts.googleapis.com https://fonts.gstatic.com https://unpkg.com; worker-src blob:; connect-src blob: data:; frame-src &#x27;none&#x27;; object-src &#x27;none&#x27;; base-uri &#x27;none&#x27;; form-action &#x27;none&#x27;&quot;&gt;
+&lt;title&gt;GPU 租赁 · 专属折扣选卡原型&lt;/title&gt;
+&lt;style&gt;:root {
+  color-scheme: light dark;
+  background-color: var(
+    --background,
+    var(--color-background-primary, light-dark(rgb(255 255 255), rgb(24 24 24)))
+  ) !important;
+
+  /* Agent-facing contract; keep in sync with SKILL.md. */
+  --background: var(
+    --color-background-primary,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --card: color-mix(in oklab, var(--foreground) 5%, var(--background));
+  --card-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --popover: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255), rgb(45 45 45))
+  );
+  --popover-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --primary: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --primary-foreground: var(
+    --color-text-inverse,
+    light-dark(rgb(255 255 255), rgb(13 13 13))
+  );
+  --secondary: var(
+    --color-background-secondary,
+    light-dark(rgb(255 255 255 / 96%), rgb(54 54 54 / 96%))
+  );
+  --secondary-foreground: var(
+    --color-text-primary,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --muted: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --muted-foreground: var(
+    --color-text-secondary,
+    light-dark(rgb(26 28 31 / 49.4%), rgb(255 255 255 / 49.8%))
+  );
+  --accent: var(
+    --color-background-info,
+    light-dark(rgb(229 242 255), rgb(13 39 63))
+  );
+  --accent-foreground: var(
+    --color-text-info,
+    light-dark(rgb(51 156 255), rgb(131 195 255))
+  );
+  --destructive: var(
+    --color-text-warning,
+    light-dark(rgb(226 85 7), rgb(255 133 73))
+  );
+  --border: var(
+    --color-border-secondary,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+  --input: var(
+    --color-border-primary,
+    light-dark(
+      rgb(26 28 31 / 11.8%),
+      color-mix(in oklab, rgb(0 0 0) 10%, transparent)
+    )
+  );
+  --ring: var(
+    --color-ring-primary,
+    light-dark(rgb(51 156 255), rgb(131 195 255 / 76%))
+  );
+  --font-size-base: var(--font-text-md-size, 16px);
+  --blue: light-dark(rgb(51 156 255), rgb(51 156 255));
+  --orange: light-dark(rgb(226 85 7), rgb(251 106 34));
+  --green: light-dark(rgb(0 162 64), rgb(64 201 119));
+  --red: light-dark(rgb(224 46 42), rgb(255 103 100));
+  --purple: light-dark(rgb(146 79 247), rgb(173 123 249));
+  --yellow: light-dark(rgb(255 195 0), rgb(255 210 64));
+  --viz-series-1: var(--primary);
+  --viz-series-2: light-dark(rgb(243 136 59), rgb(245 154 86));
+  --viz-series-3: light-dark(rgb(93 201 119), rgb(116 213 139));
+  --viz-series-4: light-dark(rgb(235 119 177), rgb(240 143 192));
+  --viz-series-5: light-dark(rgb(155 121 236), rgb(170 145 239));
+  --viz-series-6: light-dark(rgb(58 185 177), rgb(90 203 194));
+
+  /* Internal implementation variables; not part of the agent contract. */
+  --font-sans:
+    -apple-system-body, ui-sans-serif, -apple-system, system-ui, &quot;Segoe UI&quot;,
+    Helvetica, &quot;Apple Color Emoji&quot;, Arial, sans-serif, &quot;Segoe UI Emoji&quot;,
+    &quot;Segoe UI Symbol&quot;;
+  --font-mono:
+    ui-monospace, SFMono-Regular, &quot;SF Mono&quot;, Menlo, Consolas, &quot;Liberation Mono&quot;,
+    monospace;
+  --font-size-normal: max(11px, var(--font-size-base));
+  --font-size-tooltip: calc(var(--font-size-base) - 1px);
+  --font-size-small: max(11px, calc(var(--font-size-base) - 2px));
+  --font-size-h1: calc(var(--font-size-normal) * 1.7142857143);
+  --font-size-h2: calc(var(--font-size-normal) * 1.4285714286);
+  --font-size-h3: calc(var(--font-size-normal) * 1.2857142857);
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --icon-size: 16px;
+  --line-height-normal: calc(var(--font-size-normal) * 1.5);
+  --line-height-tooltip: calc(var(--font-size-tooltip) * 1.4285714286);
+  --line-height-small: calc(var(--font-size-small) + 4px);
+  --corner-shape: round;
+  --radius: var(--border-radius-lg, 8px);
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.75);
+  --radius-lg: var(--radius);
+  --radius-2xl: calc(var(--radius) * 2);
+  --radius-full: 9999px;
+  --shadow-sm: 0 1px 2px -1px rgb(0 0 0 / 8%);
+  --checkmark-image: url(&quot;data:image/svg+xml,%3Csvg xmlns=&#x27;http://www.w3.org/2000/svg&#x27; viewBox=&#x27;0 0 17 17&#x27;%3E%3Cpath d=&#x27;M12.8961 3.64101C13.1297 3.41418 13.4984 3.37523 13.7779 3.56581C14.0571 3.75635 14.1554 4.11331 14.0299 4.41347L13.9615 4.53847L7.71151 13.7045C7.59411 13.8767 7.4063 13.9877 7.19881 14.0072C6.99136 14.0267 6.78564 13.9533 6.63826 13.806L2.88826 10.056L2.79842 9.9457C2.6192 9.67407 2.64927 9.30496 2.88826 9.06581C3.12738 8.82669 3.49647 8.79676 3.76815 8.97597L3.8785 9.06581L7.03084 12.2182L12.8053 3.74941L12.8961 3.64101Z&#x27;/%3E%3C/svg%3E&quot;);
+
+  /* Legacy aliases; not part of the current agent contract. */
+  --viz-bg: transparent;
+  --viz-panel: var(--card);
+  --viz-border: var(--border);
+  --viz-text: var(--foreground);
+  --viz-muted: var(--muted-foreground);
+  --viz-accent: var(--primary);
+  --viz-accent-text: var(--primary-foreground);
+  --viz-accent-bg: var(--accent);
+  --viz-font-size: var(--font-size-base);
+  --viz-warning: var(--destructive);
+}
+
+:root[data-theme=&quot;light&quot;] {
+  color-scheme: light;
+}
+
+:root[data-theme=&quot;dark&quot;] {
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html &gt; body {
+  /* Preserve MCP aliases for older inline renderers without creating :root cycles. */
+  --color-background-primary: var(
+    --background,
+    light-dark(rgb(255 255 255), rgb(24 24 24))
+  );
+  --color-text-primary: var(
+    --foreground,
+    light-dark(rgb(26 28 31), rgb(255 255 255))
+  );
+  --color-border-secondary: var(
+    --border,
+    light-dark(rgb(26 28 31 / 8%), rgb(255 255 255 / 8.2%))
+  );
+
+  margin: 0;
+  padding: var(--visualize-paint-gutter, 0px);
+  color: var(--foreground);
+  background: transparent !important;
+  font-family: var(--font-sans) !important;
+  -webkit-font-smoothing: antialiased;
+  font-size: var(--font-size-base);
+  line-height: calc(var(--font-size-base) * 1.625);
+  font-weight: var(--font-weight-normal);
+}
+
+.cursor-interaction {
+  cursor: var(--cursor-interaction, pointer);
+}
+
+a {
+  color: color-mix(in srgb, var(--viz-accent) 80%, var(--viz-text) 20%);
+  cursor: var(--cursor-interaction, pointer);
+  text-decoration: none;
+  text-underline-offset: 2px;
+  font-weight: inherit;
+}
+
+a:is(:hover, :focus-visible) {
+  text-decoration-line: underline;
+  text-decoration-style: dashed;
+  text-decoration-thickness: 0.5px;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-block: 0;
+}
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+li,
+.table {
+  font-family: var(--font-sans);
+}
+
+h1 {
+  font-size: calc(var(--font-size-base) * 1.5);
+  line-height: 1.3333333333;
+}
+
+h2 {
+  font-size: calc(var(--font-size-base) * 1.25);
+  line-height: 1.4;
+}
+h3 {
+  font-size: calc(var(--font-size-base) * 1.125);
+  line-height: 1.5555555556;
+}
+h4 {
+  font-size: var(--font-size-base);
+  line-height: 1.5;
+}
+h5,
+h6 {
+  font-size: var(--font-size-base);
+  line-height: calc(var(--font-size-base) * 1.625);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+b,
+strong,
+th {
+  font-weight: 600;
+}
+
+code:not(pre code) {
+  display: inline;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  corner-shape: var(--corner-shape);
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.92em;
+  overflow-wrap: anywhere;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  word-break: break-word;
+}
+pre,
+pre code {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.table {
+  width: 100%;
+  color: var(--foreground);
+  font: inherit;
+  text-align: start;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: calc(var(--font-size-base) * 0.875);
+  line-height: calc(var(--font-size-base) * 1.625);
+  font-family: var(--font-sans);
+}
+
+.table :is(th, td) {
+  padding-block: 10px;
+  padding-inline: 0 24px;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--border);
+  text-align: start;
+  vertical-align: top;
+  border-bottom-color: color-mix(in srgb, var(--foreground) 5%, transparent);
+}
+.table :is(th, td):not(:last-child) {
+  padding-inline-end: calc(var(--font-size-base) * 1.5);
+}
+
+.table-responsive &gt; .table :is(th, td) {
+  overflow-wrap: break-word;
+}
+
+.table :is(th, td):last-child {
+  padding-inline-end: 0;
+}
+
+.table :is(caption, thead th) {
+  font-weight: 600;
+}
+
+.table thead :is(th, td) {
+  border-bottom-color: var(--border-strong, var(--input));
+  padding-block: calc(var(--font-size-base) / 2);
+  line-height: var(--font-size-base);
+}
+
+.table tbody tr:last-child :is(th, td) {
+  border-bottom: 0;
+}
+.table tbody :is(th, td) {
+  padding-block: calc(var(--font-size-base) * 0.625);
+}
+
+.table.table-sm :is(th, td) {
+  padding-block: 8px;
+}
+
+.table.table-sm :is(th, td):not(:last-child) {
+  padding-inline-end: 16px;
+}
+
+.table :is(.text-end, [align=&quot;right&quot;]) {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.table :is(.text-center, [align=&quot;center&quot;]) {
+  text-align: center;
+}
+
+.table .text-nowrap {
+  white-space: nowrap;
+}
+
+#widget {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  padding: 0;
+  background: transparent !important;
+}
+
+.card {
+  min-width: 0;
+  padding: 12px;
+  overflow: hidden;
+  overflow-wrap: break-word;
+  border-radius: var(--radius-2xl);
+  corner-shape: var(--corner-shape);
+  color: var(--card-foreground);
+  background: var(--card);
+}
+
+.widget {
+  min-width: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-lg);
+  corner-shape: var(--corner-shape);
+  box-shadow: 0 0 0 0.5px var(--border-strong, var(--border));
+  color: var(--foreground);
+  background: var(--background);
+}
+
+#widget &gt; :not(.card, .widget, .progress) {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 50;
+  top: 0;
+  left: 0;
+  width: max-content;
+  max-width: min(
+    20rem,
+    var(--tooltip-available-width, calc(100vw - 10px)),
+    calc(100vw - 10px)
+  );
+  max-height: min(
+    var(--tooltip-available-height, calc(100vh - 10px)),
+    calc(100vh - 10px)
+  );
+  border: 1px solid var(--border);
+  corner-shape: var(--corner-shape);
+  overflow-wrap: break-word;
+  white-space: normal;
+  pointer-events: none;
+  user-select: none;
+  font-family: var(--font-sans);
+  padding: 5px 12px;
+  border-color: color-mix(
+    in oklab,
+    light-dark(var(--primary-foreground), var(--foreground)) 5%,
+    transparent
+  );
+  border-radius: var(--radius-2xl);
+  color: light-dark(var(--primary-foreground), var(--foreground));
+  background: light-dark(var(--foreground), var(--popover));
+  box-shadow: 0 8px 18px rgb(15 23 42 / 20%);
+  letter-spacing: -0.15px;
+  font-size: calc(var(--font-size-base) * 14 / 16);
+  font-size: round(nearest, calc(var(--font-size-base) * 14 / 16), 1px);
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+}
+
+.viz-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(max(180px, 24%), 1fr));
+  gap: 10px;
+}
+
+.viz-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.viz-stat-value {
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.viz-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+hr {
+  width: 100%;
+  height: 1px;
+  margin-block: 6px;
+  border: 0;
+  background: var(--border);
+}
+
+.nav {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 4px;
+}
+
+.progress {
+  display: flex;
+  height: 8px;
+  margin-block: calc((var(--line-height-normal, 1.5em) - 8px) / 2);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+}
+
+.progress-bar:only-child {
+  border-radius: var(--radius-full);
+}
+
+.progress-bar {
+  height: 100%;
+  flex-shrink: 0;
+  border: 0;
+  background: var(--viz-series-1);
+}
+
+.viz-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  color: color-mix(in srgb, var(--foreground) 40%, var(--muted-foreground));
+  background: color-mix(in srgb, var(--foreground) 5%, transparent);
+  font-family: var(--font-sans);
+  font-size: calc(var(--font-size-base) * 14 / 16);
+  font-size: round(nearest, calc(var(--font-size-base) * 14 / 16), 1px);
+  font-weight: var(--font-weight-normal);
+  line-height: 1;
+}
+
+small,
+.text-small {
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+}
+
+.text-muted {
+  color: var(--muted-foreground);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.viz-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.viz-controls &gt; .form-label {
+  display: grid;
+  min-width: min(100%, 260px);
+  flex: 1 1 280px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: 2px 12px;
+  margin-bottom: 0;
+}
+
+.viz-controls &gt; .form-label &gt; :is(.form-control, .form-range, .form-select) {
+  grid-column: 1 / -1;
+}
+
+.btn,
+.nav-link,
+.form-check-input,
+.form-control,
+.form-range,
+.form-select {
+  font: inherit;
+}
+
+/* Match inline alignment without overriding a containing flex or grid layout. */
+.btn,
+.nav-link,
+.form-control,
+.form-select,
+.form-range,
+.form-check {
+  vertical-align: middle;
+}
+
+.btn,
+.nav-link {
+  appearance: button;
+  display: inline-flex;
+  inline-size: fit-content;
+  max-inline-size: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  margin: 0;
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+  border: 1px solid var(--input);
+  corner-shape: var(--corner-shape);
+  cursor: var(--cursor-interaction, pointer);
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-font-smoothing: inherit;
+  font-family: var(--font-sans);
+  height: fit-content;
+  min-height: calc(12px + 2 * var(--control-spacing, 12px));
+  padding-inline: var(--control-spacing, 12px);
+  border-color: transparent;
+  border-radius: var(--radius-full);
+  color: var(--foreground);
+  background: color-mix(in srgb, var(--foreground) 5%, transparent);
+  font-size: calc(var(--font-size-base) * 14 / 16);
+  font-size: round(nearest, calc(var(--font-size-base) * 14 / 16), 1px);
+  font-weight: var(--font-weight-normal);
+  line-height: 18px;
+}
+
+.btn {
+  border-color: var(--border);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+}
+
+.btn:is(.btn-block, .viz-tile) {
+  inline-size: 100%;
+}
+
+.btn.viz-tile {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+a.btn {
+  cursor: var(--cursor-interaction, pointer);
+  text-decoration: none;
+}
+
+.btn:not(:disabled):hover {
+  background: light-dark(
+    color-mix(in srgb, var(--foreground) 5.5%, transparent),
+    color-mix(in srgb, var(--foreground) 8%, transparent)
+  );
+}
+
+.nav-link:not(:disabled):not([aria-disabled=&quot;true&quot;]):hover {
+  background: color-mix(in srgb, var(--foreground) 10%, transparent);
+}
+
+.btn-primary {
+  border-color: var(--border);
+  color: var(--primary-foreground);
+  background: var(--foreground);
+  background-clip: border-box;
+}
+
+.btn-primary .text-muted {
+  color: color-mix(in srgb, var(--primary-foreground) 50%, transparent);
+}
+
+.btn-primary:not(:disabled):hover {
+  background: color-mix(in srgb, var(--foreground) 80%, transparent);
+  background-clip: border-box;
+}
+
+.btn-ghost {
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.btn-ghost:not(:disabled):hover {
+  color: var(--muted-foreground);
+  background: light-dark(
+    color-mix(in srgb, var(--foreground) 5.5%, transparent),
+    color-mix(in srgb, var(--foreground) 8%, transparent)
+  );
+}
+
+.nav-pills .nav-link {
+  min-width: 0;
+  border-color: transparent;
+  color: var(--muted-foreground);
+  background: transparent;
+}
+
+.nav-justified .nav-link {
+  flex: 1 1 0;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.nav-pills .nav-link.active {
+  color: var(--foreground);
+  background: var(--muted);
+}
+
+/* Shared preview chrome; product styles stay inside each variant. */
+.viz-dotted-background {
+  background-image: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--foreground) 14%, transparent) 0.8px,
+    transparent 0.8px
+  );
+  background-position: center;
+  background-size: 16px 16px;
+}
+
+.viz-carousel {
+  position: relative;
+  min-width: 0;
+}
+
+.viz-carousel:has(&gt; .viz-carousel-controls) {
+  min-height: calc(60px + var(--viz-carousel-picker-height, 0px));
+  padding-bottom: 60px;
+}
+
+.viz-carousel &gt; [data-variant][hidden] {
+  display: none !important;
+}
+
+.viz-carousel &gt; [data-variant] {
+  isolation: isolate;
+}
+
+.viz-carousel-controls {
+  --viz-carousel-hover: light-dark(
+    color-mix(in srgb, var(--foreground) 5.4%, transparent),
+    color-mix(in srgb, var(--foreground) 7.8%, transparent)
+  );
+  position: absolute;
+  z-index: 2;
+  bottom: 8px;
+  left: 50%;
+  display: flex;
+  width: max-content;
+  /* Leave room for the host&#x27;s design-controls launcher at the trailing edge. */
+  max-width: calc(100% - 96px);
+  align-items: center;
+  gap: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  color: var(--foreground);
+  background: var(--background);
+  font-family: var(--font-sans);
+  /* Match the settings dropdown chrome independently of the content font size. */
+  font-size: 13px;
+  font-weight: var(--font-weight-normal);
+  line-height: 18px;
+  transform: translateX(-50%);
+  user-select: none;
+}
+
+/* Keep authored mockup button styles out of the shared carousel chrome. */
+.viz-carousel-controls button,
+.viz-carousel-picker &gt; summary {
+  display: flex !important;
+  height: auto !important;
+  min-height: 30px;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 4px;
+  padding: 0 6px !important;
+  -webkit-app-region: no-drag;
+  border: 0 !important;
+  border-radius: 14px !important;
+  color: inherit !important;
+  background: transparent !important;
+  font: inherit !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.viz-carousel-controls &gt; button,
+.viz-carousel-picker &gt; summary {
+  position: relative;
+  isolation: isolate;
+}
+
+.viz-carousel-controls &gt; button {
+  --icon-size: 16px;
+  width: 30px !important;
+  padding: 0 !important;
+}
+
+.viz-carousel-picker &gt; summary {
+  padding-inline: 12px !important;
+}
+
+.viz-carousel-controls .viz-carousel-caret {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  margin: 0;
+  color: inherit;
+  transform: rotate(180deg);
+}
+
+.viz-carousel-controls &gt; button &gt; svg,
+.viz-carousel-controls .viz-carousel-caret,
+.viz-carousel-count {
+  opacity: 0.5;
+}
+
+.viz-carousel-controls &gt; button::before,
+.viz-carousel-picker &gt; summary::before {
+  position: absolute;
+  z-index: -1;
+  inset: 3px;
+  border-radius: 12px;
+  content: &quot;&quot;;
+  pointer-events: none;
+}
+
+.viz-carousel-controls &gt; button:hover::before,
+.viz-carousel-picker &gt; summary:hover::before {
+  background: var(--viz-carousel-hover);
+}
+
+.viz-carousel-controls &gt; button,
+.viz-carousel-controls [data-lucide],
+.viz-carousel-controls .lucide {
+  flex-shrink: 0;
+}
+
+.viz-carousel-picker {
+  min-width: 0;
+}
+
+.viz-carousel-picker &gt; summary {
+  min-width: 0;
+  list-style: none;
+}
+
+.viz-carousel-picker &gt; summary::-webkit-details-marker {
+  display: none;
+}
+
+.viz-carousel-count {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.viz-carousel-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.viz-carousel-options {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 4px);
+  left: 0;
+  display: flex;
+  max-height: 240px;
+  flex-direction: column;
+  gap: 2px;
+  overflow: auto;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--background);
+  box-shadow: 0 4px 12px light-dark(rgb(0 0 0 / 6%), rgb(0 0 0 / 25%));
+}
+
+.viz-carousel-options &gt; button {
+  border-radius: max(0px, calc(var(--radius-lg) - 5px)) !important;
+  width: 100% !important;
+  min-height: 28px;
+  justify-content: flex-start !important;
+  padding: 4px 8px !important;
+  font-size: var(--font-size-small) !important;
+  text-align: start;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.viz-carousel-options &gt; [aria-current=&quot;true&quot;],
+.viz-carousel-options &gt; button:hover {
+  background: var(--viz-carousel-hover) !important;
+}
+
+.btn:disabled,
+.nav-link:disabled,
+.nav-link[aria-disabled=&quot;true&quot;] {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+[data-lucide] {
+  stroke-width: 1.6;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.form-control {
+  display: block;
+  width: 100%;
+  padding: 0 8px;
+  outline: none;
+  border: 1px solid var(--input);
+  corner-shape: var(--corner-shape);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  height: calc(12px + 2 * var(--control-spacing, 12px));
+  min-height: calc(12px + 2 * var(--control-spacing, 12px));
+  padding-inline: calc(4px + var(--control-spacing, 12px) / 2);
+  border-color: var(--input);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--popover) 96%, transparent);
+  font-size: calc(var(--font-size-base) * 14 / 16);
+  font-size: round(nearest, calc(var(--font-size-base) * 14 / 16), 1px);
+  font-weight: var(--font-weight-normal);
+  line-height: 1.4285714286;
+}
+.form-control:is(
+  [type=&quot;file&quot;],
+  [type=&quot;date&quot;],
+  [type=&quot;datetime-local&quot;],
+  [type=&quot;month&quot;],
+  [type=&quot;week&quot;],
+  [type=&quot;color&quot;]
+) {
+  height: calc(12px + 2 * var(--control-spacing, 12px));
+  min-height: calc(12px + 2 * var(--control-spacing, 12px));
+  line-height: 18px;
+}
+.form-control:is(
+  [type=&quot;date&quot;],
+  [type=&quot;datetime-local&quot;],
+  [type=&quot;month&quot;],
+  [type=&quot;week&quot;]
+) {
+  padding-inline: var(--control-spacing, 12px);
+}
+
+.form-control::placeholder {
+  color: var(--muted-foreground);
+}
+
+.form-control[type=&quot;file&quot;] {
+  overflow: hidden;
+  cursor: var(--cursor-interaction, pointer);
+  padding: 0;
+}
+
+.form-control[type=&quot;file&quot;]::file-selector-button {
+  padding: 0 8px;
+  border: 0;
+  border-right: 1px solid var(--input);
+  color: var(--secondary-foreground);
+  background: var(--secondary);
+  cursor: inherit;
+  font: inherit;
+  min-height: calc(10px + 2 * var(--control-spacing, 12px));
+  padding-inline: var(--control-spacing, 12px);
+  margin-inline-end: var(--control-spacing, 12px);
+}
+
+.form-control[type=&quot;file&quot;]:not(:disabled):hover::file-selector-button {
+  background: color-mix(in srgb, var(--foreground) 6%, var(--secondary));
+}
+
+.form-control-color[type=&quot;color&quot;] {
+  width: 40px;
+  height: calc(12px + 2 * var(--control-spacing, 12px));
+  padding: 3px;
+  cursor: var(--cursor-interaction, pointer);
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.form-control-color[type=&quot;color&quot;]::-webkit-color-swatch {
+  border: 0;
+  border-radius: calc(var(--radius-lg) - 4px);
+  corner-shape: var(--corner-shape);
+}
+
+textarea.form-control {
+  height: auto;
+  resize: vertical;
+  min-height: 96px;
+  padding: 8px 10px;
+}
+
+.form-control:focus-visible {
+  border-color: var(--ring);
+  box-shadow: none;
+}
+.form-control:disabled {
+  color: var(--muted-foreground);
+  background: color-mix(in srgb, var(--foreground) 5%, transparent);
+  opacity: 1;
+}
+.form-control[aria-invalid=&quot;true&quot;] {
+  border-color: var(--red);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--red) 20%, transparent);
+}
+
+.form-control:disabled,
+.form-select:disabled {
+  cursor: not-allowed;
+}
+
+.form-select {
+  appearance: none;
+  display: block;
+  width: 100%;
+  height: fit-content;
+  min-height: calc(12px + 2 * var(--control-spacing, 12px));
+  margin: 0;
+  /* The secondary icon role is 14px at compact density and 16px at web density. */
+  --icon-size: calc(10px + var(--control-spacing, 12px) / 2);
+  /* Settings dropdowns retain a 12px inset and a 4px text-to-chevron gap. */
+  padding: 0 calc(16px + var(--icon-size)) 0 12px;
+  outline: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  corner-shape: var(--corner-shape);
+  color: var(--foreground);
+  background-color: var(--secondary);
+  background-image:
+    linear-gradient(
+      45deg,
+      transparent calc(50% - 0.6px),
+      var(--muted-foreground) calc(50% - 0.6px) calc(50% + 0.6px),
+      transparent calc(50% + 0.6px)
+    ),
+    linear-gradient(
+      135deg,
+      transparent calc(50% - 0.6px),
+      var(--muted-foreground) calc(50% - 0.6px) calc(50% + 0.6px),
+      transparent calc(50% + 0.6px)
+    );
+  background-position:
+    calc(100% - 12px - var(--icon-size) / 2) 50%,
+    calc(100% - 12px - var(--icon-size) * 0.18) 50%;
+  background-repeat: no-repeat;
+  background-size: calc(var(--icon-size) * 0.32) calc(var(--icon-size) * 0.32);
+  cursor: var(--cursor-interaction, default);
+  font-size: calc(var(--font-size-base) * 14 / 16);
+  font-size: round(nearest, calc(var(--font-size-base) * 14 / 16), 1px);
+  font-weight: var(--font-weight-normal);
+  line-height: 18px;
+}
+
+.form-select option {
+  color: var(--popover-foreground);
+  background-color: var(--popover);
+}
+
+.form-select:not(:disabled):hover {
+  background-color: light-dark(
+    color-mix(in srgb, var(--foreground) 5.5%, transparent),
+    color-mix(in srgb, var(--foreground) 8%, transparent)
+  );
+}
+
+.form-select:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+}
+.form-select:disabled {
+  opacity: 0.4;
+}
+
+.form-check {
+  display: flex;
+  min-height: calc(12px + 2 * var(--control-spacing, 12px));
+  align-items: center;
+  gap: 6px;
+}
+
+.form-check-input {
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+  margin: 0;
+  border: 1px solid var(--input);
+  color: var(--primary-foreground);
+  background-color: transparent;
+  cursor: var(--cursor-interaction, default);
+  transition:
+    background-color 150ms,
+    border-color 150ms,
+    box-shadow 150ms;
+}
+
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;] {
+  corner-shape: round;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  width: calc(10px + var(--control-spacing, 12px) / 2);
+  height: calc(10px + var(--control-spacing, 12px) / 2);
+  border-color: var(--border-strong, var(--input));
+  border-radius: calc(var(--radius-sm) / 2);
+  background-color: transparent;
+  color: var(--foreground);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input:not(:disabled):not(:checked):hover {
+  background-color: var(--card);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type=&quot;checkbox&quot;]:is(:checked, :indeterminate) {
+  border-color: var(--border-strong, var(--input));
+  background-color: color-mix(in srgb, var(--popover) 96%, transparent);
+}
+
+.form-check:not(.form-switch)
+  .form-check-input[type=&quot;checkbox&quot;]:checked::before {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--primary-foreground);
+  content: &quot;&quot;;
+  mask: var(--checkmark-image) center / 12px 12px no-repeat;
+  background-color: var(--foreground);
+}
+.form-check:not(.form-switch)
+  .form-check-input[type=&quot;checkbox&quot;]:indeterminate::before {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 65%;
+  height: 6.65%;
+  margin: auto;
+  border-radius: var(--radius-full);
+  background: var(--foreground);
+  mask: none;
+  content: &quot;&quot;;
+}
+
+.form-check-input[type=&quot;radio&quot;] {
+  border-radius: var(--radius-full);
+  width: 16px;
+  height: 16px;
+  border: 0;
+  box-shadow: inset 0 0 0 1px var(--input);
+}
+
+.form-check-input[type=&quot;radio&quot;]:checked {
+  border: 0;
+  background: radial-gradient(
+    circle,
+    var(--primary-foreground) 0 3px,
+    var(--foreground) 3px
+  );
+  box-shadow: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+.form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;]:focus-visible {
+  border-color: var(--ring);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled {
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.form-check:not(.form-switch) .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+}
+.form-check:not(.form-switch) .form-check-input[type=&quot;radio&quot;]:disabled,
+.form-check:not(.form-switch)
+  .form-check-input[type=&quot;radio&quot;]:disabled
+  + .form-check-label {
+  opacity: 0.5;
+}
+
+.form-switch .form-check-input:disabled,
+.form-switch .form-check-input:disabled + .form-check-label {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--foreground);
+  cursor: var(--cursor-interaction, default);
+}
+
+.form-switch .form-check-input {
+  position: relative;
+  width: 32px;
+  height: 20px;
+  border: 0;
+  border-radius: var(--radius-full);
+  background: var(--muted);
+  box-shadow: none;
+  transition: background-color 200ms cubic-bezier(0, 0, 0.2, 1);
+}
+
+.form-switch .form-check-input::before {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  box-sizing: border-box;
+  border: 1px solid light-dark(var(--primary-foreground), var(--foreground));
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-sm);
+  content: &quot;&quot;;
+  transform: translate(2px, -50%);
+  transition: transform 200ms cubic-bezier(0, 0, 0.2, 1);
+  border-color: #fff;
+  background: #fff;
+}
+
+.form-switch .form-check-input:checked {
+  background: var(--blue);
+}
+
+.form-switch .form-check-input:checked::before {
+  transform: translate(14px, -50%);
+}
+
+.form-switch .form-check-input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ring);
+  outline: none;
+}
+
+.form-range {
+  appearance: none;
+  display: block;
+  width: 100%;
+  flex: 1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  accent-color: var(--primary);
+  height: calc(12px + 2 * var(--control-spacing, 12px));
+  min-height: calc(12px + 2 * var(--control-spacing, 12px));
+  outline: none;
+  border-radius: var(--radius-full);
+  color: var(--foreground);
+  background: transparent;
+}
+
+.form-range::-webkit-slider-runnable-track {
+  background: var(--form-range-track, var(--border));
+  height: 2px;
+  border-radius: var(--radius-full);
+}
+
+.form-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  margin-top: -9px;
+  border-color: transparent;
+  background: currentColor;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Outline the native track and thumb, preserving the larger input hit area. */
+.form-range:focus-visible::-webkit-slider-runnable-track {
+  outline: 2px auto Highlight;
+  outline-color: -webkit-focus-ring-color;
+}
+
+.form-range::-moz-range-track {
+  background: var(--form-range-track, var(--border));
+  height: 2px;
+  border-radius: var(--radius-full);
+}
+
+.form-range::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  border-color: transparent;
+  background: currentColor;
+  box-shadow: var(--shadow-sm);
+}
+
+.form-range:focus-visible::-moz-range-thumb {
+  outline: 2px solid Highlight;
+  outline-offset: 2px;
+}
+
+.form-range:disabled {
+  opacity: 1;
+  cursor: default;
+}
+
+.btn:not(.btn-primary, .viz-tile):is(
+  [aria-pressed=&quot;true&quot;],
+  [aria-selected=&quot;true&quot;],
+  .is-selected
+) {
+  border-color: transparent;
+  color: var(--primary-foreground);
+  background: var(--blue);
+}
+
+.btn.viz-tile:is([aria-pressed=&quot;true&quot;], [aria-selected=&quot;true&quot;], .is-selected) {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
+.btn:focus-visible,
+.nav-link:focus-visible {
+  outline-offset: 2px;
+  outline: none;
+  box-shadow: 0 0 0 2px var(--ring);
+}
+
+.viz-carousel-controls :is(button, summary):focus-visible {
+  outline: 2px solid var(--ring) !important;
+  outline-offset: 2px !important;
+}
+
+/* Web recipes are the default, including on renderers without inline style queries. */
+@supports (border-radius: if(style(--corner-shape: round): 1px; else: 2px)) {
+  /* Match the host&#x27;s proportional text-sm scale at every text preference. */
+  .tooltip,
+  .viz-badge,
+  .btn,
+  .nav-link,
+  .form-control,
+  .form-select {
+    font-size: if(
+      style(--corner-shape: round): round(
+          nearest,
+          calc(var(--font-size-base) * 14 / 16),
+          1px
+        );
+        else: round(nearest, calc(var(--font-size-base) * 13 / 14), 1px)
+    );
+  }
+
+  .btn,
+  .nav-link,
+  .form-select {
+    border-radius: if(
+      style(--corner-shape: round): var(--radius-full); else: var(--radius-lg)
+    );
+  }
+
+  .form-check:not(.form-switch) .form-check-input[type=&quot;checkbox&quot;] {
+    border-radius: if(
+      style(--corner-shape: round): calc(var(--radius-sm) / 2);
+        else: calc(var(--radius-lg) * 0.4)
+    );
+  }
+
+  .tooltip {
+    font-weight: if(
+      style(--corner-shape: round): 600; else: var(--font-weight-normal)
+    );
+  }
+}
+
+@media (pointer: coarse) {
+  .viz-carousel:has(&gt; .viz-carousel-controls) {
+    min-height: calc(76px + var(--viz-carousel-picker-height, 0px));
+    padding-bottom: 76px;
+  }
+
+  .btn,
+  .nav-link,
+  .viz-carousel-controls button,
+  .viz-carousel-picker &gt; summary,
+  .form-control,
+  .form-select {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Keep small-screen WebKit from zooming when a text field receives focus. */
+  .form-control,
+  .form-select {
+    font-size: max(16px, calc(var(--font-size-base) * 14 / 16));
+    font-size: max(
+      16px,
+      round(nearest, calc(var(--font-size-base) * 14 / 16), 1px)
+    );
+  }
+  .form-control:is(
+    [type=&quot;file&quot;],
+    [type=&quot;date&quot;],
+    [type=&quot;datetime-local&quot;],
+    [type=&quot;month&quot;],
+    [type=&quot;week&quot;],
+    [type=&quot;time&quot;],
+    [type=&quot;color&quot;]
+  ) {
+    height: 44px;
+    min-height: 44px;
+    font-size: max(16px, calc(var(--font-size-base) * 14 / 16));
+    font-size: max(
+      16px,
+      round(nearest, calc(var(--font-size-base) * 14 / 16), 1px)
+    );
+  }
+
+  .form-control[type=&quot;file&quot;]::file-selector-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .form-control-color[type=&quot;color&quot;] {
+    width: 44px;
+    height: 44px;
+  }
+
+  .form-control:is(
+    [type=&quot;date&quot;],
+    [type=&quot;datetime-local&quot;],
+    [type=&quot;month&quot;],
+    [type=&quot;time&quot;],
+    [type=&quot;week&quot;]
+  ) {
+    min-width: 0;
+    max-width: 100%;
+    padding-block: 8px;
+  }
+
+  .form-check {
+    min-height: 44px;
+    padding-inline: 15px;
+  }
+
+  .form-check-input {
+    position: relative;
+  }
+
+  .form-check-input::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    content: &quot;&quot;;
+    transform: translate(-50%, -50%);
+  }
+
+  .form-check-label {
+    display: inline-flex;
+    min-width: 44px;
+    min-height: 44px;
+    align-items: center;
+  }
+
+  .form-range {
+    height: 44px;
+    touch-action: pan-y;
+  }
+}
+
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+#widget &gt; svg {
+  width: 100%;
+}
+
+/* Model-authored chart rules can otherwise stretch icons after these styles load. */
+svg.lucide {
+  display: block;
+  width: var(--icon-size) !important;
+  height: var(--icon-size) !important;
+  flex: none;
+  margin: 0 !important;
+  stroke-width: 1.6;
+}
+
+.text-warning,
+.text-destructive {
+  color: var(--destructive);
+}
+
+html&gt;body{padding:0}&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;script type=&quot;application/json&quot; id=&quot;codex-visualization-widget-state&quot;&gt;__CODEX_VISUALIZATION_WIDGET_STATE__&lt;/script&gt;
+&lt;script&gt;(() =&gt; {
+  const root = document.documentElement;
+  const mediaQuery = globalThis.matchMedia(&quot;(prefers-color-scheme: dark)&quot;);
+  const apply = Reflect.apply;
+  const isArray = Array.isArray;
+  const hasOwn = Object.hasOwn;
+  const parentWindow = globalThis.parent;
+  const stringify = JSON.stringify;
+  const parse = JSON.parse;
+  const encode = TextEncoder.prototype.encode.bind(new TextEncoder());
+  const initialStateElement = document.getElementById(
+    &quot;codex-visualization-widget-state&quot;,
+  );
+  const initialGlobals = parse(initialStateElement?.textContent ?? &quot;{}&quot;);
+  initialStateElement?.remove();
+  /** @type {Record&lt;string, unknown&gt; | null} */
+  let state = initialGlobals.widgetState ?? null;
+  const statePersistence = initialGlobals.statePersistence ?? &quot;none&quot;;
+  let nextStateRequestId = 0;
+  /** @type {Map&lt;number, { resolve: () =&gt; void; reject: (error: Error) =&gt; void; timeout: ReturnType&lt;typeof globalThis.setTimeout&gt;; serializedState: string }&gt;} */
+  const pendingStateWrites = new Map();
+  const persistenceError = () =&gt;
+    Object.assign(
+      new Error(&quot;The host could not persist the widget state update&quot;),
+      {
+        code: -32000,
+        data: { code: &quot;widget_state_persistence_failed&quot;, retryable: false },
+      },
+    );
+  /**
+   * @param {object} prototype
+   * @param {string} property
+   */
+  const getPrototypeGetter = (prototype, property) =&gt; {
+    // oxlint-disable-next-line typescript/unbound-method -- invoked through captured Reflect.apply
+    const getter = Object.getOwnPropertyDescriptor(prototype, property)?.get;
+    if (getter == null) {
+      throw new Error(`Missing ${property} getter`);
+    }
+    return getter;
+  };
+  const getMessageData = getPrototypeGetter(MessageEvent.prototype, &quot;data&quot;);
+  const getMessagePorts = getPrototypeGetter(MessageEvent.prototype, &quot;ports&quot;);
+  const getMessageSource = getPrototypeGetter(MessageEvent.prototype, &quot;source&quot;);
+  // oxlint-disable-next-line typescript/unbound-method -- captured before the untrusted fragment runs
+  const addHostMessageListener = MessagePort.prototype.addEventListener;
+  // oxlint-disable-next-line typescript/unbound-method -- captured before the untrusted fragment runs
+  const postHostMessage = MessagePort.prototype.postMessage;
+  // oxlint-disable-next-line typescript/unbound-method -- captured before the untrusted fragment runs
+  const startHostPort = MessagePort.prototype.start;
+  // oxlint-disable-next-line typescript/unbound-method -- captured before the untrusted fragment runs
+  const stopMessagePropagation = Event.prototype.stopImmediatePropagation;
+  /** @type {MessagePort | null} */
+  let hostPort = null;
+  const postToHost = (type, payload) =&gt; {
+    if (hostPort != null) {
+      apply(postHostMessage, hostPort, [{ type, ...payload }]);
+    }
+  };
+  const openExternal = ({ href }) =&gt; {
+    if (globalThis.navigator.userActivation?.isActive === true) {
+      postToHost(&quot;open-external&quot;, { href });
+    }
+  };
+  const sendFollowUpMessage = ({ context, prompt, title }) =&gt; {
+    if (globalThis.navigator.userActivation?.isActive === true) {
+      postToHost(&quot;follow-up&quot;, { context, prompt, title });
+    }
+    return Promise.resolve();
+  };
+  /**
+   * @param {Record&lt;string, unknown&gt; | ((previous: Record&lt;string, unknown&gt; | null) =&gt; Record&lt;string, unknown&gt;)} next
+   * @returns {Promise&lt;void&gt;}
+   */
+  const setWidgetState = async (next) =&gt; {
+    const nextState = typeof next === &quot;function&quot; ? next(state) : next;
+    if (
+      nextState == null ||
+      typeof nextState !== &quot;object&quot; ||
+      isArray(nextState)
+    ) {
+      throw new TypeError(&quot;Widget state must be a JSON object&quot;);
+    }
+    const inputState = stringify(
+      nextState,
+      (_key, /** @type {unknown} */ value) =&gt; {
+        if (
+          typeof value === &quot;undefined&quot; ||
+          typeof value === &quot;function&quot; ||
+          typeof value === &quot;symbol&quot; ||
+          (typeof value === &quot;number&quot; &amp;&amp; !Number.isFinite(value))
+        ) {
+          throw new TypeError(&quot;Widget state must be a JSON object&quot;);
+        }
+        return value;
+      },
+    );
+    const parsedState = parse(inputState);
+    if (
+      parsedState == null ||
+      typeof parsedState !== &quot;object&quot; ||
+      isArray(parsedState)
+    ) {
+      throw new TypeError(&quot;Widget state must be a JSON object&quot;);
+    }
+    const storedState = {
+      modelContent: null,
+      privateContent: null,
+      ...parsedState,
+    };
+    const serializedState = stringify(storedState);
+    if (encode(serializedState).length &gt; 16 * 1024) {
+      throw new TypeError(
+        &quot;Widget state must be a JSON object of at most 16 KiB&quot;,
+      );
+    }
+    if (
+      hasOwn(storedState, &quot;imageIds&quot;) &amp;&amp;
+      (!isArray(storedState.imageIds) ||
+        storedState.imageIds.some(
+          (/** @type {unknown} */ id) =&gt; typeof id !== &quot;string&quot;,
+        ))
+    ) {
+      throw new TypeError(&quot;Widget state imageIds must be an array of strings&quot;);
+    }
+    if (storedState.imageIds?.length &gt; 0) {
+      throw Object.assign(
+        new TypeError(&quot;Visualization state does not support image attachments&quot;),
+        { code: -32602, data: { code: &quot;images_unsupported&quot; } },
+      );
+    }
+    state = storedState;
+    globalThis.openai.widgetState = state;
+    globalThis.dispatchEvent(
+      new CustomEvent(&quot;openai:set_globals&quot;, {
+        detail: { globals: { widgetState: state } },
+      }),
+    );
+    if (statePersistence === &quot;none&quot;) {
+      throw persistenceError();
+    }
+    const id = ++nextStateRequestId;
+    return new Promise((resolve, reject) =&gt; {
+      const timeout = globalThis.setTimeout(() =&gt; {
+        pendingStateWrites.delete(id);
+        reject(persistenceError());
+      }, 30_000);
+      pendingStateWrites.set(id, { resolve, reject, timeout, serializedState });
+      postToHost(&quot;widget-state-write&quot;, { id, state: serializedState });
+    });
+  };
+  const syncTheme = () =&gt; {
+    const theme = mediaQuery.matches ? &quot;dark&quot; : &quot;light&quot;;
+    root.dataset.theme = theme;
+    globalThis.openai = {
+      ...globalThis.openai,
+      openExternal,
+      sendFollowUpMessage,
+      setWidgetState,
+      theme,
+      visualizationStyleVariables: {},
+      visualizationTheme: theme,
+      widgetState: state,
+      statePersistence,
+      stateModelContext: &quot;none&quot;,
+    };
+    globalThis.dispatchEvent(
+      new CustomEvent(&quot;openai:set_globals&quot;, {
+        detail: { globals: globalThis.openai },
+      }),
+    );
+  };
+  const sendHeight = () =&gt; {
+    postToHost(&quot;height&quot;, {
+      height: Math.ceil(
+        Math.max(
+          document.body.scrollHeight,
+          document.body.getBoundingClientRect().height,
+        ),
+      ),
+    });
+  };
+
+  globalThis.addEventListener(
+    &quot;message&quot;,
+    (event) =&gt; {
+      const data = apply(getMessageData, event, []);
+      const ports = apply(getMessagePorts, event, []);
+      const source = apply(getMessageSource, event, []);
+      if (
+        hostPort != null ||
+        source !== parentWindow ||
+        typeof data !== &quot;object&quot; ||
+        data?.type !== &quot;codex-visualization-initialize&quot; ||
+        !isArray(ports) ||
+        ports.length !== 1
+      ) {
+        return;
+      }
+      apply(stopMessagePropagation, event, []);
+      const nextHostPort = ports[0];
+      try {
+        apply(addHostMessageListener, nextHostPort, [
+          &quot;message&quot;,
+          (event) =&gt; {
+            const data = apply(getMessageData, event, []);
+            if (typeof data === &quot;object&quot; &amp;&amp; data?.type === &quot;measure&quot;) {
+              sendHeight();
+            } else if (
+              typeof data === &quot;object&quot; &amp;&amp;
+              data?.type === &quot;widget-state-result&quot;
+            ) {
+              /** @type {unknown} */
+              const id = data.id;
+              if (typeof id !== &quot;number&quot;) {
+                return;
+              }
+              const pending = pendingStateWrites.get(id);
+              if (pending != null) {
+                pendingStateWrites.delete(id);
+                globalThis.clearTimeout(pending.timeout);
+                if (data.ok === true) {
+                  pending.resolve();
+                } else {
+                  pending.reject(persistenceError());
+                }
+              }
+            }
+          },
+        ]);
+        apply(startHostPort, nextHostPort, []);
+      } catch {
+        return;
+      }
+      hostPort = nextHostPort;
+      for (const [id, { serializedState }] of pendingStateWrites) {
+        postToHost(&quot;widget-state-write&quot;, { id, state: serializedState });
+      }
+      sendHeight();
+    },
+    { capture: true },
+  );
+  document.currentScript?.remove();
+  mediaQuery.addEventListener(&quot;change&quot;, syncTheme);
+  globalThis.addEventListener(&quot;click&quot;, (event) =&gt; {
+    if (event.defaultPrevented) {
+      return;
+    }
+    let element = null;
+    if (event.target instanceof globalThis.Element) {
+      element = event.target;
+    } else if (event.target instanceof globalThis.Node) {
+      element = event.target.parentElement;
+    }
+    const link = element?.closest(&quot;a[href]&quot;);
+    const href = link?.getAttribute(&quot;href&quot;);
+    if (href == null) {
+      return;
+    }
+    if (href.startsWith(&quot;#&quot;)) {
+      let id;
+      try {
+        id = decodeURIComponent(href.slice(1));
+      } catch {
+        return;
+      }
+      const target = id.length === 0 ? root : document.getElementById(id);
+      if (
+        target == null ||
+        globalThis.navigator.userActivation?.isActive !== true
+      ) {
+        return;
+      }
+      event.preventDefault();
+      postToHost(&quot;scroll-to&quot;, {
+        top: target.getBoundingClientRect().top + globalThis.scrollY,
+      });
+      return;
+    }
+    event.preventDefault();
+    openExternal({ href });
+  });
+  new ResizeObserver(sendHeight).observe(document.body);
+  syncTheme();
+})();
+&lt;/script&gt;
+&lt;div id=&quot;gpu-tenant-market&quot; aria-label=&quot;OneLink AI 个人与租户空间 GPU 选卡折扣原型&quot;&gt;
+  &lt;div class=&quot;tm-app&quot;&gt;
+    &lt;header class=&quot;tm-header&quot;&gt;
+      &lt;span class=&quot;tm-brand-crop&quot;&gt;
+      &lt;img class=&quot;tm-logo&quot; src=&quot;data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTE4IiBoZWlnaHQ9IjIwIiB2aWV3Qm94PSIwIDAgMTE4IDIwIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNMTUuMzc2NCA3LjI5OTk5TDEyLjY3NzYgNC42MDExM0w0LjU4MDk2IDEyLjY5NzdMNy4yNzk4MyAxNS4zOTY2TDE1LjM3NjQgNy4yOTk5OVoiIGZpbGw9IiM2NDdERjUiLz4KPHBhdGggZD0iTTIwIDYuNTI2NjhWMTIuNTI2NEMyMCAxMy4xMzI2IDE5Ljc1OTIgMTMuNzE0IDE5LjMzMDUgMTQuMTQyN0wxNC4xNDI4IDE5LjMzMDRDMTMuNzE0MSAxOS43NTkxIDEzLjEzMjggMTkuOTk5OSAxMi41MjY2IDE5Ljk5OTlINi40ODQ1N0w0LjU4MTIyIDE4LjA5NjVMNy4yODAwOSAxNS4zOTc3TDkuOTc4OTMgMTguMDk2NUwxOC4wNzU2IDkuOTk5OTVMMTUuMzc2NyA3LjMwMTA3TDE4LjA3NTYgNC42MDIyM0wyMCA2LjUyNjY4WiIgZmlsbD0idXJsKCNwYWludDBfbGluZWFyXzM4NTVfMjI2OTUyKSIvPgo8cGF0aCBkPSJNMTUuMzc2NiAxLjkwMzM1TDEyLjY3NzcgNC42MDIyM0w5Ljk3ODgxIDEuOTAzMzVMMS44ODIyMiA5Ljk5OTk0TDQuNTgxMSAxMi42OTg4TDEuODgyMjIgMTUuMzk3N0wwIDEzLjUxNTRWNy40MzExOEMwIDYuODI0OTggMC4yNDA4MTQgNi4yNDM2IDAuNjY5NDY2IDUuODE0OTVMNS44MTQ5NSAwLjY2OTQ2NkM2LjI0MzYgMC4yNDA4MTQgNi44MjQ5NyAwIDcuNDMxMTggMEgxMy40NzMyTDE1LjM3NjYgMS45MDMzNVoiIGZpbGw9InVybCgjcGFpbnQxX2xpbmVhcl8zODU1XzIyNjk1MikiLz4KPHBhdGggZD0iTTExNC45OTcgMjBWMi42MDAxSDExOFYyMEgxMTQuOTk3WiIgZmlsbD0iIzY0N0RGNSIvPgo8cGF0aCBkPSJNNTMuMjY2OCAxNy4xSDYxLjk0MjVWMjBINTAuMjYzOFYyLjYwMDFINTMuMjY2OFYxNy4xWiIgZmlsbD0iIzQ2NDY0NiIvPgo8cGF0aCBkPSJNNjQuMTExMyAyMFY4LjQwMDA2SDY3LjExNDNWMjBINjQuMTExM1oiIGZpbGw9IiM0NjQ2NDYiLz4KPHBhdGggZD0iTTY0LjExMTMgMi42MDAxSDcyLjI4NjNWNS41MDAwOEg2NC4xMTEzVjIuNjAwMVoiIGZpbGw9IiM2NDdERjUiLz4KPHBhdGggZD0iTTg2LjEzMzkgMTIuMjY2NEw5MC40MTYgOC40MDAwNkg5NC44MDNMODguMzc5NyAxNC4yTDk0LjgwMyAyMEg5MC40MTZMODYuMTMzOSAxNi4xMzM0VjIwSDgzLjEzMVYyLjYwMDFIODYuMTMzOVYxMi4yNjY0WiIgZmlsbD0iIzQ2NDY0NiIvPgo8cGF0aCBmaWxsUnVsZT0iZXZlbm9kZCIgY2xpcFJ1bGU9ImV2ZW5vZGQiIGQ9Ik0xMTIuODI4IDIwSDEwOS43ODZMMTA4LjI0NyAxNS42NUgxMDEuNTU5TDEwMC4wMiAyMEg5Ni45Nzg0TDEwMy4xMTQgMi42MDAxSDEwNi42OTNMMTEyLjgyOCAyMFpNMTAyLjU4NSAxMi43NUgxMDcuMjIxTDEwNC45MDMgNi4xOTcxNUwxMDIuNTg1IDEyLjc1WiIgZmlsbD0iIzY0N0RGNSIvPgo8cGF0aCBkPSJNMjkuMzk0NiA4LjQwMDU0TDI5LjQ0NzIgOC40MDE0OEwyOS41MDg5IDguNDAzMjlDMzIuMTE1OSA4LjQ5NTMgMzQuMjA1NCAxMC41NDU1IDM0LjI0NjkgMTMuMDc2QzM0LjI3MTUgMTUuMzgzNSAzNC4yNDc2IDE3LjY5MjQgMzQuMjQ3NiAyMEgzMS4yNDQ1VjEzLjcxNjdDMzEuMjQ0NSAxMi4yMDQxIDI5Ljk3NDcgMTAuOTc3OCAyOC40MDgzIDEwLjk3NzhDMjYuODQxOSAxMC45Nzc4IDI1LjU3MiAxMi4yMDQxIDI1LjU3MiAxMy43MTY3VjIwSDIyLjU2OVY4LjQwMDkzSDI1LjU3MlYxMC4wNzg5QzI2LjQ3NDggOS4wNTE4NCAyNy44MjE1IDguNDAwMDYgMjkuMzI1OSA4LjQwMDA2QzI5LjM0ODggOC40MDAwNiAyOS4zNzE3IDguNDAwMjQgMjkuMzk0NiA4LjQwMDU0WiIgZmlsbD0iIzQ2NDY0NiIvPgo8cGF0aCBkPSJNNzYuMTA4OCA4LjQwMDU0TDc2LjE2MTQgOC40MDE0OEw3Ni4yMjMxIDguNDAzMjlDNzguODMwMiA4LjQ5NTMgODAuOTE5NiAxMC41NDU1IDgwLjk2MTEgMTMuMDc2QzgwLjk4NTcgMTUuMzgzNSA4MC45NjE4IDE3LjY5MjQgODAuOTYxOCAyMEg3Ny45NTg3VjEzLjcxNjdDNzcuOTU4NyAxMi4yMDQxIDc2LjY4ODkgMTAuOTc3OCA3NS4xMjI1IDEwLjk3NzhDNzMuNTU2MSAxMC45Nzc4IDcyLjI4NjMgMTIuMjA0MSA3Mi4yODYzIDEzLjcxNjdWMjBINjkuMjgzMlY4LjQwMDkzSDcyLjI4NjNWMTAuMDc4OUM3My4xODkgOS4wNTE4NCA3NC41MzU3IDguNDAwMDYgNzYuMDQwMSA4LjQwMDA2Qzc2LjA2MyA4LjQwMDA2IDc2LjA4NTkgOC40MDAyNCA3Ni4xMDg4IDguNDAwNTRaIiBmaWxsPSIjNDY0NjQ2Ii8+CjxwYXRoIGZpbGxSdWxlPSJldmVub2RkIiBjbGlwUnVsZT0iZXZlbm9kZCIgZD0iTTQyLjU4OTQgOC40MDAwNkM0NS42MzAxIDguNDAwMDYgNDguMDk1IDEwLjc4MDQgNDguMDk1IDEzLjcxNjdWMTQuODQ0NUgzOS40MTk1QzM5LjQxOTUgMTYuMTc5MiA0MC41Mzk5IDE3LjE4MDYgNDEuOTIyIDE3LjE4MDZINDIuNTg5NEw0Mi42NTQgMTcuMTc5OEM0My4zNjkyIDE3LjE2MjMgNDQuMDA5NyAxNi44NTUgNDQuNDU0NiAxNi4zNzVINDcuODM3NkM0Ny4xMzA5IDE4LjUyMzcgNDUuMDQ4NSAyMCA0Mi41ODk0IDIwSDQxLjkyMkMzOC44ODE0IDIwIDM2LjQxNjQgMTcuNjE5NyAzNi40MTY0IDE0LjY4MzRWMTMuNzE2N0MzNi40MTY0IDEwLjc4MDQgMzguODgxNCA4LjQwMDA2IDQxLjkyMiA4LjQwMDA2SDQyLjU4OTRaTTQxLjkyMiAxMS4yMTk1QzQwLjc3MSAxMS4yMTk1IDM5LjgwMTYgMTEuOTY5OSAzOS41MDk2IDEyLjk5MTdINDUuMDAxOUM0NC43MTU0IDExLjk4OTEgNDMuNzc2NSAxMS4yNDc3IDQyLjY1NCAxMS4yMjAzTDQyLjU4OTQgMTEuMjE5NUg0MS45MjJaIiBmaWxsPSIjNDY0NjQ2Ii8+CjxkZWZzPgo8bGluZWFyR3JhZGllbnQgaWQ9InBhaW50MF9saW5lYXJfMzg1NV8yMjY5NTIiIHgxPSIxLjkxNDQiIHkxPSIxOS45OTk5IiB4Mj0iMjAuMDIzMSIgeTI9IjIuOTUzNTIiIGdyYWRpZW50VW5pdHM9InVzZXJTcGFjZU9uVXNlIj4KPHN0b3Agc3RvcENvbG9yPSIjNzk3OTc5Ii8+CjxzdG9wIG9mZnNldD0iMSIvPgo8L2xpbmVhckdyYWRpZW50Pgo8bGluZWFyR3JhZGllbnQgaWQ9InBhaW50MV9saW5lYXJfMzg1NV8yMjY5NTIiIHgxPSIwLjk3MTQyMyIgeTE9IjE0LjQ1NzEiIHgyPSIxNC42ODU2IiB5Mj0iMS40Mjg1NyIgZ3JhZGllbnRVbml0cz0idXNlclNwYWNlT25Vc2UiPgo8c3RvcC8+CjxzdG9wIG9mZnNldD0iMSIgc3RvcENvbG9yPSIjNzk3OTc5Ii8+CjwvbGluZWFyR3JhZGllbnQ+CjwvZGVmcz4KPC9zdmc+Cgo=&quot; alt=&quot;OneLink AI&quot;&gt;
+      &lt;/span&gt;
+      &lt;nav class=&quot;tm-nav&quot; aria-label=&quot;平台导航&quot;&gt;&lt;span class=&quot;tm-nav-current&quot;&gt;算力市场&lt;/span&gt;&lt;span&gt;模型广场&lt;/span&gt;&lt;span&gt;模型体验&lt;/span&gt;&lt;span&gt;OLA 云电脑&lt;/span&gt;&lt;span&gt;OLA Studio&lt;/span&gt;&lt;span&gt;文档&lt;/span&gt;&lt;/nav&gt;
+      &lt;label class=&quot;tm-space&quot;&gt;&lt;span data-space-icon&gt;&lt;i data-lucide=&quot;user-round&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/span&gt;&lt;select id=&quot;tm-tenant&quot; aria-label=&quot;当前空间&quot;&gt;&lt;option value=&quot;personal&quot;&gt;个人空间&lt;/option&gt;&lt;option value=&quot;school&quot;&gt;示例大学&lt;/option&gt;&lt;option value=&quot;company&quot;&gt;示例企业&lt;/option&gt;&lt;/select&gt;&lt;/label&gt;
+    &lt;/header&gt;
+    &lt;div class=&quot;tm-workspace&quot;&gt;
+      &lt;aside class=&quot;tm-sidebar&quot; aria-label=&quot;快捷筛选&quot;&gt;
+        &lt;div class=&quot;tm-sidebar-head&quot;&gt;&lt;span&gt;快捷筛选&lt;/span&gt;&lt;button type=&quot;button&quot; class=&quot;tm-icon-button cursor-interaction&quot; data-action=&quot;reset&quot; aria-label=&quot;清空筛选&quot;&gt;&lt;i data-lucide=&quot;eraser&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/button&gt;&lt;/div&gt;
+        &lt;details class=&quot;tm-side-section&quot; open&gt;&lt;summary class=&quot;cursor-interaction&quot;&gt;&lt;i data-lucide=&quot;map-pin&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;区域&lt;span class=&quot;tm-collapse-indicator&quot;&gt;&lt;/span&gt;&lt;/summary&gt;&lt;div class=&quot;tm-side-options&quot;&gt;&lt;label&gt;&lt;input type=&quot;checkbox&quot; name=&quot;tm-region&quot; value=&quot;jingjinji&quot;&gt;京津冀&lt;/label&gt;&lt;label&gt;&lt;input type=&quot;checkbox&quot; name=&quot;tm-region&quot; value=&quot;shandong&quot;&gt;山东&lt;/label&gt;&lt;/div&gt;&lt;/details&gt;
+        &lt;details class=&quot;tm-side-section&quot; open&gt;&lt;summary class=&quot;cursor-interaction&quot;&gt;&lt;i data-lucide=&quot;cpu&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;GPU数量&lt;span class=&quot;tm-collapse-indicator&quot;&gt;&lt;/span&gt;&lt;/summary&gt;&lt;div class=&quot;tm-number-grid&quot; role=&quot;group&quot; aria-label=&quot;GPU 数量&quot;&gt;&lt;button type=&quot;button&quot; class=&quot;tm-number cursor-interaction&quot; data-quantity=&quot;1&quot; aria-pressed=&quot;true&quot;&gt;1&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;tm-number cursor-interaction&quot; data-quantity=&quot;2&quot; aria-pressed=&quot;false&quot;&gt;2&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;tm-number cursor-interaction&quot; data-quantity=&quot;3&quot; aria-pressed=&quot;false&quot;&gt;3&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;tm-number cursor-interaction&quot; data-quantity=&quot;4&quot; aria-pressed=&quot;false&quot;&gt;4&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;tm-number cursor-interaction&quot; data-quantity=&quot;5&quot; aria-pressed=&quot;false&quot;&gt;5&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;tm-number cursor-interaction&quot; data-quantity=&quot;6&quot; aria-pressed=&quot;false&quot;&gt;6&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;tm-number cursor-interaction&quot; data-quantity=&quot;7&quot; aria-pressed=&quot;false&quot;&gt;7&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;tm-number cursor-interaction&quot; data-quantity=&quot;8&quot; aria-pressed=&quot;false&quot;&gt;8&lt;/button&gt;&lt;/div&gt;&lt;/details&gt;
+        &lt;details class=&quot;tm-side-section&quot; open&gt;&lt;summary class=&quot;cursor-interaction&quot;&gt;&lt;i data-lucide=&quot;atom&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;GPU核心数&lt;span class=&quot;tm-collapse-indicator&quot;&gt;&lt;/span&gt;&lt;/summary&gt;&lt;div class=&quot;tm-side-options&quot;&gt;&lt;label&gt;&lt;input type=&quot;checkbox&quot; name=&quot;tm-cpu&quot; value=&quot;lt32&quot;&gt;32核以下&lt;/label&gt;&lt;label&gt;&lt;input type=&quot;checkbox&quot; name=&quot;tm-cpu&quot; value=&quot;32to64&quot;&gt;32-64核&lt;/label&gt;&lt;label&gt;&lt;input type=&quot;checkbox&quot; name=&quot;tm-cpu&quot; value=&quot;64to96&quot;&gt;64-96核&lt;/label&gt;&lt;label&gt;&lt;input type=&quot;checkbox&quot; name=&quot;tm-cpu&quot; value=&quot;gte96&quot;&gt;96核以上&lt;/label&gt;&lt;/div&gt;&lt;/details&gt;
+        &lt;div class=&quot;tm-advanced-label&quot;&gt;高级筛选&lt;i data-lucide=&quot;plus&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/div&gt;
+      &lt;/aside&gt;
+    &lt;main class=&quot;tm-main&quot;&gt;
+      &lt;div class=&quot;tm-page-head&quot;&gt;&lt;div&gt;&lt;h1&gt;算力市场&lt;/h1&gt;&lt;p class=&quot;tm-secondary&quot;&gt;共 &lt;span data-result-count&gt;4&lt;/span&gt; 个商品 &lt;span class=&quot;tm-demo&quot;&gt;交互原型 · 示例价目&lt;/span&gt;&lt;/p&gt;&lt;/div&gt;&lt;div class=&quot;tm-search-tools&quot;&gt;&lt;label class=&quot;tm-search&quot;&gt;&lt;i data-lucide=&quot;search&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;input type=&quot;search&quot; id=&quot;tm-search&quot; placeholder=&quot;搜索GPU型号&quot; aria-label=&quot;搜索 GPU 型号&quot;&gt;&lt;/label&gt;&lt;select id=&quot;tm-sort&quot; aria-label=&quot;排序方式&quot;&gt;&lt;option value=&quot;default&quot;&gt;推荐排序&lt;/option&gt;&lt;option value=&quot;price-asc&quot;&gt;价格从低到高&lt;/option&gt;&lt;option value=&quot;price-desc&quot;&gt;价格从高到低&lt;/option&gt;&lt;/select&gt;&lt;button type=&quot;button&quot; class=&quot;tm-button tm-primary tm-containers&quot;&gt;&lt;i data-lucide=&quot;monitor&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;容器管理&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;
+      &lt;section class=&quot;tm-filters&quot; aria-label=&quot;GPU 商品筛选&quot;&gt;
+        &lt;div class=&quot;tm-filter-row&quot;&gt;&lt;span class=&quot;tm-filter-label&quot;&gt;计费方式：&lt;/span&gt;&lt;div class=&quot;tm-mode-options&quot; role=&quot;group&quot; aria-label=&quot;计费方式&quot;&gt;&lt;button type=&quot;button&quot; class=&quot;tm-chip cursor-interaction&quot; data-mode=&quot;hour&quot; aria-pressed=&quot;true&quot;&gt;&lt;i data-lucide=&quot;timer&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;按量&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;tm-chip cursor-interaction&quot; data-mode=&quot;day&quot; aria-pressed=&quot;false&quot;&gt;&lt;i data-lucide=&quot;clock&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;包日&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;tm-chip cursor-interaction&quot; data-mode=&quot;week&quot; aria-pressed=&quot;false&quot;&gt;&lt;i data-lucide=&quot;calendar-days&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;包周&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;tm-chip cursor-interaction&quot; data-mode=&quot;month&quot; aria-pressed=&quot;false&quot;&gt;&lt;i data-lucide=&quot;calendar-range&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;包月&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;tm-chip cursor-interaction&quot; data-mode=&quot;year&quot; aria-pressed=&quot;false&quot;&gt;&lt;i data-lucide=&quot;gem&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;包年&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;
+        &lt;div class=&quot;tm-filter-row tm-model-filter&quot;&gt;&lt;span class=&quot;tm-filter-label&quot;&gt;GPU型号：&lt;/span&gt;&lt;div class=&quot;tm-model-checks&quot; role=&quot;group&quot; aria-label=&quot;GPU 型号&quot;&gt;&lt;label&gt;&lt;input type=&quot;checkbox&quot; name=&quot;tm-model&quot; value=&quot;rtx4090&quot;&gt;RTX 4090&lt;/label&gt;&lt;label&gt;&lt;input type=&quot;checkbox&quot; name=&quot;tm-model&quot; value=&quot;rtx5090&quot;&gt;RTX 5090&lt;/label&gt;&lt;label&gt;&lt;input type=&quot;checkbox&quot; name=&quot;tm-model&quot; value=&quot;rtx5070&quot;&gt;RTX 5070&lt;/label&gt;&lt;label&gt;&lt;input type=&quot;checkbox&quot; name=&quot;tm-model&quot; value=&quot;t4&quot;&gt;Tesla T4&lt;/label&gt;&lt;/div&gt;&lt;div class=&quot;tm-view-switch&quot; role=&quot;group&quot; aria-label=&quot;商品布局&quot;&gt;&lt;button type=&quot;button&quot; class=&quot;tm-icon-button cursor-interaction&quot; data-layout=&quot;grid&quot; aria-pressed=&quot;true&quot; aria-label=&quot;卡片视图&quot;&gt;&lt;i data-lucide=&quot;layout-grid&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;tm-icon-button cursor-interaction&quot; data-layout=&quot;list&quot; aria-pressed=&quot;false&quot; aria-label=&quot;列表视图&quot;&gt;&lt;i data-lucide=&quot;list&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;
+      &lt;/section&gt;
+      &lt;div class=&quot;tm-price-caption&quot;&gt;&lt;span data-mode-caption&gt;按量 · 当前单卡价格，按实际运行分钟计费&lt;/span&gt;&lt;span&gt;扩容盘等其他费用另计&lt;/span&gt;&lt;/div&gt;
+      &lt;div class=&quot;tm-products&quot; data-products aria-live=&quot;polite&quot;&gt;&lt;/div&gt;
+      &lt;div class=&quot;tm-empty&quot; data-empty hidden&gt;&lt;i data-lucide=&quot;search-x&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;strong&gt;暂无匹配商品&lt;/strong&gt;&lt;span&gt;请调整型号、区域或 GPU 数量。&lt;/span&gt;&lt;button type=&quot;button&quot; class=&quot;tm-button cursor-interaction&quot; data-action=&quot;reset&quot;&gt;清空筛选&lt;/button&gt;&lt;/div&gt;
+      &lt;p class=&quot;tm-market-note&quot; data-market-note&gt;按量优惠随有效期变化；包期订单支付后锁价，优惠到期不改变已成交价格。&lt;/p&gt;
+      &lt;p class=&quot;tm-selection&quot; data-selection role=&quot;status&quot; hidden&gt;&lt;/p&gt;
+    &lt;/main&gt;
+    &lt;/div&gt;
+    &lt;div class=&quot;tm-overlay&quot; data-overlay hidden&gt;
+      &lt;section class=&quot;tm-dialog&quot; role=&quot;dialog&quot; aria-modal=&quot;true&quot; aria-labelledby=&quot;tm-dialog-title&quot;&gt;
+        &lt;header class=&quot;tm-dialog-head&quot;&gt;&lt;h2 id=&quot;tm-dialog-title&quot;&gt;租用配置&lt;/h2&gt;&lt;button type=&quot;button&quot; class=&quot;tm-icon-button cursor-interaction&quot; data-action=&quot;close&quot; aria-label=&quot;关闭租用配置&quot;&gt;&lt;i data-lucide=&quot;x&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/button&gt;&lt;/header&gt;
+        &lt;div class=&quot;tm-dialog-body&quot;&gt;
+          &lt;div class=&quot;tm-chosen-product&quot;&gt;&lt;strong data-chosen-name&gt;GeForce RTX 4090&lt;/strong&gt;&lt;span data-chosen-meta&gt;24 GB · 华东－上海&lt;/span&gt;&lt;/div&gt;
+          &lt;div class=&quot;tm-payer&quot;&gt;&lt;span data-payer-icon&gt;&lt;i data-lucide=&quot;user-round&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/span&gt;&lt;span data-payer&gt;个人账户支付&lt;/span&gt;&lt;/div&gt;
+          &lt;div class=&quot;tm-config-fields&quot;&gt;&lt;label&gt;计费方式&lt;select id=&quot;tm-config-mode&quot; aria-label=&quot;租用计费方式&quot;&gt;&lt;option value=&quot;hour&quot;&gt;按量&lt;/option&gt;&lt;option value=&quot;day&quot;&gt;包日 · 24 小时&lt;/option&gt;&lt;option value=&quot;week&quot;&gt;包周 · 7 天&lt;/option&gt;&lt;option value=&quot;month&quot;&gt;包月 · 30 天&lt;/option&gt;&lt;option value=&quot;year&quot;&gt;包年&lt;/option&gt;&lt;/select&gt;&lt;/label&gt;&lt;label&gt;GPU 数量&lt;select id=&quot;tm-config-quantity&quot; aria-label=&quot;租用 GPU 数量&quot;&gt;&lt;/select&gt;&lt;/label&gt;&lt;/div&gt;
+          &lt;label class=&quot;tm-disk-field&quot;&gt;扩容数据盘 &lt;select id=&quot;tm-disk&quot; aria-label=&quot;扩容数据盘&quot;&gt;&lt;option value=&quot;0&quot;&gt;不扩容 · ¥0.00／小时&lt;/option&gt;&lt;option value=&quot;1&quot;&gt;100 GB · ¥1.00／小时（示例）&lt;/option&gt;&lt;/select&gt;&lt;/label&gt;
+          &lt;div class=&quot;tm-costs&quot;&gt;&lt;div data-cost-base-row&gt;&lt;span&gt;GPU 商品售价合计&lt;/span&gt;&lt;span data-cost-base&gt;¥10.00／小时&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;tm-discount-line&quot;&gt;&lt;span data-cost-discount-label&gt;个人专属优惠 · 7.5 折&lt;/span&gt;&lt;span data-cost-discount&gt;−¥2.50／小时&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;tm-net-line&quot;&gt;&lt;strong data-cost-net-label&gt;GPU 折后费用&lt;/strong&gt;&lt;strong data-cost-net&gt;¥7.50／小时&lt;/strong&gt;&lt;/div&gt;&lt;div&gt;&lt;span&gt;扩容盘费用 &lt;small&gt;不参与 GPU 优惠&lt;/small&gt;&lt;/span&gt;&lt;span data-cost-disk&gt;¥0.00／小时&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;
+          &lt;div class=&quot;tm-total&quot;&gt;&lt;span data-total-label&gt;预计每小时费用&lt;/span&gt;&lt;strong data-total&gt;¥8.00&lt;small&gt;／小时&lt;/small&gt;&lt;/strong&gt;&lt;/div&gt;
+          &lt;p class=&quot;tm-billing-help&quot; data-billing-help&gt;按实际运行分钟计费，沿用现有整点及关机结算规则。&lt;/p&gt;
+          &lt;p class=&quot;tm-dialog-alert&quot; data-dialog-alert role=&quot;alert&quot; hidden&gt;&lt;/p&gt;
+        &lt;/div&gt;
+        &lt;footer class=&quot;tm-dialog-footer&quot;&gt;&lt;button type=&quot;button&quot; class=&quot;tm-button cursor-interaction&quot; data-action=&quot;close&quot;&gt;返回选卡&lt;/button&gt;&lt;button type=&quot;button&quot; class=&quot;tm-button tm-primary cursor-interaction&quot; data-action=&quot;confirm&quot;&gt;确认配置&lt;/button&gt;&lt;/footer&gt;
+      &lt;/section&gt;
+    &lt;/div&gt;
+    &lt;span class=&quot;tm-announcement&quot; role=&quot;status&quot; aria-live=&quot;polite&quot; data-announcement&gt;&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;style&gt;
+  #gpu-tenant-market{--tm-bg:light-dark(#fafafa,#181a20);--tm-panel:light-dark(#ffffff,#22252d);--tm-text:light-dark(#20232b,#eceef4);--tm-muted:light-dark(#707685,#b3b9c7);--tm-line:light-dark(#eceef2,#3c414e);--tm-soft:light-dark(#f7f8fa,#2c303b);--tm-purple:light-dark(#717cf5,#a2aaff);--tm-purple-bg:light-dark(#f1f3ff,#30364f);--tm-price:light-dark(#f05252,#ff9292);--tm-action:light-dark(#111217,#e9ebf3);--tm-action-text:light-dark(#ffffff,#171a23);--tm-green:light-dark(#147b54,#82dab5);--tm-green-bg:light-dark(#e9faf2,#233e35);--tm-orange:light-dark(#a75b1e,#f1ba81);--tm-orange-bg:light-dark(#fff2e7,#453326);--tm-backdrop:light-dark(#22273838,#05060a99);--tm-shadow:light-dark(#1d233021,#00000055);font-family:-apple-system,BlinkMacSystemFont,&quot;PingFang SC&quot;,&quot;Microsoft YaHei&quot;,sans-serif;font-size:14px;line-height:1.5;color:var(--tm-text);color-scheme:light dark;width:100%}
+  #gpu-tenant-market *{box-sizing:border-box}#gpu-tenant-market [hidden]{display:none!important}#gpu-tenant-market button,#gpu-tenant-market input,#gpu-tenant-market select{font:inherit;color:inherit}#gpu-tenant-market h1,#gpu-tenant-market h2,#gpu-tenant-market h3,#gpu-tenant-market p{margin:0}#gpu-tenant-market strong{font-weight:500}#gpu-tenant-market button{outline-offset:3px}#gpu-tenant-market i,#gpu-tenant-market svg{width:16px;height:16px;flex-shrink:0;vertical-align:middle}
+  #gpu-tenant-market .tm-app{position:relative;background:var(--tm-bg);border:1px solid var(--tm-line);border-radius:8px;overflow:clip}#gpu-tenant-market .tm-header{display:flex;align-items:center;gap:24px;flex-wrap:wrap;background:var(--tm-panel);border-bottom:1px solid var(--tm-line);padding:18px 24px 18px 20px;min-height:72px}#gpu-tenant-market .tm-logo{width:127px;height:auto;display:block;background:#fff;border-radius:2px}#gpu-tenant-market .tm-nav{display:flex;gap:17px;align-items:center;color:var(--tm-muted);font-size:12px;flex-wrap:wrap}#gpu-tenant-market .tm-nav-current{color:var(--tm-text);font-weight:500}#gpu-tenant-market .tm-space{display:flex;align-items:center;gap:5px;margin-left:auto;padding-right:75px;min-width:0}#gpu-tenant-market .tm-space i{color:var(--tm-purple)}#gpu-tenant-market .tm-space select{border:0;background:var(--tm-panel);padding:5px 0;font-size:12px;max-width:140px;min-width:0}
+  #gpu-tenant-market .tm-main{padding:24px 28px 28px;min-width:0}#gpu-tenant-market .tm-page-head{display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:18px}#gpu-tenant-market h1{font-size:21px;font-weight:500}#gpu-tenant-market .tm-secondary{font-size:12px;color:var(--tm-muted);margin-top:3px}#gpu-tenant-market .tm-demo{margin-left:8px;font-size:11px}#gpu-tenant-market .tm-search-tools{display:flex;gap:9px;align-items:center;max-width:100%}#gpu-tenant-market .tm-search{display:flex;align-items:center;gap:7px;padding:9px 11px;background:var(--tm-soft);border:1px solid var(--tm-line);border-radius:7px;min-width:0}#gpu-tenant-market .tm-search i{color:var(--tm-muted);width:15px}#gpu-tenant-market .tm-search input{min-width:0;width:170px;border:0;background:transparent;font-size:12px;padding:0}#gpu-tenant-market select{border:1px solid var(--tm-line);border-radius:6px;background:var(--tm-panel);padding:9px 10px;font-size:12px;min-width:0}#gpu-tenant-market .tm-search-tools&gt;select{max-width:135px}
+  
+  #gpu-tenant-market .tm-filters{background:var(--tm-panel);border:1px solid var(--tm-line);border-radius:9px;padding:15px 17px;display:grid;gap:12px}#gpu-tenant-market .tm-filter-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}#gpu-tenant-market .tm-filter-label{width:67px;flex-shrink:0;color:var(--tm-muted);font-size:12px}#gpu-tenant-market .tm-chip-row,#gpu-tenant-market .tm-mode-options{display:flex;flex-wrap:wrap;gap:7px}#gpu-tenant-market .tm-chip{border:1px solid transparent;border-radius:6px;background:var(--tm-soft);padding:7px 13px;font-size:12px;white-space:nowrap}#gpu-tenant-market .tm-chip:hover{border-color:var(--tm-line)}#gpu-tenant-market .tm-chip[aria-pressed=true]{background:var(--tm-panel);border-color:var(--tm-text);font-weight:500}#gpu-tenant-market .tm-number{min-width:36px;padding:7px 10px}#gpu-tenant-market .tm-quantity-note{font-size:11px;color:var(--tm-muted)}#gpu-tenant-market .tm-price-caption{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:11px;color:var(--tm-muted);margin:16px 0 10px}
+  #gpu-tenant-market .tm-products{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}#gpu-tenant-market .tm-product{background:var(--tm-panel);border:1px solid var(--tm-line);border-radius:10px;padding:20px;min-width:0}#gpu-tenant-market .tm-product-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--tm-line);min-height:100px}#gpu-tenant-market .tm-model-name{font-size:16px;font-weight:500;overflow-wrap:anywhere}#gpu-tenant-market .tm-product-meta{font-size:11px;color:var(--tm-muted);margin-top:5px}#gpu-tenant-market .tm-price-block{text-align:right;flex-shrink:0;max-width:53%;font-variant-numeric:tabular-nums}#gpu-tenant-market .tm-price-main{color:var(--tm-price);font-size:23px;font-weight:500;white-space:nowrap}#gpu-tenant-market .tm-price-main small{font-size:11px;font-weight:400;color:var(--tm-muted);margin-left:3px}#gpu-tenant-market .tm-price-before{font-size:11px;color:var(--tm-muted);margin-top:2px}#gpu-tenant-market .tm-price-before s{margin-left:3px}#gpu-tenant-market .tm-discount-badge{display:inline-block;border-radius:4px;background:var(--tm-purple-bg);color:var(--tm-purple);font-size:11px;padding:2px 6px;margin-top:6px}#gpu-tenant-market .tm-unavailable-price{font-size:15px;color:var(--tm-muted);padding-top:7px}
+  #gpu-tenant-market .tm-specs{display:grid;grid-template-columns:1.25fr 1fr 1fr;gap:10px;padding:16px 0 18px;font-size:11px}#gpu-tenant-market .tm-specs h3{font-size:11px;color:var(--tm-muted);font-weight:400;margin-bottom:9px}#gpu-tenant-market .tm-specs p+p{margin-top:7px}#gpu-tenant-market .tm-specs p{overflow-wrap:anywhere}#gpu-tenant-market .tm-specs p&gt;span{color:var(--tm-muted);margin-right:5px}#gpu-tenant-market .tm-product-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}#gpu-tenant-market .tm-stock{display:flex;align-items:center;gap:6px;color:var(--tm-muted);font-size:11px;flex-wrap:wrap}#gpu-tenant-market .tm-stock-badge{background:var(--tm-green-bg);color:var(--tm-green);border-radius:4px;padding:3px 6px}#gpu-tenant-market .tm-stock-badge.tm-low-stock{background:var(--tm-orange-bg);color:var(--tm-orange)}#gpu-tenant-market .tm-selected-total{width:100%;text-align:right;font-size:12px;color:var(--tm-muted);margin-bottom:1px}#gpu-tenant-market .tm-selected-total strong{color:var(--tm-text)}#gpu-tenant-market .tm-button{background:var(--tm-panel);border:1px solid var(--tm-line);border-radius:7px;padding:9px 16px;font-size:12px;white-space:nowrap}#gpu-tenant-market .tm-primary{background:var(--tm-action);border-color:var(--tm-action);color:var(--tm-action-text)}#gpu-tenant-market .tm-rent-button{min-width:146px}#gpu-tenant-market button:disabled{opacity:.5;cursor:not-allowed}#gpu-tenant-market .tm-market-note{font-size:11px;color:var(--tm-muted);margin-top:14px}#gpu-tenant-market .tm-empty{display:flex;align-items:center;justify-content:center;gap:9px;flex-direction:column;background:var(--tm-panel);border-radius:9px;padding:35px 15px;font-size:12px}#gpu-tenant-market .tm-empty&gt;i{width:26px;height:26px;color:var(--tm-muted)}#gpu-tenant-market .tm-empty&gt;span{color:var(--tm-muted)}#gpu-tenant-market .tm-selection{margin-top:14px;background:var(--tm-purple-bg);border-radius:7px;padding:12px;font-size:12px}
+  #gpu-tenant-market .tm-overlay{position:absolute;inset:0;padding:75px 24px 24px;background:var(--tm-backdrop);z-index:5;display:flex;align-items:flex-start;justify-content:center}#gpu-tenant-market .tm-dialog{background:var(--tm-panel);border:1px solid var(--tm-line);box-shadow:0 16px 45px var(--tm-shadow);border-radius:10px;max-width:540px;width:100%;min-width:0}#gpu-tenant-market .tm-dialog-head{padding:16px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--tm-line)}#gpu-tenant-market h2{font-size:17px;font-weight:500}#gpu-tenant-market .tm-icon-button{border:0;background:transparent;border-radius:5px;display:flex;padding:6px}#gpu-tenant-market .tm-dialog-body{padding:20px}#gpu-tenant-market .tm-chosen-product{display:flex;gap:8px;justify-content:space-between;align-items:center;flex-wrap:wrap;font-size:15px}#gpu-tenant-market .tm-chosen-product&gt;span{font-size:12px;color:var(--tm-muted)}#gpu-tenant-market .tm-payer{display:flex;align-items:center;gap:6px;background:var(--tm-purple-bg);border-radius:5px;padding:9px;margin:12px 0 18px;font-size:12px;color:var(--tm-purple)}#gpu-tenant-market .tm-config-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}#gpu-tenant-market .tm-config-fields label,#gpu-tenant-market .tm-disk-field{display:flex;flex-direction:column;gap:7px;font-size:12px}#gpu-tenant-market .tm-disk-field{margin-top:13px}#gpu-tenant-market .tm-costs{margin-top:20px;border-top:1px solid var(--tm-line);padding-top:14px;display:grid;gap:11px;font-size:12px;font-variant-numeric:tabular-nums}#gpu-tenant-market .tm-costs&gt;div{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}#gpu-tenant-market .tm-costs small{display:block;color:var(--tm-muted);font-size:11px}#gpu-tenant-market .tm-discount-line{color:var(--tm-purple)}#gpu-tenant-market .tm-net-line{padding-bottom:11px;border-bottom:1px solid var(--tm-line)}#gpu-tenant-market .tm-total{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-top:17px;padding-top:15px;border-top:1px solid var(--tm-line);font-size:13px;flex-wrap:wrap}#gpu-tenant-market .tm-total&gt;strong{font-size:25px;color:var(--tm-price)}#gpu-tenant-market .tm-total small{font-size:12px;font-weight:400;margin-left:3px}#gpu-tenant-market .tm-billing-help{font-size:11px;color:var(--tm-muted);margin-top:10px}#gpu-tenant-market .tm-dialog-alert{font-size:12px;color:var(--tm-orange);background:var(--tm-orange-bg);border-radius:5px;padding:10px;margin-top:10px}#gpu-tenant-market .tm-dialog-footer{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;padding:15px 20px;border-top:1px solid var(--tm-line)}#gpu-tenant-market .tm-announcement{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}#gpu-tenant-market .tm-modal-open{min-height:850px}
+  @media(max-width:900px){#gpu-tenant-market .tm-header{gap:15px;padding:15px 18px}#gpu-tenant-market .tm-nav{gap:11px;font-size:11px}#gpu-tenant-market .tm-space{padding-right:75px}#gpu-tenant-market .tm-main{padding:20px}#gpu-tenant-market .tm-product{padding:16px}#gpu-tenant-market .tm-model-name{font-size:14px}#gpu-tenant-market .tm-price-main{font-size:21px}#gpu-tenant-market .tm-specs{gap:7px}}
+  @media(max-width:780px){#gpu-tenant-market .tm-products{grid-template-columns:minmax(0,1fr)}#gpu-tenant-market .tm-nav{order:3;width:100%}#gpu-tenant-market .tm-space{margin-left:auto}#gpu-tenant-market .tm-product-head{min-height:92px}#gpu-tenant-market .tm-specs{grid-template-columns:1.3fr 1fr 1fr}#gpu-tenant-market .tm-filter-label{width:62px}#gpu-tenant-market .tm-dialog{max-width:500px}}
+  @media(max-width:480px){#gpu-tenant-market .tm-main{padding:16px 12px}#gpu-tenant-market .tm-header{padding:15px 12px;gap:12px}#gpu-tenant-market .tm-logo{width:112px}#gpu-tenant-market .tm-space{padding-right:0}#gpu-tenant-market .tm-header{padding-top:58px}#gpu-tenant-market .tm-nav{gap:12px;font-size:11px}#gpu-tenant-market .tm-nav&gt;span:not(.tm-nav-current){display:none}#gpu-tenant-market .tm-search-tools{width:100%}#gpu-tenant-market .tm-search{flex:1;width:1px}#gpu-tenant-market .tm-search input{width:100%}#gpu-tenant-market .tm-search-tools&gt;select{max-width:125px}#gpu-tenant-market .tm-page-head{gap:12px}#gpu-tenant-market .tm-filters{padding:13px 11px;gap:15px}#gpu-tenant-market .tm-filter-row{gap:8px;align-items:flex-start}#gpu-tenant-market .tm-filter-label{width:100%}#gpu-tenant-market .tm-chip{padding:7px 11px}#gpu-tenant-market .tm-product{padding:14px}#gpu-tenant-market .tm-product-head{display:block}#gpu-tenant-market .tm-price-block{max-width:none;text-align:left;margin-top:11px}#gpu-tenant-market .tm-price-before{display:inline-block;margin-left:7px}#gpu-tenant-market .tm-price-main{display:inline-block;font-size:23px}#gpu-tenant-market .tm-discount-badge{margin-left:0;display:table;margin-top:5px}#gpu-tenant-market .tm-specs{grid-template-columns:1fr 1fr}#gpu-tenant-market .tm-specs&gt;div:last-child{grid-column:1/-1;display:flex;gap:12px;flex-wrap:wrap}#gpu-tenant-market .tm-specs&gt;div:last-child h3{display:none}#gpu-tenant-market .tm-specs&gt;div:last-child p{margin:0}#gpu-tenant-market .tm-product-foot{gap:12px}#gpu-tenant-market .tm-rent-button{width:100%}#gpu-tenant-market .tm-selected-total{text-align:left}#gpu-tenant-market .tm-overlay{padding:85px 10px 20px}#gpu-tenant-market .tm-dialog-body{padding:16px}#gpu-tenant-market .tm-dialog-head{padding:14px 16px}#gpu-tenant-market .tm-config-fields{grid-template-columns:1fr}#gpu-tenant-market .tm-modal-open{min-height:1100px}#gpu-tenant-market .tm-chosen-product{font-size:14px}}
+  @media(pointer:coarse){#gpu-tenant-market .tm-chip,#gpu-tenant-market .tm-button,#gpu-tenant-market .tm-icon-button{min-height:44px}#gpu-tenant-market input,#gpu-tenant-market select{font-size:16px!important}}
+  #gpu-tenant-market{--tm-side:light-dark(#f4f4f6,#20232b);--tm-table:light-dark(#f3f3f5,#2a2e38);--tm-stock-fill:light-dark(#00c52b,#64de83);font-size:14px}
+  #gpu-tenant-market .tm-header{min-height:76px;padding:18px 24px;gap:28px}
+  #gpu-tenant-market .tm-brand-crop{position:relative;display:block;width:182px;height:28px;overflow:hidden;flex-shrink:0;background:light-dark(#ffffff,#ffffff)}
+  #gpu-tenant-market .tm-brand-crop .tm-logo{position:static;width:165px;max-width:100%;height:28px;object-fit:contain;object-position:left;border-radius:0}
+  #gpu-tenant-market .tm-nav{font-size:14px;gap:24px;margin-left:auto}
+  #gpu-tenant-market .tm-space{padding-right:76px;margin-left:auto}
+  #gpu-tenant-market .tm-space select{max-width:155px;font-size:13px}
+  #gpu-tenant-market [data-space-icon],#gpu-tenant-market [data-payer-icon]{display:flex;align-items:center}
+  #gpu-tenant-market .tm-workspace{display:grid;grid-template-columns:220px minmax(0,1fr);min-height:770px}
+  #gpu-tenant-market .tm-sidebar{background:var(--tm-side);padding:30px 22px;min-width:0}
+  #gpu-tenant-market .tm-sidebar-head{display:flex;align-items:center;justify-content:space-between;color:var(--tm-muted);font-size:13px;margin-bottom:22px}
+  #gpu-tenant-market .tm-sidebar-head .tm-icon-button{border:1px solid var(--tm-line);border-radius:7px;color:var(--tm-muted);padding:7px}
+  #gpu-tenant-market .tm-side-section{margin-bottom:30px;font-size:13px}
+  #gpu-tenant-market .tm-side-section summary{display:flex;align-items:center;gap:8px;list-style:none;font-weight:500;min-width:0}
+  #gpu-tenant-market .tm-side-section summary::-webkit-details-marker{display:none}
+  #gpu-tenant-market .tm-collapse-indicator{width:10px;height:2px;background:var(--tm-muted);margin-left:auto;position:relative;flex-shrink:0}
+  #gpu-tenant-market .tm-side-section:not([open]) .tm-collapse-indicator:after{content:&quot;&quot;;position:absolute;width:2px;height:10px;left:4px;top:-4px;background:var(--tm-muted)}
+  #gpu-tenant-market .tm-side-options{display:grid;gap:11px;margin:18px 0 0 7px;padding-left:17px;border-left:1px solid var(--tm-line)}
+  #gpu-tenant-market .tm-side-options label,#gpu-tenant-market .tm-model-checks label{display:flex;align-items:center;gap:8px;min-width:0;font-size:13px;color:var(--tm-muted)}
+  #gpu-tenant-market input[type=checkbox]{width:16px;height:16px;accent-color:var(--tm-purple);margin:0;flex-shrink:0}
+  #gpu-tenant-market .tm-number-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:18px 0 0 7px;padding-left:17px;border-left:1px solid var(--tm-line)}
+  #gpu-tenant-market .tm-number{background:transparent;border:1px solid var(--tm-line);border-radius:8px;min-width:0;padding:5px 4px;color:var(--tm-muted);font-size:13px}
+  #gpu-tenant-market .tm-number[aria-pressed=true]{background:var(--tm-purple-bg);color:var(--tm-purple);border-color:var(--tm-purple)}
+  #gpu-tenant-market .tm-advanced-label{display:flex;justify-content:space-between;align-items:center;font-size:13px;margin-top:35px}
+  #gpu-tenant-market .tm-advanced-label i{color:var(--tm-muted)}
+  #gpu-tenant-market .tm-main{padding:26px 28px 30px;min-width:0}
+  #gpu-tenant-market .tm-page-head{margin-bottom:34px;align-items:flex-start;gap:16px}
+  #gpu-tenant-market h1{font-size:23px}
+  #gpu-tenant-market .tm-search-tools{gap:9px;flex-wrap:wrap;justify-content:flex-end}
+  #gpu-tenant-market .tm-search{padding:12px;border-radius:8px}
+  #gpu-tenant-market .tm-search input{width:180px;font-size:12px}
+  #gpu-tenant-market .tm-search-tools&gt;select{padding:12px 10px;max-width:135px}
+  #gpu-tenant-market .tm-containers{display:flex;align-items:center;gap:7px;padding:12px 14px}
+  #gpu-tenant-market .tm-filters{padding:0;background:transparent;border:0;border-radius:0;gap:20px;margin-bottom:20px}
+  #gpu-tenant-market .tm-filter-row{gap:0;align-items:center;flex-wrap:wrap}
+  #gpu-tenant-market .tm-filter-label{width:78px;font-size:13px;color:var(--tm-muted)}
+  #gpu-tenant-market .tm-mode-options{gap:0;flex-wrap:wrap}
+  #gpu-tenant-market .tm-mode-options .tm-chip{display:flex;align-items:center;gap:5px;border:1px solid var(--tm-line);border-radius:0;padding:9px 14px;background:transparent;color:var(--tm-muted);margin-right:-1px}
+  #gpu-tenant-market .tm-mode-options .tm-chip:first-child{border-radius:7px 0 0 7px}
+  #gpu-tenant-market .tm-mode-options .tm-chip:last-child{border-radius:0 7px 7px 0;margin-right:0}
+  #gpu-tenant-market .tm-mode-options .tm-chip[aria-pressed=true]{border-color:var(--tm-purple);color:var(--tm-purple);background:var(--tm-purple-bg);position:relative;z-index:1}
+  #gpu-tenant-market .tm-model-checks{display:flex;align-items:center;flex-wrap:wrap;gap:13px}
+  #gpu-tenant-market .tm-model-filter{row-gap:14px}
+  #gpu-tenant-market .tm-view-switch{display:flex;margin-left:auto}
+  #gpu-tenant-market .tm-view-switch .tm-icon-button{border:1px solid var(--tm-line);border-radius:0;padding:8px 12px;margin-right:-1px}
+  #gpu-tenant-market .tm-view-switch .tm-icon-button:first-child{border-radius:6px 0 0 6px}
+  #gpu-tenant-market .tm-view-switch .tm-icon-button:last-child{border-radius:0 6px 6px 0;margin-right:0}
+  #gpu-tenant-market .tm-view-switch .tm-icon-button[aria-pressed=true]{color:var(--tm-purple);border-color:var(--tm-purple);background:var(--tm-purple-bg);z-index:1}
+  #gpu-tenant-market .tm-price-caption{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);margin:0}
+  #gpu-tenant-market .tm-market-note{display:none}
+  #gpu-tenant-market .tm-products{grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+  #gpu-tenant-market .tm-products.tm-list-view{grid-template-columns:minmax(0,1fr)}
+  #gpu-tenant-market .tm-product{padding:20px;border-radius:12px;background:var(--tm-bg);display:flex;flex-direction:column;min-width:0}
+  #gpu-tenant-market .tm-product:hover,#gpu-tenant-market .tm-product:focus-within{border-color:var(--tm-purple)}
+  #gpu-tenant-market .tm-product-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;min-height:72px;border:0;padding:0 0 16px;align-items:start}
+  #gpu-tenant-market .tm-model-name{font-size:18px;line-height:1.4}
+  #gpu-tenant-market .tm-product-meta{margin-top:7px;font-size:11px;overflow-wrap:anywhere}
+  #gpu-tenant-market .tm-availability{display:grid;gap:11px;justify-items:end;font-size:11px;flex-shrink:0;color:var(--tm-muted);padding-top:4px}
+  #gpu-tenant-market .tm-stock-line{display:flex;align-items:center;gap:7px;white-space:nowrap}
+  #gpu-tenant-market .tm-stock-meter{display:flex;gap:3px}
+  #gpu-tenant-market .tm-stock-tick{width:4px;height:12px;border-radius:2px;background:var(--tm-line)}
+  #gpu-tenant-market .tm-stock-tick.tm-filled{background:var(--tm-stock-fill)}
+  #gpu-tenant-market .tm-availability p{white-space:nowrap;font-size:11px}
+  #gpu-tenant-market .tm-specs{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,1fr) minmax(0,1fr);gap:0;padding:0;background:var(--tm-table);border-radius:10px;overflow:hidden;min-height:190px;flex:1}
+  #gpu-tenant-market .tm-spec-column{min-width:0;border-right:1px solid var(--tm-panel);padding-bottom:16px}
+  #gpu-tenant-market .tm-spec-column:last-child{border:0}
+  #gpu-tenant-market .tm-specs h3{padding:8px 12px;border-bottom:1px solid var(--tm-panel);margin:0 0 13px;font-size:11px;color:var(--tm-muted);font-weight:400}
+  #gpu-tenant-market .tm-specs p{padding:0 12px;font-size:12px;overflow-wrap:anywhere;margin:0}
+  #gpu-tenant-market .tm-specs p+p{margin-top:5px}
+  #gpu-tenant-market .tm-specs .tm-spec-label{color:var(--tm-muted);font-size:11px}
+  #gpu-tenant-market .tm-specs .tm-spec-label.tm-second-label{margin-top:12px}
+  #gpu-tenant-market .tm-specs .tm-expand-note{font-size:11px;color:var(--tm-muted)}
+  #gpu-tenant-market .tm-product-foot{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;gap:12px;padding-top:16px;min-height:74px}
+  #gpu-tenant-market .tm-price-block{max-width:none;text-align:left;min-width:0;flex-shrink:1;font-variant-numeric:tabular-nums}
+  #gpu-tenant-market .tm-price-line{display:flex;gap:7px 9px;align-items:baseline;flex-wrap:wrap;min-width:0}
+  #gpu-tenant-market .tm-price-main{display:flex;align-items:baseline;gap:2px;flex-wrap:wrap;max-width:100%;white-space:normal;font-size:28px;overflow-wrap:anywhere}
+  #gpu-tenant-market .tm-price-main small{font-size:12px;margin-left:1px}
+  #gpu-tenant-market .tm-price-before{font-size:11px;margin:0;color:var(--tm-muted);white-space:nowrap}
+  #gpu-tenant-market .tm-discount-badge{font-size:11px;padding:2px 5px;margin:0;border-radius:4px;white-space:nowrap}
+  #gpu-tenant-market .tm-price-context{font-size:11px;color:var(--tm-muted);margin-top:4px}
+  #gpu-tenant-market .tm-selected-total{font-size:11px;color:var(--tm-muted);text-align:left;margin-top:4px;margin-bottom:0}
+  #gpu-tenant-market .tm-rent-button{min-width:0;width:clamp(120px,12vw,200px);font-size:13px;min-height:42px}
+  #gpu-tenant-market .tm-unavailable-price{padding:0;font-size:14px}
+  #gpu-tenant-market .tm-sold-out .tm-specs{opacity:.7}
+  #gpu-tenant-market .tm-overlay{padding-top:90px}
+  @media(min-width:1450px){#gpu-tenant-market .tm-workspace{grid-template-columns:260px minmax(0,1fr)}#gpu-tenant-market .tm-sidebar{padding:34px 26px}#gpu-tenant-market .tm-main{padding:30px 34px}#gpu-tenant-market .tm-model-name{font-size:20px}#gpu-tenant-market .tm-specs{min-height:205px}#gpu-tenant-market .tm-specs p{font-size:13px}#gpu-tenant-market .tm-availability,#gpu-tenant-market .tm-availability p{font-size:12px}}
+  @media(max-width:1200px){#gpu-tenant-market .tm-workspace{grid-template-columns:178px minmax(0,1fr)}#gpu-tenant-market .tm-sidebar{padding:26px 15px}#gpu-tenant-market .tm-main{padding:24px 20px}#gpu-tenant-market .tm-header{gap:20px;padding:17px 20px}#gpu-tenant-market .tm-nav{gap:15px;font-size:12px}#gpu-tenant-market .tm-brand-crop{width:177px}#gpu-tenant-market .tm-page-head{margin-bottom:28px}#gpu-tenant-market .tm-search input{width:135px}#gpu-tenant-market .tm-search-tools{gap:7px}#gpu-tenant-market .tm-model-name{font-size:16px}#gpu-tenant-market .tm-product{padding:16px}#gpu-tenant-market .tm-product-head{gap:8px}#gpu-tenant-market .tm-stock-line{gap:4px}#gpu-tenant-market .tm-stock-meter{gap:2px}#gpu-tenant-market .tm-stock-tick{width:3px}#gpu-tenant-market .tm-price-main{font-size:24px}#gpu-tenant-market .tm-specs h3,#gpu-tenant-market .tm-specs p{padding-left:9px;padding-right:9px}#gpu-tenant-market .tm-filter-row{row-gap:12px}#gpu-tenant-market .tm-view-switch{margin-left:12px}#gpu-tenant-market .tm-specs{grid-template-columns:minmax(0,2.6fr) minmax(0,1fr) minmax(0,1fr)}}
+  @media(max-width:900px){#gpu-tenant-market .tm-products{grid-template-columns:minmax(0,1fr)}#gpu-tenant-market .tm-page-head{gap:14px}#gpu-tenant-market .tm-search-tools{justify-content:flex-start}#gpu-tenant-market .tm-nav{order:3;width:100%;margin:0}#gpu-tenant-market .tm-space{padding-right:75px}#gpu-tenant-market .tm-product-head{min-height:68px}#gpu-tenant-market .tm-model-name{font-size:18px}}
+  @media(max-width:650px){#gpu-tenant-market .tm-workspace{grid-template-columns:minmax(0,1fr)}#gpu-tenant-market .tm-sidebar{padding:14px 16px;display:grid;grid-template-columns:1fr 1fr;gap:16px}#gpu-tenant-market .tm-sidebar-head{grid-column:1/-1;margin:0}#gpu-tenant-market .tm-side-section{margin-bottom:0}#gpu-tenant-market .tm-side-options{margin-top:12px;gap:9px}#gpu-tenant-market .tm-advanced-label{margin:0}#gpu-tenant-market .tm-number-grid{margin-top:12px;padding-left:0;border:0}#gpu-tenant-market .tm-main{padding:20px 14px}#gpu-tenant-market .tm-header{padding:56px 14px 16px}#gpu-tenant-market .tm-brand-crop{width:177px}#gpu-tenant-market .tm-space{padding:0}#gpu-tenant-market .tm-nav&gt;span:not(.tm-nav-current){display:none}#gpu-tenant-market .tm-page-head{margin-bottom:24px}#gpu-tenant-market .tm-search-tools{width:100%}#gpu-tenant-market .tm-search{flex:1;min-width:120px}#gpu-tenant-market .tm-search input{width:100%}#gpu-tenant-market .tm-containers{width:auto}#gpu-tenant-market .tm-filter-label{width:100%}#gpu-tenant-market .tm-mode-options .tm-chip{padding:8px 10px}#gpu-tenant-market .tm-model-checks{gap:12px}#gpu-tenant-market .tm-view-switch{margin-left:auto}#gpu-tenant-market .tm-product{padding:14px}#gpu-tenant-market .tm-model-name{font-size:16px}#gpu-tenant-market .tm-product-head{display:block}#gpu-tenant-market .tm-availability{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:11px;padding:0;gap:8px}#gpu-tenant-market .tm-product-meta{font-size:11px}#gpu-tenant-market .tm-specs{grid-template-columns:minmax(0,1.8fr) minmax(0,1fr) minmax(0,1fr)}#gpu-tenant-market .tm-specs&gt;div:last-child{grid-column:auto;display:block}#gpu-tenant-market .tm-specs&gt;div:last-child h3{display:block}#gpu-tenant-market .tm-specs&gt;div:last-child p{margin:0}#gpu-tenant-market .tm-specs&gt;div:last-child p+p{margin-top:5px}#gpu-tenant-market .tm-specs h3,#gpu-tenant-market .tm-specs p{padding-left:7px;padding-right:7px}#gpu-tenant-market .tm-product-foot{grid-template-columns:minmax(0,1fr) auto;gap:8px}#gpu-tenant-market .tm-rent-button{width:105px;min-height:40px}#gpu-tenant-market .tm-price-main{font-size:23px}#gpu-tenant-market .tm-price-before{font-size:11px}#gpu-tenant-market .tm-overlay{padding:80px 10px 20px}#gpu-tenant-market .tm-modal-open{min-height:1100px}}
+&lt;/style&gt;
+&lt;script&gt;
+(()=&gt;{
+  const root=document.getElementById(&#x27;gpu-tenant-market&#x27;);if(!root)return;
+  const $=s=&gt;root.querySelector(s),$$=s=&gt;Array.from(root.querySelectorAll(s));
+  const esc=s=&gt;String(s).replace(/[&amp;&lt;&gt;&quot;&#x27;]/g,c=&gt;({&#x27;&amp;&#x27;:&#x27;&amp;amp;&#x27;,&#x27;&lt;&#x27;:&#x27;&amp;lt;&#x27;,&#x27;&gt;&#x27;:&#x27;&amp;gt;&#x27;,&#x27;&quot;&#x27;:&#x27;&amp;quot;&#x27;,&quot;&#x27;&quot;:&#x27;&amp;#39;&#x27;}[c]));
+  const instanceId=Math.random().toString(36).slice(2);
+  const modes={hour:{label:&#x27;按量&#x27;,unit:&#x27;卡时&#x27;,totalUnit:&#x27;小时&#x27;,period:&#x27;按实际运行分钟计费&#x27;,caption:&#x27;按量 · 当前单卡价格，按实际运行分钟计费&#x27;},day:{label:&#x27;包日&#x27;,unit:&#x27;卡／期&#x27;,totalUnit:&#x27;期&#x27;,period:&#x27;本期 24 小时&#x27;,caption:&#x27;包日 · 单卡本期总价，1 期为 24 小时&#x27;},week:{label:&#x27;包周&#x27;,unit:&#x27;卡／期&#x27;,totalUnit:&#x27;期&#x27;,period:&#x27;本期 7 天&#x27;,caption:&#x27;包周 · 单卡本期总价，1 期为 7 天&#x27;},month:{label:&#x27;包月&#x27;,unit:&#x27;卡／期&#x27;,totalUnit:&#x27;期&#x27;,period:&#x27;本期 30 天&#x27;,caption:&#x27;包月 · 单卡本期总价，1 期为 30 天&#x27;},year:{label:&#x27;包年&#x27;,unit:&#x27;卡／期&#x27;,totalUnit:&#x27;期&#x27;,period:&#x27;包年，具体周期以订单为准&#x27;,caption:&#x27;包年 · 单卡本期总价，具体起止时间以商品订单为准&#x27;}};
+  const items=[{id:&#x27;t4-01&#x27;,model:&#x27;t4&#x27;,name:&#x27;Tesla T4&#x27;,memory:&#x27;15 GB&#x27;,region:&#x27;shandong&#x27;,place:&#x27;山东 · 济南A区&#x27;,host:&#x27;DEMO-T4-001&#x27;,cpu:16,cpuName:&#x27;Intel(R) Xeon(R) Silver 4216 CPU @ 2.10GHz&#x27;,ram:55,system:30,disk:50,expand:100,driver:&#x27;595.71.05&#x27;,cuda:&#x27;13.2&#x27;,free:4,slots:4,availableUntil:&#x27;2027-10-31&#x27;,prices:{hour:.6,day:12,week:72,month:260,year:2600}},{id:&#x27;rtx4090-01&#x27;,model:&#x27;rtx4090&#x27;,name:&#x27;NVIDIA GeForce RTX 4090&#x27;,memory:&#x27;24 GB&#x27;,region:&#x27;shandong&#x27;,place:&#x27;山东 · 济南A区&#x27;,host:&#x27;DEMO-4090-001&#x27;,cpu:16,cpuName:&#x27;Intel(R) Xeon(R) Gold 6430&#x27;,ram:121,system:30,disk:50,expand:0,driver:&#x27;595.58.03&#x27;,cuda:&#x27;13.2&#x27;,free:4,slots:8,availableUntil:&#x27;2026-10-31&#x27;,prices:{hour:1.98,day:40,week:240,month:900,year:null}},{id:&#x27;rtx5070-01&#x27;,model:&#x27;rtx5070&#x27;,name:&#x27;RTX 5070&#x27;,memory:&#x27;12 GB&#x27;,region:&#x27;shandong&#x27;,place:&#x27;山东 · 济南B区&#x27;,host:&#x27;DEMO-5070-001&#x27;,cpu:12,cpuName:&#x27;AMD Ryzen 9 9900X&#x27;,ram:32,system:20,disk:10,expand:0,driver:&#x27;595.58.03&#x27;,cuda:&#x27;12.6&#x27;,free:0,slots:1,availableUntil:&#x27;不限&#x27;,prices:{hour:1.2,day:24,week:144,month:540,year:null}},{id:&#x27;rtx5070-02&#x27;,model:&#x27;rtx5070&#x27;,name:&#x27;RTX 5070&#x27;,memory:&#x27;12 GB&#x27;,region:&#x27;shandong&#x27;,place:&#x27;山东 · 济南B区&#x27;,host:&#x27;DEMO-5070-002&#x27;,cpu:12,cpuName:&#x27;AMD Ryzen 9 9900X&#x27;,ram:32,system:20,disk:10,expand:0,driver:&#x27;595.58.03&#x27;,cuda:&#x27;12.6&#x27;,free:0,slots:1,availableUntil:&#x27;不限&#x27;,prices:{hour:1.2,day:24,week:144,month:540,year:null}}];
+  const diskPrices={hour:1,day:24,week:150,month:600,year:6000};
+  const spaces={personal:{name:&#x27;个人空间&#x27;,targetType:&#x27;USER&#x27;,targetId:&#x27;100001&#x27;,payer:&#x27;个人账户支付&#x27;,discountLabel:&#x27;个人专属&#x27;,icon:&#x27;user-round&#x27;},school:{name:&#x27;示例大学&#x27;,targetType:&#x27;TENANT&#x27;,targetId:&#x27;TENANT-001&#x27;,payer:&#x27;示例大学统一支付&#x27;,discountLabel:&#x27;租户专属&#x27;,icon:&#x27;building-2&#x27;},company:{name:&#x27;示例企业&#x27;,targetType:&#x27;TENANT&#x27;,targetId:&#x27;TENANT-002&#x27;,payer:&#x27;示例企业统一支付&#x27;,discountLabel:&#x27;租户专属&#x27;,icon:&#x27;building-2&#x27;}};
+  const policies={personal:{status:&#x27;active&#x27;,scope:&#x27;all&#x27;,discount:7.5},school:{status:&#x27;active&#x27;,scope:&#x27;all&#x27;,discount:8},company:{status:&#x27;none&#x27;,scope:&#x27;all&#x27;,discount:10}};
+  const currentSpace=()=&gt;spaces[state.space],currentPolicy=()=&gt;policies[state.space];
+  let state={space:&#x27;personal&#x27;,mode:&#x27;hour&#x27;,regions:[],models:[],cpuFilters:[],layout:&#x27;grid&#x27;,quantity:1,search:&#x27;&#x27;,sort:&#x27;default&#x27;,selected:null,disk:0,view:&#x27;market&#x27;},initializing=true,displayedQuote=null;
+  const money=n=&gt;&#x27;¥&#x27;+Number(n).toLocaleString(&#x27;zh-CN&#x27;,{minimumFractionDigits:2,maximumFractionDigits:2});
+  const format=n=&gt;Number(n).toLocaleString(&#x27;zh-CN&#x27;,{minimumFractionDigits:2,maximumFractionDigits:2});
+  const roundMoney=n=&gt;Number(Number(n).toLocaleString(&#x27;en-US&#x27;,{useGrouping:false,minimumFractionDigits:2,maximumFractionDigits:2}));
+  const formatUnit=n=&gt;Number(n).toLocaleString(&#x27;zh-CN&#x27;,{minimumFractionDigits:0,maximumFractionDigits:6});
+  function validRule(){return currentPolicy().status===&#x27;active&#x27;&amp;&amp;Date.now()&lt;new Date(&#x27;2026-11-17T00:00:00+08:00&#x27;).getTime()}
+  function eligible(item){return validRule()&amp;&amp;(currentPolicy().scope===&#x27;all&#x27;||item.model===&#x27;rtx4090&#x27;)}
+  function price(item,mode=state.mode){const base=item.prices[mode];return base===null?null:Number((base*(eligible(item)?currentPolicy().discount/10:1)).toFixed(6))}
+
+  function announce(s){$(&#x27;[data-announcement]&#x27;).textContent=s}
+  function remember(){if(initializing||!window.openai?.setWidgetState)return;window.openai.setWidgetState({modelContent:{prototype:&#x27;个人与租户空间GPU选卡折扣展示&#x27;,space:currentSpace().name,targetType:currentSpace().targetType,targetId:currentSpace().targetId,billingMode:modes[state.mode].label,gpuQuantity:state.quantity,discount:validRule()?currentPolicy().discount:null,range:currentPolicy().scope,selected:state.selected,view:state.view},privateContent:{gpuTenantMarket:{version:3,instanceId,state:{...state},policies:{personal:{...policies.personal},school:{...policies.school}}}}}).catch(()=&gt;{})}
+  function setPressed(selector,key,value){$$(selector).forEach(b=&gt;b.setAttribute(&#x27;aria-pressed&#x27;,String(b.dataset[key]===String(value))))}
+
+  function matchesCpu(item){return !state.cpuFilters.length||state.cpuFilters.some(key=&gt;key===&#x27;lt32&#x27;?item.cpu&lt;32:key===&#x27;32to64&#x27;?item.cpu&gt;=32&amp;&amp;item.cpu&lt;64:key===&#x27;64to96&#x27;?item.cpu&gt;=64&amp;&amp;item.cpu&lt;96:item.cpu&gt;=96)}
+  function filteredItems(){let list=items.filter(item=&gt;(!state.regions.length||state.regions.includes(item.region))&amp;&amp;(!state.models.length||state.models.includes(item.model))&amp;&amp;matchesCpu(item)&amp;&amp;item.slots&gt;=state.quantity&amp;&amp;(!state.search||(item.name+&#x27; &#x27;+item.memory).toLowerCase().includes(state.search.toLowerCase())));if(state.sort!==&#x27;default&#x27;)list.sort((a,b)=&gt;{const pa=price(a),pb=price(b);if(pa===null)return 1;if(pb===null)return-1;return state.sort===&#x27;price-asc&#x27;?pa-pb:pb-pa});return list;}
+  function renderCards(){
+    const list=filteredItems(),m=modes[state.mode],p=currentPolicy(),space=currentSpace();
+    $(&#x27;[data-result-count]&#x27;).textContent=list.length;$(&#x27;[data-empty]&#x27;).hidden=list.length&gt;0;
+    $(&#x27;[data-products]&#x27;).classList.toggle(&#x27;tm-list-view&#x27;,state.layout===&#x27;list&#x27;);
+    $(&#x27;[data-products]&#x27;).innerHTML=list.map(item=&gt;{
+      const base=item.prices[state.mode],net=price(item),discounted=eligible(item)&amp;&amp;net!==null&amp;&amp;net&lt;base,available=item.free&gt;=state.quantity&amp;&amp;net!==null;
+      const meter=Array.from({length:item.slots},(_,index)=&gt;`&lt;span class=&quot;tm-stock-tick ${index&lt;item.free?&#x27;tm-filled&#x27;:&#x27;&#x27;}&quot;&gt;&lt;/span&gt;`).join(&#x27;&#x27;);
+      const priceContent=net===null?`&lt;div class=&quot;tm-unavailable-price&quot;&gt;暂不支持${m.label}&lt;/div&gt;`:`&lt;div class=&quot;tm-price-line&quot;&gt;&lt;div class=&quot;tm-price-main&quot;&gt;¥${formatUnit(net)}&lt;small&gt;／${state.mode===&#x27;hour&#x27;?&#x27;时&#x27;:&#x27;卡／期&#x27;}&lt;/small&gt;&lt;/div&gt;${discounted?`&lt;s class=&quot;tm-price-before&quot;&gt;¥${formatUnit(base)}&lt;/s&gt;&lt;span class=&quot;tm-discount-badge&quot;&gt;${esc(space.discountLabel)} ${p.discount} 折&lt;/span&gt;`:&#x27;&#x27;}&lt;/div&gt;${state.mode!==&#x27;hour&#x27;?`&lt;div class=&quot;tm-price-context&quot;&gt;${m.period} · 单卡价&lt;/div&gt;`:&#x27;&#x27;}${state.quantity&gt;1?`&lt;div class=&quot;tm-selected-total&quot;&gt;${state.quantity} 卡 GPU 合计 &lt;strong&gt;${money(net*state.quantity)}／${m.totalUnit}&lt;/strong&gt;&lt;/div&gt;`:&#x27;&#x27;}`;
+      return `&lt;article class=&quot;tm-product ${item.free===0?&#x27;tm-sold-out&#x27;:&#x27;&#x27;}&quot; aria-label=&quot;${esc(item.name)} ${esc(item.memory)}&quot;&gt;
+        &lt;header class=&quot;tm-product-head&quot;&gt;&lt;div&gt;&lt;h2 class=&quot;tm-model-name&quot;&gt;${esc(item.name)} / ${esc(item.memory)}&lt;/h2&gt;&lt;p class=&quot;tm-product-meta&quot;&gt;${esc(item.place)} · ${esc(item.host)}&lt;/p&gt;&lt;/div&gt;&lt;div class=&quot;tm-availability&quot;&gt;&lt;div class=&quot;tm-stock-line&quot;&gt;&lt;span class=&quot;tm-stock-meter&quot; aria-hidden=&quot;true&quot;&gt;${meter}&lt;/span&gt;&lt;span&gt;${item.free} 空闲 / ${item.slots} 容量&lt;/span&gt;&lt;/div&gt;&lt;p&gt;可租用至：${item.availableUntil}&lt;/p&gt;&lt;/div&gt;&lt;/header&gt;
+        &lt;div class=&quot;tm-specs&quot;&gt;&lt;div class=&quot;tm-spec-column&quot;&gt;&lt;h3&gt;每GPU内存配置&lt;/h3&gt;&lt;p class=&quot;tm-spec-label&quot;&gt;CPU&lt;/p&gt;&lt;p&gt;${item.cpu} 核, ${esc(item.cpuName)}&lt;/p&gt;&lt;p class=&quot;tm-spec-label tm-second-label&quot;&gt;内存&lt;/p&gt;&lt;p&gt;${item.ram} GB&lt;/p&gt;&lt;/div&gt;&lt;div class=&quot;tm-spec-column&quot;&gt;&lt;h3&gt;硬盘&lt;/h3&gt;&lt;p class=&quot;tm-spec-label&quot;&gt;系统盘&lt;/p&gt;&lt;p&gt;${item.system} GB&lt;/p&gt;&lt;p class=&quot;tm-spec-label tm-second-label&quot;&gt;数据盘&lt;/p&gt;&lt;p&gt;${item.disk} GB&lt;/p&gt;&lt;p class=&quot;tm-expand-note&quot;&gt;可扩容${item.expand}GB&lt;/p&gt;&lt;/div&gt;&lt;div class=&quot;tm-spec-column&quot;&gt;&lt;h3&gt;其他&lt;/h3&gt;&lt;p class=&quot;tm-spec-label&quot;&gt;GPU驱动&lt;/p&gt;&lt;p&gt;${item.driver}&lt;/p&gt;&lt;p class=&quot;tm-spec-label tm-second-label&quot;&gt;CUDA版本&lt;/p&gt;&lt;p&gt;≤ ${item.cuda}&lt;/p&gt;&lt;/div&gt;&lt;/div&gt;
+        &lt;footer class=&quot;tm-product-foot&quot;&gt;&lt;div class=&quot;tm-price-block&quot;&gt;${priceContent}&lt;/div&gt;&lt;button type=&quot;button&quot; class=&quot;tm-button tm-primary tm-rent-button cursor-interaction&quot; data-rent=&quot;${item.id}&quot; aria-label=&quot;租用 ${esc(item.name)}，${item.free}卡可租&quot; ${available?&#x27;&#x27;:&#x27;disabled&#x27;}&gt;${net===null?&#x27;暂不支持&#x27;+m.label:item.free+&#x27;卡可租&#x27;}&lt;/button&gt;&lt;/footer&gt;
+      &lt;/article&gt;`;
+    }).join(&#x27;&#x27;);
+    $(&#x27;[data-market-note]&#x27;).hidden=!list.some(item=&gt;eligible(item)&amp;&amp;price(item)!==null);if(globalThis.lucide?.createIcons)globalThis.lucide.createIcons({attrs:{width:16,height:16}});
+  }
+  function render(){if(!spaces[state.space])state.space=&#x27;personal&#x27;;if(!modes[state.mode])state.mode=&#x27;hour&#x27;;$(&#x27;#tm-tenant&#x27;).value=state.space;$(&#x27;[data-space-icon]&#x27;).innerHTML=&#x27;&lt;i data-lucide=&quot;&#x27;+currentSpace().icon+&#x27;&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&#x27;;$(&#x27;#tm-search&#x27;).value=state.search;$(&#x27;#tm-sort&#x27;).value=state.sort;setPressed(&#x27;[data-mode]&#x27;,&#x27;mode&#x27;,state.mode);setPressed(&#x27;[data-quantity]&#x27;,&#x27;quantity&#x27;,state.quantity);setPressed(&#x27;[data-layout]&#x27;,&#x27;layout&#x27;,state.layout);$$(&#x27;input[name=tm-region]&#x27;).forEach(input=&gt;input.checked=state.regions.includes(input.value));$$(&#x27;input[name=tm-model]&#x27;).forEach(input=&gt;input.checked=state.models.includes(input.value));$$(&#x27;input[name=tm-cpu]&#x27;).forEach(input=&gt;input.checked=state.cpuFilters.includes(input.value));$(&#x27;[data-mode-caption]&#x27;).textContent=modes[state.mode].caption;renderCards();if(state.view===&#x27;config&#x27;)renderConfig();}
+  function chosen(){return items.find(x=&gt;x.id===state.selected)}
+  function quoteSnapshot(item){const net=price(item);return{key:JSON.stringify([item.id,state.space,state.mode,state.quantity,state.disk,item.prices[state.mode],net,diskPrices[state.mode]]),gpu:net*state.quantity,total:net*state.quantity+(state.disk?diskPrices[state.mode]:0),unit:modes[state.mode].totalUnit}}
+  function renderConfig(){const item=chosen();if(!item||item.free&lt;1||price(item)===null){closeConfig(false);return}if(!item.expand)state.disk=0;const m=modes[state.mode],base=item.prices[state.mode],net=price(item),has=eligible(item)&amp;&amp;net!==null&amp;&amp;net&lt;base,displayBase=roundMoney(base*state.quantity),displayNet=roundMoney(net*state.quantity),p=currentPolicy(),space=currentSpace();$(&#x27;#tm-config-mode&#x27;).value=state.mode;Array.from($(&#x27;#tm-config-mode&#x27;).options).forEach(o=&gt;o.disabled=item.prices[o.value]===null);$(&#x27;#tm-config-quantity&#x27;).innerHTML=Array.from({length:item.free},(_,i)=&gt;`&lt;option value=&quot;${i+1}&quot;&gt;${i+1} 卡&lt;/option&gt;`).join(&#x27;&#x27;);if(state.quantity&gt;item.free)state.quantity=item.free;$(&#x27;#tm-config-quantity&#x27;).value=String(state.quantity);$(&#x27;#tm-disk&#x27;).value=String(state.disk);$(&#x27;#tm-disk&#x27;).options[1].disabled=item.expand&lt;100;$(&#x27;#tm-disk&#x27;).options[0].textContent=&#x27;不扩容 · ¥0.00／&#x27;+m.totalUnit;$(&#x27;#tm-disk&#x27;).options[1].textContent=&#x27;100 GB · &#x27;+money(diskPrices[state.mode])+&#x27;／&#x27;+m.totalUnit+&#x27;（示例）&#x27;;$(&#x27;[data-chosen-name]&#x27;).textContent=item.name;$(&#x27;[data-chosen-meta]&#x27;).textContent=item.memory+&#x27; · &#x27;+item.place;$(&#x27;[data-payer]&#x27;).textContent=space.payer;$(&#x27;[data-payer-icon]&#x27;).innerHTML=&#x27;&lt;i data-lucide=&quot;&#x27;+space.icon+&#x27;&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&#x27;;$(&#x27;[data-cost-base-row]&#x27;).hidden=!has;$(&#x27;.tm-discount-line&#x27;).hidden=!has;$(&#x27;[data-cost-net-label]&#x27;).textContent=has?&#x27;GPU 折后费用&#x27;:&#x27;GPU 费用&#x27;;$(&#x27;[data-cost-base]&#x27;).textContent=money(displayBase)+&#x27;／&#x27;+m.totalUnit;$(&#x27;[data-cost-discount-label]&#x27;).textContent=has?space.discountLabel+&#x27;优惠 · &#x27;+p.discount+&#x27; 折&#x27;:&#x27;&#x27;;$(&#x27;[data-cost-discount]&#x27;).textContent=has?&#x27;−&#x27;+money((Math.round(displayBase*100)-Math.round(displayNet*100))/100)+&#x27;／&#x27;+m.totalUnit:&#x27;&#x27;;$(&#x27;[data-cost-net]&#x27;).textContent=money(displayNet)+&#x27;／&#x27;+m.totalUnit;$(&#x27;[data-cost-disk]&#x27;).textContent=money(state.disk?diskPrices[state.mode]:0)+&#x27;／&#x27;+m.totalUnit;$(&#x27;[data-total-label]&#x27;).textContent=state.mode===&#x27;hour&#x27;?&#x27;预计每小时费用&#x27;:&#x27;本期应付金额&#x27;;$(&#x27;[data-total]&#x27;).innerHTML=money(net*state.quantity+(state.disk?diskPrices[state.mode]:0))+&#x27;&lt;small&gt;／&#x27;+m.totalUnit+&#x27;&lt;/small&gt;&#x27;;$(&#x27;[data-billing-help]&#x27;).textContent=state.mode===&#x27;hour&#x27;?&#x27;按实际运行分钟计费；扩容盘独立计费，关机保留时仍收费。&#x27;+(has?&#x27;优惠到期后的用量按届时规则计费。&#x27;:&#x27;&#x27;):m.period+&#x27;。GPU 价格支付后锁定；&#x27;+(state.disk?&#x27;本期扩容盘费用单独计价并预付，不享 GPU 折扣。到期后按现行规则持续计费，关机保留仍收费。&#x27;:&#x27;本次未选择扩容；本期应付金额仅包含 GPU 主商品。&#x27;);displayedQuote=quoteSnapshot(item);$(&#x27;[data-action=confirm]&#x27;).textContent=&#x27;确认配置&#x27;;$(&#x27;[data-dialog-alert]&#x27;).hidden=true;if(globalThis.lucide?.createIcons)globalThis.lucide.createIcons({attrs:{width:16,height:16}});}
+  function openConfig(id){const item=items.find(x=&gt;x.id===id);if(!item||price(item)===null||item.free&lt;state.quantity)return;state.selected=id;state.disk=0;state.view=&#x27;config&#x27;;$(&#x27;[data-overlay]&#x27;).hidden=false;$(&#x27;.tm-main&#x27;).inert=true;$(&#x27;.tm-header&#x27;).inert=true;$(&#x27;.tm-sidebar&#x27;).inert=true;$(&#x27;.tm-app&#x27;).classList.add(&#x27;tm-modal-open&#x27;);renderConfig();remember();announce(&#x27;已选择 &#x27;+item.name+&#x27;，可核对租用配置与费用。&#x27;);}
+  function closeConfig(persist=true){state.view=&#x27;market&#x27;;$(&#x27;[data-overlay]&#x27;).hidden=true;$(&#x27;.tm-main&#x27;).inert=false;$(&#x27;.tm-header&#x27;).inert=false;$(&#x27;.tm-sidebar&#x27;).inert=false;$(&#x27;.tm-app&#x27;).classList.remove(&#x27;tm-modal-open&#x27;);displayedQuote=null;if(persist){render();remember();}}
+  function confirmConfig(){const item=chosen();if(!item)return;const net=price(item);if(net===null||item.free&lt;state.quantity){$(&#x27;[data-dialog-alert]&#x27;).textContent=&#x27;当前规格不可用，请调整配置。&#x27;;$(&#x27;[data-dialog-alert]&#x27;).hidden=false;return}const current=quoteSnapshot(item);if(displayedQuote&amp;&amp;displayedQuote.key!==current.key){const previous=displayedQuote;renderConfig();$(&#x27;[data-dialog-alert]&#x27;).textContent=&#x27;报价已变化：合计费用由 &#x27;+money(previous.total)+&#x27;／&#x27;+previous.unit+&#x27; 调整为 &#x27;+money(current.total)+&#x27;／&#x27;+current.unit+&#x27;。请核对最新费用后再次确认。&#x27;;$(&#x27;[data-dialog-alert]&#x27;).hidden=false;$(&#x27;[data-action=confirm]&#x27;).textContent=&#x27;确认最新配置&#x27;;announce(&#x27;报价已变化，请核对后再次确认。&#x27;);return}closeConfig(false);render();$(&#x27;[data-selection]&#x27;).textContent=&#x27;已选择 &#x27;+item.name+&#x27; × &#x27;+state.quantity+&#x27; 卡 · &#x27;+modes[state.mode].label+&#x27; · GPU &#x27;+money(net*state.quantity)+&#x27;／&#x27;+modes[state.mode].totalUnit+&#x27;。此处演示选卡与报价，尚未创建实例。&#x27;;$(&#x27;[data-selection]&#x27;).hidden=false;remember();}
+  root.addEventListener(&#x27;click&#x27;,e=&gt;{const mode=e.target.closest(&#x27;[data-mode]&#x27;),quantity=e.target.closest(&#x27;[data-quantity]&#x27;),layout=e.target.closest(&#x27;[data-layout]&#x27;),rent=e.target.closest(&#x27;[data-rent]&#x27;);if(mode){state.mode=mode.dataset.mode;render();remember();announce(modes[state.mode].caption);return}if(quantity){state.quantity=Number(quantity.dataset.quantity);render();remember();return}if(layout){state.layout=layout.dataset.layout;render();remember();return}if(rent){openConfig(rent.dataset.rent);return}const action=e.target.closest(&#x27;[data-action]&#x27;)?.dataset.action;if(action===&#x27;close&#x27;)closeConfig();if(action===&#x27;confirm&#x27;)confirmConfig();if(action===&#x27;reset&#x27;){state.regions=[];state.models=[];state.cpuFilters=[];state.quantity=1;state.search=&#x27;&#x27;;render();remember()}});
+  root.addEventListener(&#x27;input&#x27;,e=&gt;{if(e.target.id===&#x27;tm-search&#x27;){state.search=e.target.value.trim();renderCards();remember()}});
+  root.addEventListener(&#x27;change&#x27;,e=&gt;{if(e.target.name===&#x27;tm-region&#x27;){state.regions=$$(&#x27;input[name=tm-region]:checked&#x27;).map(input=&gt;input.value);render();remember();return}if(e.target.name===&#x27;tm-model&#x27;){state.models=$$(&#x27;input[name=tm-model]:checked&#x27;).map(input=&gt;input.value);render();remember();return}if(e.target.name===&#x27;tm-cpu&#x27;){state.cpuFilters=$$(&#x27;input[name=tm-cpu]:checked&#x27;).map(input=&gt;input.value);render();remember();return}if(e.target.id===&#x27;tm-tenant&#x27;){closeConfig(false);state.space=e.target.value;state.selected=null;$(&#x27;[data-selection]&#x27;).hidden=true;render();remember();announce(&#x27;已切换到&#x27;+spaces[state.space].name+&#x27;，价格按当前付款主体重新计算。&#x27;)}if(e.target.id===&#x27;tm-sort&#x27;){state.sort=e.target.value;renderCards();remember()}if(e.target.id===&#x27;tm-config-mode&#x27;){state.mode=e.target.value;renderConfig();remember()}if(e.target.id===&#x27;tm-config-quantity&#x27;){state.quantity=Number(e.target.value);renderConfig();remember()}if(e.target.id===&#x27;tm-disk&#x27;){state.disk=Number(e.target.value);renderConfig();remember()}});
+  root.addEventListener(&#x27;keydown&#x27;,e=&gt;{if(e.key===&#x27;Escape&#x27;&amp;&amp;state.view===&#x27;config&#x27;)closeConfig()});
+  function applySaved(saved){if(![1,2,3].includes(saved?.version)||!saved.state)return false;const incoming=saved.state;const {tenant,region,model,...rest}=incoming;state={...state,...rest,space:incoming.space||tenant||&#x27;personal&#x27;};if(!spaces[state.space])state.space=&#x27;personal&#x27;;if(!modes[state.mode])state.mode=&#x27;hour&#x27;;state.quantity=Math.min(8,Math.max(1,Number(state.quantity)||1));state.regions=Array.isArray(incoming.regions)?incoming.regions.filter(x=&gt;[&#x27;jingjinji&#x27;,&#x27;shandong&#x27;].includes(x)):region===&#x27;beijing&#x27;?[&#x27;jingjinji&#x27;]:[];state.models=Array.isArray(incoming.models)?incoming.models.filter(x=&gt;[&#x27;rtx4090&#x27;,&#x27;rtx5090&#x27;,&#x27;rtx5070&#x27;,&#x27;t4&#x27;].includes(x)):[&#x27;rtx4090&#x27;,&#x27;rtx5090&#x27;,&#x27;rtx5070&#x27;,&#x27;t4&#x27;].includes(model)?[model]:[];state.cpuFilters=Array.isArray(incoming.cpuFilters)?incoming.cpuFilters.filter(x=&gt;[&#x27;lt32&#x27;,&#x27;32to64&#x27;,&#x27;64to96&#x27;,&#x27;gte96&#x27;].includes(x)):[];state.layout=incoming.layout===&#x27;list&#x27;?&#x27;list&#x27;:&#x27;grid&#x27;;if(state.selected===&#x27;rtx4090&#x27;)state.selected=&#x27;rtx4090-01&#x27;;if(!items.some(item=&gt;item.id===state.selected&amp;&amp;item.free&gt;0)){state.selected=null;state.view=&#x27;market&#x27;}const source=saved.version===1?{school:saved.policy}:saved.policies;for(const key of [&#x27;personal&#x27;,&#x27;school&#x27;]){const value=source?.[key];if(!value)continue;policies[key].discount=Math.min(10,Math.max(.1,Number(value.discount)||policies[key].discount));policies[key].scope=[&#x27;all&#x27;,&#x27;rtx4090&#x27;].includes(value.scope)?value.scope:&#x27;all&#x27;;policies[key].status=[&#x27;active&#x27;,&#x27;expired&#x27;,&#x27;none&#x27;].includes(value.status)?value.status:&#x27;active&#x27;}return true;}
+  const saved=window.openai?.widgetState?.privateContent?.gpuTenantMarket;applySaved(saved);render();if(state.view===&#x27;config&#x27;&amp;&amp;chosen()){const disk=state.disk;openConfig(state.selected);state.disk=disk;renderConfig()}else closeConfig(false);initializing=false;
+  window.addEventListener(&#x27;openai:set_globals&#x27;,e=&gt;{const next=e.detail?.globals?.widgetState?.privateContent?.gpuTenantMarket;if(!next||next.instanceId===instanceId)return;initializing=true;if(applySaved(next)){render();if(state.view===&#x27;config&#x27;&amp;&amp;chosen()){const disk=state.disk;openConfig(state.selected);state.disk=disk;renderConfig()}else closeConfig(false)}initializing=false;});
+  if(globalThis.Tweak){const tweak=new Tweak({container:root,onChange:()=&gt;{render();remember();}});for(const [key,label] of [[&#x27;personal&#x27;,&#x27;个人&#x27;],[&#x27;school&#x27;,&#x27;学校&#x27;]]){tweak.addSelect(policies[key],&#x27;status&#x27;,{label:label+&#x27;优惠状态&#x27;,options:[{label:&#x27;生效中&#x27;,value:&#x27;active&#x27;},{label:&#x27;已到期&#x27;,value:&#x27;expired&#x27;},{label:&#x27;未设置&#x27;,value:&#x27;none&#x27;}]});tweak.addSelect(policies[key],&#x27;scope&#x27;,{label:label+&#x27;优惠范围&#x27;,options:[{label:&#x27;全部 GPU&#x27;,value:&#x27;all&#x27;},{label:&#x27;仅 RTX 4090&#x27;,value:&#x27;rtx4090&#x27;}]});tweak.addSlider(policies[key],&#x27;discount&#x27;,{label:label+&#x27;专属折扣&#x27;,min:1,max:9.5,step:.5,unit:&#x27;折&#x27;});}}
+})();
+&lt;/script&gt;
+
+&lt;script src=&quot;https://unpkg.com/@floating-ui/core@1.7.3/dist/floating-ui.core.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script src=&quot;https://unpkg.com/@floating-ui/dom@1.7.4/dist/floating-ui.dom.umd.min.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  if (window.FloatingUIDOM == null) {
+    return;
+  }
+  const { autoUpdate, computePosition, flip, offset, shift, size } =
+    window.FloatingUIDOM;
+  const tooltipPlacements = new Set([&quot;top&quot;, &quot;right&quot;, &quot;bottom&quot;, &quot;left&quot;]);
+  const tooltipId = `codex-visualization-tooltip-${
+    window.crypto?.randomUUID?.() ?? Date.now().toString(36)
+  }`;
+  const tooltipGap = 5;
+  const hoverDelay = 700;
+  const skipDelay = 300;
+  let activeTrigger = null;
+  let pendingTrigger = null;
+  let tooltip = null;
+  let openTimeout = null;
+  let autoUpdateCleanup = null;
+  let positionRequest = 0;
+  let skipDelayUntil = 0;
+  let lastPointerWasTouch = false;
+  let pinnedByTouch = false;
+
+  const getTrigger = (event) =&gt; {
+    for (const target of event.composedPath()) {
+      if (target?.nodeType === Node.ELEMENT_NODE) {
+        const trigger = target.closest(&quot;[data-tooltip]&quot;);
+        if (trigger) return trigger;
+      }
+    }
+    return null;
+  };
+  const containsTarget = (trigger, target) =&gt;
+    target?.nodeType != null &amp;&amp; trigger.contains(target);
+  const getContent = (trigger) =&gt;
+    trigger.getAttribute(&quot;data-tooltip&quot;)?.trim() ?? &quot;&quot;;
+  const getPlacement = (trigger) =&gt; {
+    const placement = trigger.getAttribute(&quot;data-tooltip-placement&quot;);
+    return tooltipPlacements.has(placement) ? placement : &quot;top&quot;;
+  };
+  const getTooltip = () =&gt; {
+    if (tooltip == null) {
+      tooltip = document.createElement(&quot;div&quot;);
+      tooltip.id = tooltipId;
+      tooltip.className = &quot;tooltip&quot;;
+      tooltip.setAttribute(&quot;role&quot;, &quot;tooltip&quot;);
+    }
+    return tooltip;
+  };
+  const setDescribedBy = (trigger, described) =&gt; {
+    const ids = new Set(
+      (trigger.getAttribute(&quot;aria-describedby&quot;) ?? &quot;&quot;)
+        .split(/\s+/)
+        .filter(Boolean),
+    );
+    if (described) {
+      ids.add(tooltipId);
+    } else {
+      ids.delete(tooltipId);
+    }
+    if (ids.size === 0) {
+      trigger.removeAttribute(&quot;aria-describedby&quot;);
+    } else {
+      trigger.setAttribute(&quot;aria-describedby&quot;, [...ids].join(&quot; &quot;));
+    }
+  };
+  const clearOpenTimeout = () =&gt; {
+    if (openTimeout != null) {
+      window.clearTimeout(openTimeout);
+      openTimeout = null;
+    }
+    pendingTrigger = null;
+  };
+  const closeTooltip = (activateSkipDelay = true) =&gt; {
+    clearOpenTimeout();
+    pinnedByTouch = false;
+    positionRequest += 1;
+    autoUpdateCleanup?.();
+    autoUpdateCleanup = null;
+    if (activeTrigger == null) {
+      return;
+    }
+    setDescribedBy(activeTrigger, false);
+    activeTrigger = null;
+    tooltip?.remove();
+    if (activateSkipDelay) {
+      skipDelayUntil = Date.now() + skipDelay;
+    }
+  };
+  const updatePosition = (trigger, floating) =&gt; {
+    const request = ++positionRequest;
+    void computePosition(trigger, floating, {
+      middleware: [
+        offset(tooltipGap),
+        flip({ padding: tooltipGap }),
+        shift({ padding: tooltipGap }),
+        size({
+          padding: tooltipGap,
+          apply({ availableHeight, availableWidth, elements }) {
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-width&quot;,
+              `${Math.max(0, availableWidth)}px`,
+            );
+            elements.floating.style.setProperty(
+              &quot;--tooltip-available-height&quot;,
+              `${Math.max(0, availableHeight)}px`,
+            );
+          },
+        }),
+      ],
+      placement: getPlacement(trigger),
+      strategy: &quot;fixed&quot;,
+    })
+      .then(({ x, y }) =&gt; {
+        if (activeTrigger !== trigger || request !== positionRequest) {
+          return;
+        }
+        const scale = window.devicePixelRatio || 1;
+        floating.style.transform = `translate(${Math.round(x * scale) / scale}px, ${Math.round(y * scale) / scale}px)`;
+        floating.style.visibility = &quot;visible&quot;;
+      })
+      .catch(() =&gt; {
+        if (activeTrigger === trigger &amp;&amp; request === positionRequest) {
+          closeTooltip(false);
+        }
+      });
+  };
+  const openTooltip = (trigger) =&gt; {
+    const content = getContent(trigger);
+    if (!trigger.isConnected || content.length === 0) {
+      return;
+    }
+    clearOpenTimeout();
+    if (activeTrigger === trigger) {
+      return;
+    }
+    closeTooltip();
+    const floating = getTooltip();
+    floating.textContent = content;
+    floating.style.visibility = &quot;hidden&quot;;
+    floating.style.transform = &quot;translate(0, 0)&quot;;
+    document.body.appendChild(floating);
+    activeTrigger = trigger;
+    setDescribedBy(trigger, true);
+    autoUpdateCleanup = autoUpdate(trigger, floating, () =&gt; {
+      updatePosition(trigger, floating);
+    });
+  };
+  const requestOpen = (trigger, immediate = false) =&gt; {
+    if (
+      getContent(trigger).length === 0 ||
+      activeTrigger === trigger ||
+      pendingTrigger === trigger
+    ) {
+      return;
+    }
+    clearOpenTimeout();
+    pendingTrigger = trigger;
+    const delay =
+      immediate || activeTrigger != null || Date.now() &lt; skipDelayUntil
+        ? 0
+        : hoverDelay;
+    if (delay === 0) {
+      openTooltip(trigger);
+      return;
+    }
+    openTimeout = window.setTimeout(() =&gt; {
+      openTimeout = null;
+      pendingTrigger = null;
+      openTooltip(trigger);
+    }, delay);
+  };
+  const handlePointerOpen = (event) =&gt; {
+    if (event.pointerType === &quot;touch&quot;) {
+      return;
+    }
+    const trigger = getTrigger(event);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    requestOpen(trigger);
+  };
+  const handlePointer = (event) =&gt; {
+    lastPointerWasTouch =
+      event.type === &quot;pointerdown&quot; &amp;&amp; event.pointerType === &quot;touch&quot;;
+  };
+  const handleTouchClick = (event) =&gt; {
+    const isTouch = event.pointerType === &quot;touch&quot; || lastPointerWasTouch;
+    lastPointerWasTouch = false;
+    if (!isTouch || event.detail === 0) {
+      return;
+    }
+    const trigger = getTrigger(event);
+    if (
+      trigger == null ||
+      !trigger.isConnected ||
+      getContent(trigger).length === 0 ||
+      (pinnedByTouch &amp;&amp; activeTrigger === trigger)
+    ) {
+      if (pinnedByTouch) {
+        closeTooltip();
+      }
+      return;
+    }
+    openTooltip(trigger);
+    pinnedByTouch = activeTrigger === trigger;
+    window.setTimeout(() =&gt; {
+      if (activeTrigger === trigger &amp;&amp; !trigger.isConnected) {
+        closeTooltip(false);
+      }
+    }, 0);
+  };
+  const handleLeave = (event) =&gt; {
+    if (pinnedByTouch) {
+      return;
+    }
+    const trigger = getTrigger(event);
+    if (trigger == null || containsTarget(trigger, event.relatedTarget)) {
+      return;
+    }
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handleFocusIn = (event) =&gt; {
+    const trigger = getTrigger(event);
+    if (trigger?.matches(&quot;:focus-visible&quot;)) {
+      requestOpen(trigger, true);
+    }
+  };
+  const handleKeyDown = (event) =&gt; {
+    if (event.key === &quot;Escape&quot;) {
+      closeTooltip();
+    }
+  };
+  const handleContextMenu = (event) =&gt; {
+    lastPointerWasTouch = false;
+    const trigger = getTrigger(event);
+    if (activeTrigger === trigger || pendingTrigger === trigger) {
+      closeTooltip();
+    }
+  };
+  const handlers = {
+    pointerover: handlePointerOpen,
+    pointerdown: handlePointer,
+    pointercancel: handlePointer,
+    click: handleTouchClick,
+    pointerout: handleLeave,
+    focusin: handleFocusIn,
+    focusout: handleLeave,
+    keydown: handleKeyDown,
+    contextmenu: handleContextMenu,
+  };
+  const roots = new Map();
+  const handledEvents = new WeakSet();
+  const handleEvent = (event) =&gt; {
+    if (handledEvents.has(event)) return;
+    handledEvents.add(event);
+    handlers[event.type](event);
+  };
+  const discoverRoots = (node) =&gt; {
+    if (node.shadowRoot) listen(node.shadowRoot);
+    for (const element of node.querySelectorAll(&quot;*&quot;)) {
+      if (element.shadowRoot) listen(element.shadowRoot);
+    }
+  };
+  const listen = (root) =&gt; {
+    if (roots.has(root)) return;
+    for (const type of Object.keys(handlers)) root.addEventListener(type, handleEvent);
+    const observer = new window.MutationObserver((records) =&gt; {
+      for (const { addedNodes } of records) {
+        for (const node of addedNodes) {
+          if (node.nodeType === Node.ELEMENT_NODE) discoverRoots(node);
+        }
+      }
+      for (const [root, cleanup] of roots) {
+        if (root.host &amp;&amp; !root.host.isConnected) {
+          cleanup();
+          roots.delete(root);
+        }
+      }
+      if (activeTrigger &amp;&amp; !activeTrigger.isConnected) closeTooltip(false);
+    });
+    observer.observe(root, { childList: true, subtree: true });
+    roots.set(root, () =&gt; {
+      observer.disconnect();
+      for (const type of Object.keys(handlers)) root.removeEventListener(type, handleEvent);
+    });
+    discoverRoots(root);
+  };
+  const destroy = () =&gt; {
+    closeTooltip(false);
+    lastPointerWasTouch = false;
+    for (const cleanup of roots.values()) cleanup();
+    roots.clear();
+    tooltip = null;
+  };
+
+  // Events between children of one shadow root never reach the document.
+  listen(document);
+  window.addEventListener(&quot;pagehide&quot;, destroy, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-tabs&quot;&gt;
+(() =&gt; {
+  const selector = &#x27;.nav[role=&quot;tablist&quot;] [role=&quot;tab&quot;]&#x27;;
+  const disabled = &#x27;:disabled,[aria-disabled=&quot;true&quot;]&#x27;;
+  const selectTab = (selected) =&gt; {
+    const panelId = selected.getAttribute(&quot;aria-controls&quot;);
+    for (const tab of selected.closest(&#x27;[role=&quot;tablist&quot;]&#x27;).querySelectorAll(&#x27;[role=&quot;tab&quot;]&#x27;)) {
+      const active = tab === selected;
+      tab.classList.toggle(&quot;active&quot;, active);
+      tab.setAttribute(&quot;aria-selected&quot;, String(active));
+      const id = tab.getAttribute(&quot;aria-controls&quot;);
+      const panel = id &amp;&amp; document.getElementById(id);
+      if (panel != null) {
+        panel.hidden = id !== panelId;
+        if (!panel.hidden &amp;&amp; selected.id) {
+          panel.setAttribute(&quot;aria-labelledby&quot;, selected.id);
+        }
+      }
+    }
+  };
+  const interact = (event) =&gt; {
+    const tab = event.target?.closest?.(selector);
+    if (event.defaultPrevented || tab == null || tab.matches(disabled)) {
+      return;
+    }
+    if (event.type === &quot;click&quot;) {
+      selectTab(tab);
+      return;
+    }
+    const tabs = Array.from(
+      tab.closest(&#x27;[role=&quot;tablist&quot;]&#x27;).querySelectorAll(&#x27;[role=&quot;tab&quot;]&#x27;),
+    ).filter((candidate) =&gt; !candidate.matches(disabled));
+    const current = tabs.indexOf(tab);
+    let next;
+    if (event.key === &quot;ArrowRight&quot; || event.key === &quot;ArrowDown&quot;) {
+      next = (current + 1) % tabs.length;
+    } else if (event.key === &quot;ArrowLeft&quot; || event.key === &quot;ArrowUp&quot;) {
+      next = (current + tabs.length - 1) % tabs.length;
+    } else if (event.key === &quot;Home&quot;) {
+      next = 0;
+    } else if (event.key === &quot;End&quot;) {
+      next = tabs.length - 1;
+    } else {
+      return;
+    }
+    event.preventDefault();
+    tabs[next].focus();
+    selectTab(tabs[next]);
+  };
+
+  for (const list of document.querySelectorAll(&#x27;.nav[role=&quot;tablist&quot;]&#x27;)) {
+    const selected =
+      list.querySelector(&#x27;[role=&quot;tab&quot;][aria-selected=&quot;true&quot;]&#x27;) ??
+      list.querySelector(&#x27;[role=&quot;tab&quot;].active&#x27;) ??
+      list.querySelector(&#x27;[role=&quot;tab&quot;]&#x27;);
+    if (selected != null) {
+      selectTab(selected);
+    }
+  }
+  document.addEventListener(&quot;click&quot;, interact);
+  document.addEventListener(&quot;keydown&quot;, interact);
+  window.addEventListener(&quot;pagehide&quot;, () =&gt; {
+    document.removeEventListener(&quot;click&quot;, interact);
+    document.removeEventListener(&quot;keydown&quot;, interact);
+  }, { once: true });
+})();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-carousel&quot;&gt;
+  (() =&gt; {
+    for (const root of document.querySelectorAll(&quot;.viz-carousel&quot;)) {
+      const panels = Array.from(
+        root.querySelectorAll(&quot;:scope &gt; [data-variant]&quot;),
+      );
+      if (panels.length === 0) {
+        continue;
+      }
+      root.setAttribute(&quot;role&quot;, &quot;group&quot;);
+      panels.forEach((panel, index) =&gt; {
+        panel.hidden = index !== 0;
+        panel.setAttribute(&quot;role&quot;, &quot;group&quot;);
+        if (!panel.hasAttribute(&quot;aria-label&quot;)) {
+          panel.setAttribute(&quot;aria-label&quot;, panel.dataset.variant);
+        }
+      });
+      root.dataset.activeVariant = panels[0].dataset.variant;
+      if (panels.length === 1) {
+        continue;
+      }
+
+      const controls = document.createElement(&quot;div&quot;);
+      controls.className = &quot;viz-carousel-controls&quot;;
+      // Portable copy of the settings dropdown&#x27;s legacy glyph; no 14px icon-package preset matches it.
+      // https://github.com/openai/openai/blob/master/codex/codex-apps/webview/src/icons/chevron.svg
+      controls.innerHTML = `
+      &lt;button type=&quot;button&quot; class=&quot;viz-carousel-previous cursor-interaction&quot;&gt;&lt;i data-lucide=&quot;chevron-left&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/button&gt;
+      &lt;details class=&quot;viz-carousel-picker&quot;&gt;
+        &lt;summary class=&quot;cursor-interaction&quot;&gt;
+          &lt;span class=&quot;viz-carousel-count tabular-nums&quot;&gt;&lt;/span&gt;
+          &lt;span class=&quot;viz-carousel-name&quot;&gt;&lt;/span&gt;
+          &lt;svg class=&quot;viz-carousel-caret&quot; width=&quot;14&quot; height=&quot;14&quot; viewBox=&quot;0 0 20 21&quot; fill=&quot;none&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;&gt;
+            &lt;path d=&quot;M15.2793 7.71101C15.539 7.45131 15.961 7.45131 16.2207 7.71101C16.4804 7.97071 16.4804 8.39272 16.2207 8.65242L10.4707 14.4024C10.211 14.6621 9.78902 14.6621 9.52932 14.4024L3.77932 8.65242L3.69436 8.54792C3.52385 8.28979 3.55205 7.93828 3.77932 7.71101C4.00659 7.48374 4.3581 7.45554 4.61623 7.62605L4.72073 7.71101L10 12.9903L15.2793 7.71101Z&quot; fill=&quot;currentColor&quot; stroke=&quot;currentColor&quot; stroke-width=&quot;0.6&quot; /&gt;
+          &lt;/svg&gt;
+        &lt;/summary&gt;
+        &lt;div class=&quot;viz-carousel-options&quot;&gt;&lt;/div&gt;
+      &lt;/details&gt;
+      &lt;button type=&quot;button&quot; class=&quot;viz-carousel-next cursor-interaction&quot;&gt;&lt;i data-lucide=&quot;chevron-right&quot; aria-hidden=&quot;true&quot;&gt;&lt;/i&gt;&lt;/button&gt;`;
+      const previous = controls.querySelector(&quot;.viz-carousel-previous&quot;);
+      const next = controls.querySelector(&quot;.viz-carousel-next&quot;);
+      const picker = controls.querySelector(&quot;.viz-carousel-picker&quot;);
+      const summary = picker.querySelector(&quot;summary&quot;);
+      const count = controls.querySelector(&quot;.viz-carousel-count&quot;);
+      const name = controls.querySelector(&quot;.viz-carousel-name&quot;);
+      const options = controls.querySelector(&quot;.viz-carousel-options&quot;);
+      const status = document.createElement(&quot;span&quot;);
+      status.className = &quot;sr-only&quot;;
+      status.setAttribute(&quot;role&quot;, &quot;status&quot;);
+      status.setAttribute(&quot;aria-live&quot;, &quot;polite&quot;);
+      status.setAttribute(&quot;aria-atomic&quot;, &quot;true&quot;);
+      previous.setAttribute(
+        &quot;aria-label&quot;,
+        root.dataset.previousLabel ?? &quot;Previous variant&quot;,
+      );
+      next.setAttribute(&quot;aria-label&quot;, root.dataset.nextLabel ?? &quot;Next variant&quot;);
+
+      let active = 0;
+      let mousePointerId = null;
+      let summaryPointerHandled = false;
+      summary.addEventListener(&quot;pointerdown&quot;, (event) =&gt; {
+        summaryPointerHandled =
+          event.pointerType === &quot;mouse&quot; &amp;&amp; event.button === 0 &amp;&amp; !event.ctrlKey;
+        if (!summaryPointerHandled) {
+          return;
+        }
+        event.preventDefault();
+        summary.focus({ preventScroll: true });
+        picker.open = !picker.open;
+        mousePointerId = picker.open ? event.pointerId : null;
+      });
+      summary.addEventListener(&quot;click&quot;, (event) =&gt; {
+        if (summaryPointerHandled &amp;&amp; event.detail &gt; 0) {
+          event.preventDefault();
+        }
+      });
+      const choices = panels.map((panel, index) =&gt; {
+        const choice = document.createElement(&quot;button&quot;);
+        choice.type = &quot;button&quot;;
+        choice.className = &quot;cursor-interaction&quot;;
+        choice.textContent = panel.dataset.variant;
+        choice.addEventListener(&quot;click&quot;, () =&gt; {
+          select(index);
+          summary.focus();
+        });
+        choice.addEventListener(&quot;pointerup&quot;, (event) =&gt; {
+          if (
+            picker.open &amp;&amp;
+            event.pointerType === &quot;mouse&quot; &amp;&amp;
+            event.button === 0 &amp;&amp;
+            event.pointerId === mousePointerId
+          ) {
+            choice.click();
+          }
+        });
+        options.appendChild(choice);
+        return choice;
+      });
+      const select = (index) =&gt; {
+        const changed = active !== index;
+        active = index;
+        panels.forEach((panel, position) =&gt; {
+          panel.hidden = position !== active;
+          choices[position].setAttribute(
+            &quot;aria-current&quot;,
+            String(position === active),
+          );
+        });
+        root.dataset.activeVariant = panels[active].dataset.variant;
+        count.textContent = `${active + 1} / ${panels.length}`;
+        name.textContent = panels[active].dataset.variant;
+        picker.open = false;
+        mousePointerId = null;
+        if (changed) {
+          status.textContent = `${count.textContent}: ${name.textContent}`;
+        }
+      };
+      previous.addEventListener(&quot;click&quot;, () =&gt;
+        select((active + panels.length - 1) % panels.length),
+      );
+      next.addEventListener(&quot;click&quot;, () =&gt;
+        select((active + 1) % panels.length),
+      );
+      picker.addEventListener(&quot;keydown&quot;, (event) =&gt; {
+        if (event.key === &quot;Escape&quot; &amp;&amp; picker.open) {
+          event.preventDefault();
+          picker.open = false;
+          mousePointerId = null;
+          summary.focus();
+          return;
+        }
+        if (event.altKey || event.ctrlKey || event.metaKey) {
+          return;
+        }
+        const index = choices.indexOf(document.activeElement);
+        let nextIndex;
+        if (event.key === &quot;ArrowDown&quot;) {
+          nextIndex = index &lt; 0 ? active : (index + 1) % choices.length;
+        } else if (event.key === &quot;ArrowUp&quot;) {
+          nextIndex = index &lt; 0 ? active : (index + choices.length - 1) % choices.length;
+        } else if (picker.open &amp;&amp; event.key === &quot;Home&quot;) {
+          nextIndex = 0;
+        } else if (picker.open &amp;&amp; event.key === &quot;End&quot;) {
+          nextIndex = choices.length - 1;
+        } else {
+          return;
+        }
+        event.preventDefault();
+        picker.open = true;
+        choices[nextIndex].focus();
+      });
+      picker.addEventListener(&quot;focusout&quot;, (event) =&gt; {
+        if (!picker.contains(event.relatedTarget)) {
+          picker.open = false;
+          mousePointerId = null;
+        }
+      });
+      const dismiss = (event) =&gt; {
+        if (!summary.contains(event.target)) {
+          mousePointerId = null;
+        }
+        if (!picker.contains(event.target)) {
+          picker.open = false;
+        }
+      };
+      const endPointerSelection = () =&gt; {
+        mousePointerId = null;
+      };
+      const sizePicker = () =&gt; {
+        root.style.setProperty(
+          &quot;--viz-carousel-picker-height&quot;,
+          `${picker.open ? options.offsetHeight : 0}px`,
+        );
+      };
+      picker.addEventListener(&quot;toggle&quot;, sizePicker);
+      window.addEventListener(&quot;resize&quot;, sizePicker);
+      document.addEventListener(&quot;pointerdown&quot;, dismiss);
+      document.addEventListener(&quot;pointerup&quot;, endPointerSelection);
+      document.addEventListener(&quot;pointercancel&quot;, endPointerSelection);
+      window.addEventListener(&quot;blur&quot;, endPointerSelection);
+      window.addEventListener(
+        &quot;pagehide&quot;,
+        () =&gt; {
+          document.removeEventListener(&quot;pointerdown&quot;, dismiss);
+          document.removeEventListener(&quot;pointerup&quot;, endPointerSelection);
+          document.removeEventListener(&quot;pointercancel&quot;, endPointerSelection);
+          window.removeEventListener(&quot;blur&quot;, endPointerSelection);
+          window.removeEventListener(&quot;resize&quot;, sizePicker);
+        },
+        { once: true },
+      );
+      root.append(controls, status);
+      select(0);
+    }
+  })();
+&lt;/script&gt;
+&lt;script id=&quot;codex-visualization-lucide&quot; async src=&quot;https://unpkg.com/lucide@1.17.0/dist/umd/lucide.js&quot;&gt;&lt;/script&gt;
+&lt;script&gt;
+(() =&gt; {
+  const initialize = () =&gt; {
+    globalThis.lucide?.createIcons({ attrs: { width: 16, height: 16 } });
+  };
+  if (globalThis.lucide != null) {
+    initialize();
+    return;
+  }
+  document
+    .getElementById(&quot;codex-visualization-lucide&quot;)
+    ?.addEventListener(&quot;load&quot;, initialize, { once: true });
+})();
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+"></iframe>
+
+<script>(() => {
+  const frame = document.getElementById("codex-visualization");
+  if (!(frame instanceof HTMLIFrameElement)) {
+    return;
+  }
+  const isShare = document.documentElement.classList.contains(
+    "visualization-share-root",
+  );
+  let viewportHeight = globalThis.innerHeight;
+  let sizeFingerprint = null;
+  let sizeWriteTimeout;
+  let lastSize = null;
+  let pendingSize = null;
+  const storageKey = `codex:visualization-widget-state-v2:${JSON.stringify([
+    globalThis.location.pathname,
+    globalThis.location.search,
+  ])}`;
+  const sizeStorageKey = `${storageKey}:share-size-v1`;
+  const parseState = (serializedState) => {
+    if (
+      typeof serializedState !== "string" ||
+      new TextEncoder().encode(serializedState).length > 16 * 1024
+    ) {
+      throw new TypeError(
+        "Widget state must be a JSON object of at most 16 KiB",
+      );
+    }
+    /** @type {unknown} */
+    const state = JSON.parse(serializedState);
+    if (
+      state == null ||
+      typeof state !== "object" ||
+      Array.isArray(state) ||
+      ("imageIds" in state &&
+        (!Array.isArray(state.imageIds) || state.imageIds.length > 0))
+    ) {
+      throw new TypeError("Widget state must be a JSON object");
+    }
+    const storedState = { modelContent: null, privateContent: null, ...state };
+    const canonicalState = JSON.stringify(
+      storedState,
+      (_key, /** @type {unknown} */ value) => {
+        if (typeof value === "number" && !Number.isFinite(value)) {
+          throw new TypeError("Widget state must contain finite numbers");
+        }
+        return value;
+      },
+    );
+    if (new TextEncoder().encode(canonicalState).length > 16 * 1024) {
+      throw new TypeError(
+        "Widget state must be a JSON object of at most 16 KiB",
+      );
+    }
+    return storedState;
+  };
+  let storage = null;
+  let state = null;
+  try {
+    const localStorage = globalThis.localStorage;
+    const probeKey = `${storageKey}:probe`;
+    localStorage.setItem(probeKey, "1");
+    localStorage.removeItem(probeKey);
+    storage = localStorage;
+    const savedState = storage.getItem(storageKey);
+    if (savedState != null) {
+      try {
+        state = parseState(savedState);
+      } catch {
+        // Invalid saved state does not disable future writes.
+      }
+    }
+  } catch {
+    storage = null;
+  }
+  const persistSize = () => {
+    globalThis.clearTimeout(sizeWriteTimeout);
+    if (pendingSize == null) {
+      return;
+    }
+    try {
+      storage?.setItem(sizeStorageKey, pendingSize);
+    } catch {
+      // A denied or full cache must not affect the visualization.
+    }
+    pendingSize = null;
+  };
+  if (isShare) {
+    globalThis.addEventListener("pagehide", persistSize);
+  }
+  const initialGlobals = {
+    widgetState: state,
+    statePersistence: storage == null ? "none" : "local",
+  };
+
+  const channel = new MessageChannel();
+  channel.port1.addEventListener("message", (event) => {
+    const data = event.data;
+    if (typeof data !== "object" || data == null) {
+      return;
+    }
+    if (data.type === "widget-state-write") {
+      if (!Number.isSafeInteger(data.id) || data.id <= 0) {
+        return;
+      }
+      let ok = false;
+      try {
+        if (storage != null) {
+          const state = parseState(data.state);
+          storage.setItem(storageKey, JSON.stringify(state));
+          ok = true;
+        }
+      } catch {
+        // Storage denial, quota limits, and invalid state return a failed receipt.
+      }
+      channel.port1.postMessage({
+        type: "widget-state-result",
+        id: data.id,
+        ok,
+      });
+      return;
+    }
+    if (data.type === "height") {
+      const height = data.height;
+      if (
+        typeof height !== "number" ||
+        !Number.isFinite(height) ||
+        height < 0
+      ) {
+        return;
+      }
+      if (height <= 10_000) {
+        const width = isShare && storage != null ? frame.clientWidth : null;
+        frame.style.height = Math.ceil(height) + "px";
+        if (isShare && storage != null) {
+          const size = JSON.stringify({
+            fingerprint: sizeFingerprint,
+            width,
+            viewportHeight: globalThis.innerHeight,
+            dark: globalThis.matchMedia("(prefers-color-scheme: dark)").matches,
+            scale: globalThis.devicePixelRatio,
+            height: Math.ceil(height),
+          });
+          if (size !== lastSize) {
+            lastSize = size;
+            pendingSize = size;
+            globalThis.clearTimeout(sizeWriteTimeout);
+            sizeWriteTimeout = globalThis.setTimeout(persistSize, 100);
+          }
+        }
+      }
+      if (isShare) {
+        // Keep unusually tall content accessible without accepting an unbounded height.
+        if (height > 10_000 && Number.parseFloat(frame.style.height) === 0) {
+          frame.style.removeProperty("height");
+        }
+        frame.scrolling = height > 10_000 ? "auto" : "no";
+        document.documentElement.classList.add("visualization-share-ready");
+      }
+      return;
+    }
+    if (data.type === "scroll-to") {
+      const top = data.top;
+      if (
+        typeof top === "number" &&
+        Number.isFinite(top) &&
+        top >= 0 &&
+        globalThis.navigator.userActivation?.isActive === true
+      ) {
+        globalThis.scrollTo({
+          top: Math.ceil(
+            globalThis.scrollY + frame.getBoundingClientRect().top + top,
+          ),
+        });
+      }
+      return;
+    }
+    if (data.type === "open-external") {
+      const rawHref = data.href;
+      if (typeof rawHref !== "string") {
+        return;
+      }
+      let href;
+      try {
+        const url = new URL(rawHref, document.baseURI);
+        if (url.protocol !== "https:") {
+          return;
+        }
+        href = url.href;
+      } catch {
+        return;
+      }
+      if (globalThis.navigator.userActivation?.isActive === true) {
+        const anchor = document.createElement("a");
+        anchor.href = href;
+        anchor.rel = "noopener noreferrer";
+        anchor.target = "_blank";
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+      }
+      return;
+    }
+    if (data.type === "follow-up") {
+      const prompt = data.prompt;
+      if (
+        typeof prompt !== "string" ||
+        globalThis.navigator.userActivation?.isActive !== true
+      ) {
+        return;
+      }
+      const title = data.title;
+      globalThis.prompt(typeof title === "string" ? title : prompt, prompt);
+    }
+  });
+  channel.port1.start();
+  const srcdoc = frame.dataset.srcdoc;
+  if (srcdoc == null) {
+    return;
+  }
+  globalThis.addEventListener("resize", () => {
+    const height = Number.parseFloat(frame.style.height);
+    if (!isShare && (!Number.isFinite(height) || height <= viewportHeight)) {
+      frame.style.removeProperty("height");
+    }
+    viewportHeight = globalThis.innerHeight;
+    channel.port1.postMessage({ type: "measure" });
+  });
+  frame.addEventListener(
+    "load",
+    () => {
+      frame.contentWindow?.postMessage(
+        { type: "codex-visualization-initialize" },
+        "*",
+        [channel.port2],
+      );
+    },
+    { once: true },
+  );
+  // Match the trusted bootstrap element, not the same text in an authored title.
+  const frameHtml = srcdoc.replace(
+    '<script type="application/json" id="codex-visualization-widget-state">__CODEX_VISUALIZATION_WIDGET_STATE__<\/script>',
+    () =>
+      '<script type="application/json" id="codex-visualization-widget-state">' +
+      JSON.stringify(initialGlobals).replaceAll("<", "\\u003c") +
+      "<\/script>",
+  );
+  if (isShare && storage != null) {
+    // Fingerprint the rendered document, including restored widget state, without
+    // storing its content. This is a layout cache, not a security identity.
+    let hash = 5381;
+    for (let index = 0; index < frameHtml.length; index += 1) {
+      hash = (hash * 33 + frameHtml.charCodeAt(index)) % 4_294_967_296;
+    }
+    sizeFingerprint = hash.toString(36);
+    try {
+      const size = JSON.parse(storage.getItem(sizeStorageKey) ?? "null");
+      if (
+        size?.fingerprint === sizeFingerprint &&
+        size.width === frame.clientWidth &&
+        size.viewportHeight === globalThis.innerHeight &&
+        size.dark ===
+          globalThis.matchMedia("(prefers-color-scheme: dark)").matches &&
+        size.scale === globalThis.devicePixelRatio &&
+        typeof size.height === "number" &&
+        Number.isFinite(size.height) &&
+        size.height >= 0 &&
+        size.height <= 10_000
+      ) {
+        frame.style.height = size.height + "px";
+      }
+    } catch {
+      // Ignore missing or invalid cache entries and measure the live frame.
+    }
+  }
+  frame.srcdoc = frameHtml;
+  delete frame.dataset.srcdoc;
+})();
+</script>
+</body>
+</html>
