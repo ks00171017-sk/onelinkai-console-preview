@@ -15,7 +15,7 @@
 更新日期：2026-10-19。
 
 
-## GPU 专属折扣
+## GPU卡时专属折扣
 
 - [原型入口与演示说明](https://ks00171017-sk.github.io/onelinkai-console-preview/gpu-discounts/)
 - [运营配置](https://ks00171017-sk.github.io/onelinkai-console-preview/gpu-discounts/admin.html)

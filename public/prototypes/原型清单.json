@@ -75,13 +75,13 @@
   },
   {
     "end": "运营端",
-    "title": "GPU 专属折扣 · 配置",
+    "title": "GPU卡时专属折扣 · 配置",
     "path": "../gpu-discounts/admin.html",
     "description": "个人用户与企业／学校租户折扣配置、范围、时间、价格预览、确认及停止。"
   },
   {
     "end": "租户端",
-    "title": "GPU 租赁 · 专属折扣",
+    "title": "GPU卡时专属折扣 · 选卡",
     "path": "../gpu-discounts/market.html",
     "description": "个人与组织空间选卡，卡片左下角折后价、专属标签及创建费用明细。"
   }
