@@ -2092,11 +2092,11 @@ html&gt;body{padding:0}&lt;/style&gt;
     state.selected=id;if(reset){state.disk=0;state.instanceName=&#x27;&#x27;;state.image=&#x27;&#x27;}state.view=&#x27;config&#x27;;
     $(&#x27;.tm-workspace&#x27;).hidden=true;$(&#x27;[data-create-page]&#x27;).hidden=false;$(&#x27;.tm-app&#x27;).classList.add(&#x27;tm-is-create&#x27;);
     $(&#x27;[data-name-error]&#x27;).hidden=true;$(&#x27;[data-image-error]&#x27;).hidden=true;$(&#x27;#tm-instance-name&#x27;).removeAttribute(&#x27;aria-invalid&#x27;);$(&#x27;#tm-image&#x27;).removeAttribute(&#x27;aria-invalid&#x27;);
-    renderConfig();if(navigate)updateRoute(id);remember();announce(&#x27;已进入 &#x27;+item.name+&#x27; 的创建实例页面。&#x27;);
+    renderConfig();if(navigate){updateRoute(id);window.scrollTo?.({top:0,behavior:&#x27;instant&#x27;})}remember();announce(&#x27;已进入 &#x27;+item.name+&#x27; 的创建实例页面。&#x27;);
   }
   function closeConfig(persist=true,navigate=true){
     state.view=&#x27;market&#x27;;$(&#x27;[data-create-page]&#x27;).hidden=true;$(&#x27;.tm-workspace&#x27;).hidden=false;$(&#x27;.tm-app&#x27;).classList.remove(&#x27;tm-is-create&#x27;);displayedQuote=null;
-    if(navigate)updateRoute(null);if(persist){render();remember()}
+    if(navigate){updateRoute(null);window.scrollTo?.({top:0,behavior:&#x27;instant&#x27;})}if(persist){render();remember()}
   }
   function confirmConfig(){
     const item=chosen();if(!item)return;const net=price(item);
@@ -2110,7 +2110,7 @@ html&gt;body{padding:0}&lt;/style&gt;
     const balances={personal:500,school:5000,company:10000};
     if(current.total&gt;balances[state.space]||(state.space===&#x27;school&#x27;&amp;&amp;current.total&gt;1200)){$(&#x27;[data-dialog-alert]&#x27;).textContent=&#x27;账户余额或成员可用预算不足，请充值或联系组织管理员调整预算。&#x27;;$(&#x27;[data-dialog-alert]&#x27;).hidden=false;return}
     const description=state.instanceName.trim()+&#x27; · &#x27;+item.name+&#x27; × &#x27;+state.quantity+&#x27; 卡 · &#x27;+modes[state.mode].label+&#x27; · &#x27;+feeMoney(current.total)+feeUnit();
-    closeConfig(false);render();$(&#x27;[data-selection]&#x27;).textContent=&#x27;演示提交成功：&#x27;+description+&#x27;。本原型未实际创建资源或扣费。&#x27;;$(&#x27;[data-selection]&#x27;).hidden=false;remember();
+    closeConfig(false);render();$(&#x27;[data-selection]&#x27;).textContent=&#x27;演示提交成功：&#x27;+description+&#x27;。本原型未实际创建资源或扣费。&#x27;;$(&#x27;[data-selection]&#x27;).hidden=false;$(&#x27;[data-selection]&#x27;).scrollIntoView?.({block:&#x27;nearest&#x27;});remember();
   }
   root.addEventListener(&#x27;click&#x27;,e=&gt;{const configMode=e.target.closest(&#x27;[data-config-mode]&#x27;),configQuantity=e.target.closest(&#x27;[data-config-quantity]&#x27;);if(configMode){if(configMode.disabled)return;state.mode=configMode.dataset.configMode;renderConfig();remember();return}if(configQuantity){if(configQuantity.disabled)return;state.quantity=Number(configQuantity.dataset.configQuantity);renderConfig();remember();return}const mode=e.target.closest(&#x27;[data-mode]&#x27;),quantity=e.target.closest(&#x27;[data-quantity]&#x27;),layout=e.target.closest(&#x27;[data-layout]&#x27;),rent=e.target.closest(&#x27;[data-rent]&#x27;);if(mode){state.mode=mode.dataset.mode;render();remember();announce(modes[state.mode].caption);return}if(quantity){state.quantity=Number(quantity.dataset.quantity);render();remember();return}if(layout){state.layout=layout.dataset.layout;render();remember();return}if(rent){openConfig(rent.dataset.rent);return}const action=e.target.closest(&#x27;[data-action]&#x27;)?.dataset.action;if(action===&#x27;close&#x27;)closeConfig();if(action===&#x27;confirm&#x27;)confirmConfig();if(action===&#x27;reset&#x27;){state.regions=[];state.models=[];state.cpuFilters=[];state.quantity=1;state.search=&#x27;&#x27;;render();remember()}});
   root.addEventListener(&#x27;input&#x27;,e=&gt;{if(e.target.id===&#x27;tm-instance-name&#x27;){state.instanceName=e.target.value;$(&#x27;[data-name-error]&#x27;).hidden=true;e.target.removeAttribute(&#x27;aria-invalid&#x27;);remember();return}if([&#x27;tm-disk&#x27;,&#x27;tm-disk-amount&#x27;].includes(e.target.id)){state.disk=Number(e.target.value);renderConfig();remember();return}if(e.target.id===&#x27;tm-search&#x27;){state.search=e.target.value.trim();renderCards();remember()}});
