@@ -2106,7 +2106,7 @@ html&gt;body{padding:0}&lt;/style&gt;
     const current=quoteSnapshot(item);
     if(displayedQuote&amp;&amp;displayedQuote.key!==current.key){const previous=displayedQuote;renderConfig();$(&#x27;[data-dialog-alert]&#x27;).textContent=&#x27;报价已变化：合计费用由 &#x27;+feeMoney(previous.total)+feeUnit()+&#x27; 调整为 &#x27;+feeMoney(current.total)+feeUnit()+&#x27;。请核对后再次提交。&#x27;;$(&#x27;[data-dialog-alert]&#x27;).hidden=false;$(&#x27;[data-action=confirm]&#x27;).textContent=&#x27;确认新价格并创建&#x27;;announce(&#x27;报价已变化，请核对后再次提交。&#x27;);return}
     const balances={personal:500,school:5000,company:10000};
-    if(current.total&gt;balances[state.space]||(state.space===&#x27;school&#x27;&amp;&amp;current.total&gt;1200)){$(&#x27;[data-dialog-alert]&#x27;).textContent=&#x27;账户余额或成员可用预算不足，请充值或联系组织管理员调整预算。&#x27;;$(&#x27;[data-dialog-alert]&#x27;).hidden=false;return}
+    if(state.mode!==&#x27;hour&#x27;&amp;&amp;(current.total&gt;balances[state.space]||(state.space===&#x27;school&#x27;&amp;&amp;current.total&gt;1200))){$(&#x27;[data-dialog-alert]&#x27;).textContent=&#x27;账户余额或成员可用预算不足，请充值或联系组织管理员调整预算。&#x27;;$(&#x27;[data-dialog-alert]&#x27;).hidden=false;return}
     const description=state.instanceName.trim()+&#x27; · &#x27;+item.name+&#x27; × &#x27;+state.quantity+&#x27; 卡 · &#x27;+modes[state.mode].label+&#x27; · &#x27;+feeMoney(current.total)+feeUnit();
     closeConfig(false);render();$(&#x27;[data-selection]&#x27;).textContent=&#x27;演示提交成功：&#x27;+description+&#x27;。本原型未实际创建资源或扣费。&#x27;;$(&#x27;[data-selection]&#x27;).hidden=false;$(&#x27;[data-selection]&#x27;).scrollIntoView?.({block:&#x27;nearest&#x27;});remember();
   }
