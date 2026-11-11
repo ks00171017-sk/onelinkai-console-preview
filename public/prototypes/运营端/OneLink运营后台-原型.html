@@ -208,7 +208,7 @@ table.tenant-table td{height:68px;line-height:1.5}
     <div class="si sub" onclick="location.href='硬件终端管理-交互原型.html'">☰ 硬件终端管理</div>
     <div class="si sub">☰ 客户端版本</div>
     <div class="si sub">☰ 场所列表</div>
-    <div class="si sub" id="nav-room" onclick="showPage('room')">☰ 机房管理</div>
+    <a class="si sub" id="nav-room" href="GPU资源分组-原型.html#rooms" style="text-decoration:none">☰ 机房管理</a>
     <a class="si sub" href="GPU资源分组-原型.html#servers" style="text-decoration:none">☰ 服务器管理</a>
     <a class="si sub" href="GPU资源分组-原型.html#groups" style="text-decoration:none">☰ 资源分组</a>
     <button type="button" class="si tenant-nav" id="nav-users" aria-expanded="false" aria-controls="nav-user-list nav-tenants" onclick="setTenantNavigation(this.getAttribute('aria-expanded') !== 'true')"><img src="云电脑实例/assets/Users.svg" alt="">用户管理 <span class="arr" aria-hidden="true">▾</span></button>
@@ -711,6 +711,7 @@ function reval(){if(submitted)render(validate())}
 
 /* ===== 页面切换 ===== */
 function showPage(p){
+  if(p==='room'){location.href='GPU资源分组-原型.html#rooms';return}
   const isTenantPage=p==='tenants'||p==='tenant-detail'
   const pageHash={list:'#goods',room:'#room'}[p]
   if(pageHash&&location.hash!==pageHash){
@@ -881,7 +882,7 @@ function goodsReset(){
 function syncPrototypePage(){
   const hash=location.hash
   if(hash==='#room'){
-    showPage('room')
+    location.replace('GPU资源分组-原型.html#rooms')
   }else if(hash==='#gpu-pools'){
     location.replace('GPU资源分组-原型.html#groups')
   }else if(hash==='#goods'){

@@ -169,13 +169,9 @@ input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px;flex:non
 .server-ops button:disabled,.server-group button:disabled{opacity:.5;cursor:not-allowed}
 .group-block-reason{color:var(--fg-3);font-size:12px;line-height:18px;white-space:nowrap}
 .resource-group-cell{min-width:190px;width:212px}
-.resource-group{display:flex;align-items:flex-start;gap:9px;max-width:212px}
-.resource-group-icon{width:26px;height:26px;flex:none;display:grid;place-items:center;border-radius:7px;background:var(--surface-2);color:var(--fg-3);margin-top:1px}
-.resource-group-icon svg{width:16px;height:16px}
-.resource-group-icon.course{color:var(--course);background:var(--course-soft)}
-.resource-group-icon.payg{color:var(--payg);background:var(--payg-soft)}
+.resource-group{max-width:212px}
 .resource-group-content{min-width:0;flex:1}
-.resource-group-name{display:block;max-width:177px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:500;line-height:22px;color:var(--fg)}
+.resource-group-name{display:block;max-width:212px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:500;line-height:22px;color:var(--fg)}
 .resource-group.unassigned .resource-group-name{color:var(--fg-3);font-weight:400}
 .resource-group-billing{display:flex;flex-wrap:wrap;align-items:center;gap:0 5px;color:var(--fg-3);font-size:12px;line-height:20px;min-height:20px}
 .resource-group-billing span{white-space:nowrap}
@@ -253,7 +249,8 @@ input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px;flex:non
     <div class="dh"><h3 id="createTitle">创建资源分组</h3><button type="button" class="x" data-dialog-close="createDialog" aria-label="关闭">×</button></div>
     <div class="db">
       <div class="form-field"><label for="newGroupName">分组名称 <span style="color:var(--err)">*</span></label>
-        <input id="newGroupName" class="field-input" placeholder="请输入分组名称" maxlength="64" autocomplete="off" required></div>
+        <input id="newGroupName" class="field-input" placeholder="请输入分组名称" minlength="2" maxlength="128" autocomplete="off" aria-describedby="groupNameHint" required>
+        <p class="hint" id="groupNameHint">2–128 个字符，支持中文、英文字母、数字和连字符（-）；须以中文或英文字母开头，不能以连字符结尾。中文名称由后端按拼音或拼音首字母转换。</p></div>
       <div class="form-field"><span id="billingLabel">关联付费方式 <span style="color:var(--err)">*</span></span>
         <div class="choices" role="group" aria-labelledby="billingLabel">
           <label><input type="checkbox" name="billing" value="course">按课表付费</label>
@@ -319,10 +316,10 @@ const IDX = SERVERS.map((s,i)=>i);
 
 const COURSE_PEAK = 46;
 const DEFAULT_GPU_MODEL = 'GeForce RTX 4090';
-// 多型号场景使用演示设备，默认场景沿用 4090 数据。
-const demoGpuModels = new URLSearchParams(location.search).get('gpu-demo')==='multi'
-  ? {4:'NVIDIA L40S',7:'NVIDIA L40S',9:'NVIDIA A10'}
-  : {};
+// 默认直接展示多型号演示设备，无须通过链接参数启用；single 仅供单型号对照。
+const demoGpuModels = new URLSearchParams(location.search).get('gpu-demo')==='single'
+  ? {}
+  : {4:'NVIDIA L40S',7:'NVIDIA L40S',9:'NVIDIA A10'};
 
 const cards=[];
 SERVERS.forEach((s,si)=>{
@@ -381,10 +378,9 @@ function srvTags(si){
 function serverGroupCell(si){
   const s=SERVERS[si], group=GROUPS.find(group=>group.id===s.pool);
   const name=group?.name??'未分组';
-  const icon='<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="m10 2 7 4-7 4-7-4 7-4Z"/><path d="m3 10 7 4 7-4M3 14l7 4 7-4"/></svg>';
   const billing=group?group.billing.map(key=>`<span>${BILLING[key]}</span>`).join(''):'';
   const status=srvOk(s)?'':`<div class="resource-group-sync ${s.state}" title="目标分组：${esc(POOL[s.target])}">${STATE[s.state]}</div>`;
-  return `<div class="resource-group${group?'':' unassigned'}"><span class="resource-group-icon ${groupColor(s.pool)}" aria-hidden="true">${icon}</span>
+  return `<div class="resource-group${group?'':' unassigned'}">
     <div class="resource-group-content"><span class="resource-group-name" title="${esc(name)}">${esc(name)}</span><div class="resource-group-billing">${billing}</div>${status}</div></div>`;
 }
 
@@ -425,11 +421,11 @@ function renderRoomGpus(models, expanded){
       <div class="pools-sum">${tags}${unassigned}${pending}</div>
     </div>`;
   };
-  const visible=models.slice(0,2).map(modelRow).join('');
-  if(models.length<=2) return visible;
+  const visible=models.slice(0,3).map(modelRow).join('');
+  if(models.length<=3) return visible;
   return `${visible}<details id="roomGpuDetails"${expanded?' open':''}>
     <summary><span class="gpu-expand">查看全部 ${models.length} 种型号</span><span class="gpu-collapse">收起</span></summary>
-    ${models.slice(2).map(modelRow).join('')}
+    ${models.slice(3).map(modelRow).join('')}
   </details>`;
 }
 function renderRooms(){
@@ -523,15 +519,26 @@ function openCreateGroup(){
   $('createDialog').showModal();
   $('newGroupName').focus();
 }
-$('createForm').addEventListener('input',()=>$('createError').hidden=true);
+function validateGroupName(name){
+  if(!name) return '请输入分组名称。';
+  if([...name].length<2||[...name].length>128) return '分组名称须为 2–128 个字符。';
+  if(!/^[\p{Script=Han}A-Za-z0-9-]+$/u.test(name)) return '分组名称仅支持中文、英文字母、数字和连字符（-）。';
+  if(!/^[\p{Script=Han}A-Za-z]/u.test(name)) return '分组名称须以中文或英文字母开头。';
+  if(name.endsWith('-')) return '分组名称不能以连字符结尾。';
+  return '';
+}
+$('createForm').addEventListener('input',()=>{$('createError').hidden=true;$('newGroupName').setAttribute('aria-invalid','false');});
 $('createForm').onsubmit=e=>{
   e.preventDefault();
   const name=$('newGroupName').value.trim();
   const billing=[...$('createForm').querySelectorAll('input[name="billing"]:checked')].map(input=>input.value);
-  const error=!name?'请输入分组名称。':GROUPS.some(group=>group.name.toLowerCase()===name.toLowerCase())?'分组名称已存在，请使用其他名称。':!billing.length?'请至少选择一种付费方式。':'';
+  const nameError=validateGroupName(name);
+  const duplicate=GROUPS.some(group=>group.name.toLowerCase()===name.toLowerCase());
+  const error=nameError||(duplicate?'分组名称已存在，请使用其他名称。':!billing.length?'请至少选择一种付费方式。':'');
   $('createError').textContent=error;
   $('createError').hidden=!error;
-  if(error){(!name?$('newGroupName'):!billing.length?$('createForm').querySelector('input[name="billing"]'):$('newGroupName')).focus();return;}
+  $('newGroupName').setAttribute('aria-invalid',String(!!nameError||duplicate));
+  if(error){(nameError||duplicate?$('newGroupName'):$('createForm').querySelector('input[name="billing"]')).focus();return;}
   const group={id:'rg-'+crypto.randomUUID(),name,billing};
   GROUPS.push(group);
   registerGroup(group);
