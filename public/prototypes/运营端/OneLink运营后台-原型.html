@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OneLink 运营后台 · 商品管理 · 单页分组表单原型</title>
+<title>OneLink 运营后台原型</title>
 <style>
 :root{
   --primary:#2b6cf6;--primary-l:#eaf1ff;--text:#1f2329;--text2:#646a73;--text3:#9aa0a8;
@@ -122,6 +122,65 @@ textarea.ipt{resize:vertical;min-height:88px}
 /* ===== 资源条 ===== */
 .res-bar{width:110px;height:6px;border-radius:3px;background:#eceef1;overflow:hidden;display:inline-block;vertical-align:middle}
 .res-bar i{display:block;height:100%;background:var(--primary);border-radius:3px}
+/* ===== 租户列表和详情 ===== */
+.tenant-nav{width:100%;text-align:left}
+.tenant-nav img,#nav-user-list img{width:16px;height:16px}
+.tenant-nav[aria-current="page"]{background:#f0f1f3}
+.tenant-nav[aria-current="page"] img{filter:invert(36%) sepia(95%) saturate(2563%) hue-rotate(208deg) brightness(98%)}
+.tenant-area{--tenant-blue:#2460e9;--tenant-gray:#f0f1f3}
+.tenant-area .btn-p{background:var(--tenant-blue);border-radius:5px}
+.tenant-area .btn-o{border-radius:5px}
+.tenant-area .lk{color:var(--tenant-blue);text-decoration:none}
+.tenant-area .lk:hover{text-decoration:underline}
+.tenant-list-panel{background:#fff;border-radius:6px;padding:20px}
+.tenant-filters{border-bottom:1px solid var(--split);padding-bottom:17px}
+.tenant-filters .f-grid{gap:21px 24px}
+.tenant-filters label{font-size:13px;color:#4e5969}
+.tenant-filters .ipt{height:33px;padding:6px 12px;border:0;border-radius:3px;background-color:var(--tenant-gray);font-size:13px}
+.tenant-filters .ipt::placeholder{color:#86909c}
+.tenant-date-range{display:flex;align-items:center;gap:6px;background:var(--tenant-gray);border-radius:3px;color:#86909c}
+.tenant-date-range input{min-width:0;flex:1}
+.tenant-filter-actions,.tenant-list-actions{display:flex;justify-content:flex-end;gap:10px}
+.tenant-list-actions{margin:17px 0}
+.tenant-area .sel-bar{border-radius:5px;margin-bottom:20px}
+.tenant-table-wrap{overflow:auto;border-radius:4px}
+.tenant-table{min-width:1690px;table-layout:fixed}
+.tenant-table th:first-child{width:44px}
+.tenant-table th:nth-child(2){width:95px}
+.tenant-table th:nth-child(3){width:146px}
+.tenant-table th:nth-child(4),.tenant-table th:nth-child(5){width:110px}
+.tenant-table th:nth-child(6),.tenant-table th:nth-child(9){width:178px}
+.tenant-table th:nth-child(7){width:181px}
+.tenant-table th:nth-child(8),.tenant-table th:nth-child(10),.tenant-table th:nth-child(11),.tenant-table th:nth-child(12){width:104px}
+.tenant-table th:last-child{width:300px}
+table.tenant-table th{background:var(--tenant-gray);color:var(--text);font-weight:600}
+table.tenant-table td{height:68px;line-height:1.5}
+.tenant-table th:last-child,.tenant-table td:last-child{position:sticky;right:0;box-shadow:-4px 0 6px rgba(31,35,41,.07)}
+.tenant-table td:last-child{background:#fff}
+.tenant-table input{accent-color:var(--tenant-blue)}
+.tenant-row-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;white-space:nowrap}
+.tenant-row-actions img,.tenant-filter-actions img{width:16px;height:16px;vertical-align:-3px;margin-right:5px}
+.tenant-filter-actions .btn-p img{filter:brightness(0) invert(1)}
+.tenant-row-actions img{filter:invert(36%) sepia(95%) saturate(2563%) hue-rotate(208deg) brightness(98%)}
+.tenant-table .pill-on{padding:4px 5px 4px 9px;gap:5px;background:var(--tenant-blue);font-size:12px}
+.tenant-type,.tenant-enabled{display:inline-flex;align-items:center;border-radius:16px;padding:4px 9px;font-size:12px}
+.tenant-type{background:#dae7ff;color:#2450a8}
+.tenant-enabled{background:#e3fae7;color:#168c38}
+.tenant-empty{text-align:center;color:var(--text2)}
+.tenant-detail-title{font-size:20px;line-height:1.5;margin:3px 0 18px}
+.tenant-tabs{display:flex;align-items:center;gap:32px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.tenant-tab{display:block;padding:10px 0 12px;border-bottom:2px solid transparent;color:#667085;white-space:nowrap}
+.tenant-tab[aria-selected="true"]{font-weight:600;color:var(--tenant-blue);border-bottom-color:var(--tenant-blue)}
+.tenant-tab:disabled{cursor:default}
+.tenant-customer-card{padding:23px 24px;border:1px solid #edf0f3;border-radius:12px;background:#fff;box-shadow:0 1px 3px rgba(31,35,41,.04)}
+.tenant-info-section + .tenant-info-section{border-top:1px solid var(--split);margin-top:24px;padding-top:28px}
+.tenant-section-title{font-size:15px;margin-bottom:21px}
+.tenant-info{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(0,1fr);column-gap:22px;row-gap:19px}
+.tenant-info > div{display:grid;grid-template-columns:126px minmax(0,1fr);gap:12px;align-items:center;min-height:25px}
+.tenant-info dt{color:#86909c}
+.tenant-info dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+@media(max-width:1100px){.tenant-info > div{grid-template-columns:116px minmax(0,1fr);gap:8px}}
+@media(max-width:850px){.tenant-info,.tenant-filters .f-grid{grid-template-columns:minmax(0,1fr)}.tenant-tabs{gap:16px;overflow:auto}}
 </style>
 </head>
 <body>
@@ -139,18 +198,22 @@ textarea.ipt{resize:vertical;min-height:88px}
     <div class="si">🌐 供应商管理 <span class="arr">▾</span></div>
     <div class="si">⚛ 模型管理 <span class="arr">▾</span></div>
     <div class="si" style="color:var(--primary)">▦ 商品管理 <span class="arr">▴</span></div>
-    <div class="si sub active" id="nav-goods" onclick="showPage('list')">☰ 商品列表</div>
+    <div class="si sub" id="nav-goods" onclick="showPage('list')">☰ 商品列表</div>
     <div class="si sub">☰ 分类列表</div>
     <div class="si sub">☰ 数据盘管理</div>
     <div class="si" style="color:var(--primary)">🖥 云电脑管理 <span class="arr">▴</span></div>
     <div class="si sub" onclick="location.href='云电脑实例/index.html'">☰ 云电脑列表</div>
+    <div class="si sub" onclick="location.href='镜像管理/index.html?v=20261104-minimal-copy'"><img src="云电脑实例/assets/ListBullets.svg" width="16" height="16" alt="" style="vertical-align:middle;margin-right:8px">镜像管理</div>
     <div class="si sub">☰ 云硬盘管理</div>
     <div class="si sub" onclick="location.href='硬件终端管理-交互原型.html'">☰ 硬件终端管理</div>
     <div class="si sub">☰ 客户端版本</div>
     <div class="si sub">☰ 场所列表</div>
     <div class="si sub" id="nav-room" onclick="showPage('room')">☰ 机房管理</div>
-    <div class="si sub">☰ 服务器管理</div>
-    <div class="si">👤 用户管理 <span class="arr">▾</span></div>
+    <a class="si sub" href="GPU资源分组-原型.html#servers" style="text-decoration:none">☰ 服务器管理</a>
+    <a class="si sub" href="GPU资源分组-原型.html#groups" style="text-decoration:none">☰ 资源分组</a>
+    <button type="button" class="si tenant-nav" id="nav-users" aria-expanded="false" aria-controls="nav-user-list nav-tenants" onclick="setTenantNavigation(this.getAttribute('aria-expanded') !== 'true')"><img src="云电脑实例/assets/Users.svg" alt="">用户管理 <span class="arr" aria-hidden="true">▾</span></button>
+    <div class="si sub hidden" id="nav-user-list"><img src="云电脑实例/assets/ListBullets.svg" alt="">用户列表</div>
+    <a class="si sub tenant-nav hidden" id="nav-tenants" href="#tenant-list" style="text-decoration:none"><img src="云电脑实例/assets/ListBullets.svg" alt="">租户列表</a>
     <div class="si">👥 代理商管理 <span class="arr">▾</span></div>
     <div class="si">🛒 订单管理 <span class="arr">▾</span></div>
     <div class="si">🧾 账单中心 <span class="arr">▾</span></div>
@@ -163,7 +226,7 @@ textarea.ipt{resize:vertical;min-height:88px}
   </div>
   <div class="main">
     <!-- ============ 商品列表页 ============ -->
-    <div id="pg-list">
+    <div id="pg-list" class="hidden">
     <div class="crumb">商品管理 / <b>商品列表</b></div>
     <div class="card">
       <div class="f-grid">
@@ -353,11 +416,91 @@ textarea.ipt{resize:vertical;min-height:88px}
           <tr><td><b>下现在重新注册中心出现在相处中行政村现场</b><br><span style="color:var(--text3);font-size:12.5px">JF-BJ-0003</span></td><td style="font-size:13px;line-height:1.7">北京市 市辖区<br>三从四德吃大餐</td><td>服务器: 2台</td><td><span class="res-bar"><i style="width:36%"></i></span> 36%</td><td>16核心 / 64T内存</td><td>-</td><td><span class="lk">👁 查看详情</span>　<span class="lk">✎ 编辑</span>　<span class="lk d" onclick="delRoom('下现在重新注册中心出现在相处中行政村现场',1,this)">🗑 删除</span></td></tr>
           <tr><td><b>是的和i说的佛i文化佛IE很佛诶话费 我iehjfioweh</b><br><span style="color:var(--text3);font-size:12.5px">JF-BJ-0002</span></td><td style="font-size:13px;line-height:1.7">北京市 市辖区<br>的发vdfvdfvjh</td><td>服务器: 0台</td><td><span class="res-bar"><i style="width:0%"></i></span> 0%</td><td>0核心 / 0T内存</td><td>-</td><td><span class="lk">👁 查看详情</span>　<span class="lk">✎ 编辑</span>　<span class="lk d" onclick="delRoom('是的和i说的佛i文化佛IE很佛诶话费 我iehjfioweh',0,this)">🗑 删除</span></td></tr>
           <tr><td><b>MM机房名称-0001xx</b><br><span style="color:var(--text3);font-size:12.5px">MM机房编码-0001xx</span></td><td style="font-size:13px;line-height:1.7">山东省 青岛市 市北区 敦化路街道<br>龙泉碧桂园莱蒙湖理想国 五四...</td><td>服务器: 0台</td><td><span class="res-bar"><i style="width:0%"></i></span> 0%</td><td>0核心 / 0T内存</td><td>-</td><td><span class="lk">👁 查看详情</span>　<span class="lk">✎ 编辑</span>　<span class="lk d" onclick="delRoom('MM机房名称-0001xx',0,this)">🗑 删除</span></td></tr>
-          <tr><td><b>鲍山机房</b><br><span style="color:var(--text3);font-size:12.5px">JF-SD-0001</span></td><td style="font-size:13px;line-height:1.7">山东省 济南市 历城区<br>鲍山街道</td><td>服务器: 8台</td><td><span class="res-bar"><i style="width:62%"></i></span> 62%</td><td>128核心 / 512T内存</td><td>RTX 4090 × 16</td><td><span class="lk">👁 查看详情</span>　<span class="lk">✎ 编辑</span>　<span class="lk d" onclick="delRoom('鲍山机房',3,this)">🗑 删除</span></td></tr>
+          <tr><td><b>鲍山机房</b><br><span style="color:var(--text3);font-size:12.5px">JF-SD-0001</span></td><td style="font-size:13px;line-height:1.7">山东省 济南市 历城区<br>鲍山街道</td><td>服务器: 12台</td><td><span class="res-bar"><i style="width:62%"></i></span> 62%</td><td>128核心 / 512T内存</td><td>RTX 4090 × 72</td><td><a class="lk" href="GPU资源分组-原型.html#groups">查看资源分组</a>　<span class="lk">✎ 编辑</span>　<span class="lk d" onclick="delRoom('鲍山机房',3,this)">🗑 删除</span></td></tr>
         </tbody>
       </table>
     </div>
     </div><!-- /pg-room -->
+
+    <div id="pg-tenants" class="tenant-area hidden">
+      <div class="crumb">用户管理 / <b>租户列表</b></div>
+      <div class="tenant-list-panel">
+        <form class="tenant-filters" id="tenant-filters">
+          <div class="f-grid">
+            <div><label for="filter-tenant">租户</label><input class="ipt" id="filter-tenant" name="tenant" placeholder="请输入租户名称/ID"></div>
+            <div><label for="filter-admin">管理员</label><input class="ipt" id="filter-admin" name="admin" placeholder="请输入管理员名称/ID"></div>
+            <div><label for="filter-tenant-type">租户类型</label><select class="ipt" id="filter-tenant-type" name="type"><option value="">全部</option><option>企业</option><option>学校</option></select></div>
+            <div><label for="filter-tenant-status">租户状态</label><select class="ipt" id="filter-tenant-status" name="status"><option value="">全部</option><option>启用</option><option>禁用</option></select></div>
+            <div><label for="filter-tenant-start">创建日期</label><div class="tenant-date-range">
+              <input class="ipt" id="filter-tenant-start" type="date" name="start" aria-label="开始日期"><span aria-hidden="true">–</span><input class="ipt" type="date" name="end" aria-label="结束日期">
+            </div></div>
+            <div><label for="filter-agent">所属代理</label><input class="ipt" id="filter-agent" name="agent" placeholder="请输入代理商名称、代理联系人"></div>
+            <div><label for="filter-credit">授信额度</label><select class="ipt" id="filter-credit" name="credit"><option value="">全部</option><option>未授信</option></select></div>
+          </div>
+          <div class="tenant-filter-actions">
+            <button class="btn-p" type="submit"><img src="云电脑实例/assets/MagnifyingGlass.svg" alt="">查询</button>
+            <button class="btn-o" type="reset"><img src="云电脑实例/assets/ArrowClockwise.svg" alt="">重置</button>
+          </div>
+        </form>
+        <div class="tenant-list-actions"><button class="btn-p" type="button" disabled>＋ 新建租户</button></div>
+        <div class="sel-bar" id="tenant-selection-count" aria-live="polite">已选择 0 项</div>
+        <div class="tenant-table-wrap">
+          <table class="tb tenant-table">
+            <thead><tr>
+              <th><input type="checkbox" id="tenant-select-all" aria-label="选择全部租户"></th>
+              <th>租户ID</th><th>名称</th><th>租户状态</th><th>租户类型</th><th>创建日期</th><th>管理员</th><th>授信额度</th><th>更新日期</th><th>创建人</th><th>所属代理</th><th>备注</th><th>操作</th>
+            </tr></thead>
+            <tbody id="tenant-list-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div id="pg-tenant-detail" class="tenant-area hidden">
+      <h1 class="tenant-detail-title">租户详情</h1>
+      <div class="tenant-tabs" role="tablist" aria-label="租户详情">
+        <button type="button" class="tenant-tab" role="tab" aria-selected="true" aria-controls="tenant-customer-info" id="tenant-customer-tab">客户信息</button>
+        <button type="button" class="tenant-tab" role="tab" aria-selected="false" disabled>资产信息</button>
+        <button type="button" class="tenant-tab" role="tab" aria-selected="false" disabled>订单记录</button>
+        <button type="button" class="tenant-tab" role="tab" aria-selected="false" disabled>账单信息</button>
+      </div>
+      <div class="tenant-customer-card" id="tenant-customer-info" role="tabpanel" aria-labelledby="tenant-customer-tab">
+        <section class="tenant-info-section">
+          <h2 class="tenant-section-title">基本信息</h2>
+          <dl class="tenant-info">
+            <div><dt>租户ID</dt><dd data-tenant-field="id"></dd></div>
+            <div><dt>名称</dt><dd data-tenant-field="name"></dd></div>
+            <div><dt>所属代理</dt><dd data-tenant-field="agent"></dd></div>
+            <div><dt>租户代码</dt><dd data-tenant-field="code"></dd></div>
+            <div><dt>用户数量</dt><dd data-tenant-field="users"></dd></div>
+            <div><dt>租户状态</dt><dd><span class="tenant-enabled" data-tenant-field="status"></span></dd></div>
+            <div class="hidden" data-school-network><dt>私有云网络</dt><dd id="tenant-network-name"></dd></div>
+            <div class="hidden" data-school-network><dt>私有云网络 ID</dt><dd id="tenant-network-id"></dd></div>
+          </dl>
+        </section>
+        <section class="tenant-info-section">
+          <h2 class="tenant-section-title">企业信息</h2>
+          <dl class="tenant-info">
+            <div><dt>企业执照</dt><dd>—</dd></div>
+            <div><dt>企业名称</dt><dd data-tenant-field="company"></dd></div>
+            <div><dt>统一社会信用代码</dt><dd data-tenant-field="creditCode"></dd></div>
+            <div><dt>法人姓名</dt><dd>—</dd></div>
+            <div><dt>法人身份证号码</dt><dd>—</dd></div>
+            <div><dt>营业场所/住所</dt><dd>—</dd></div>
+          </dl>
+        </section>
+        <section class="tenant-info-section">
+          <h2 class="tenant-section-title">联系人与管理信息</h2>
+          <dl class="tenant-info">
+            <div><dt>联系人</dt><dd data-tenant-field="contact"></dd></div>
+            <div><dt>联系电话</dt><dd data-tenant-field="phone"></dd></div>
+            <div><dt>创建日期</dt><dd data-tenant-field="created"></dd></div>
+            <div><dt>更新日期</dt><dd data-tenant-field="updated"></dd></div>
+            <div><dt>管理员</dt><dd data-tenant-field="admin"></dd></div>
+            <div><dt>创建人</dt><dd data-tenant-field="creator"></dd></div>
+          </dl>
+        </section>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -568,12 +711,117 @@ function reval(){if(submitted)render(validate())}
 
 /* ===== 页面切换 ===== */
 function showPage(p){
+  const isTenantPage=p==='tenants'||p==='tenant-detail'
+  const pageHash={list:'#goods',room:'#room'}[p]
+  if(pageHash&&location.hash!==pageHash){
+    history.replaceState(null,'',pageHash)
+  }
   document.getElementById('pg-list').classList.toggle('hidden',p!=='list')
   document.getElementById('pg-room').classList.toggle('hidden',p!=='room')
+  document.getElementById('pg-tenants').classList.toggle('hidden',p!=='tenants')
+  document.getElementById('pg-tenant-detail').classList.toggle('hidden',p!=='tenant-detail')
   document.getElementById('pg-create').classList.add('hidden')
   document.getElementById('nav-goods').classList.toggle('active',p==='list')
   document.getElementById('nav-room').classList.toggle('active',p==='room')
+  const tenantNav=document.getElementById('nav-tenants')
+  tenantNav.classList.toggle('active',isTenantPage)
+  if(isTenantPage){
+    tenantNav.setAttribute('aria-current','page')
+    setTenantNavigation(true)
+  }else{
+    tenantNav.removeAttribute('aria-current')
+  }
   window.scrollTo(0,0)
+}
+
+/* 租户详情使用截图所示字段。VPC ID 为原型演示值。 */
+const tenants=[
+  {
+    id:'9311', name:'源生智界', status:'启用', type:'企业',
+    created:'2026-11-06 18:34:38', updated:'2026-11-09 10:16:40',
+    adminId:'6963', admin:'138****0000', credit:'未授信',
+    creator:'张浩然', code:'1793961205', users:1, company:'源生智界',
+    creditCode:'111111111111111111', contact:'游洋', phone:'138****0000',
+  },
+  {
+    id:'9310', name:'【K3.1pro】SHWL-kimi3.1-5 广东云桥通', status:'启用', type:'企业',
+    created:'2026-11-05 15:07:27', adminId:'106', admin:'138****0000',
+    credit:'未授信',
+  },
+  {
+    id:'9309', name:'【K3.1pro】SHWL-SLJ 仕力嘉', status:'启用', type:'企业',
+    created:'2026-11-05 15:06:49', adminId:'106', admin:'138****0000',
+    credit:'未授信',
+  },
+  {
+    id:'demo-school-01', name:'学校演示租户 A', status:'启用', type:'学校',
+    created:'2026-11-09 09:00:00', adminId:'1001', admin:'138****0000',
+    credit:'未授信', users:1, networkId:'vpc-8f3a2c71',
+  },
+  {
+    id:'demo-school-02', name:'学校演示租户 B', status:'启用', type:'学校',
+    created:'2026-11-09 09:05:00', adminId:'1002', admin:'138****0000',
+    credit:'未授信', users:1, networkId:'vpc-6b4d9e20',
+  },
+]
+
+function setTenantNavigation(expanded){
+  const nav=document.getElementById('nav-users')
+  nav.setAttribute('aria-expanded',String(expanded))
+  nav.querySelector('.arr').textContent=expanded?'▴':'▾'
+  document.getElementById('nav-user-list').classList.toggle('hidden',!expanded)
+  document.getElementById('nav-tenants').classList.toggle('hidden',!expanded)
+}
+
+function renderTenantList(records){
+  const body=document.getElementById('tenant-list-body')
+  // 表格内容仅来自上方的固定演示记录。
+  body.innerHTML=records.map(tenant=>`
+    <tr>
+      <td><input type="checkbox" class="tenant-row-checkbox" aria-label="选择租户 ${tenant.id}"></td>
+      <td><b>${tenant.id}</b></td>
+      <td>${tenant.name}</td>
+      <td><span class="pill-on">${tenant.status}<i aria-hidden="true"></i></span></td>
+      <td><span class="tenant-type">${tenant.type}</span></td>
+      <td>${tenant.created}</td>
+      <td>${tenant.adminId} | ${tenant.admin}</td>
+      <td>${tenant.credit}</td>
+      <td>${tenant.updated||'—'}</td>
+      <td>${tenant.creator||'—'}</td>
+      <td>${tenant.agent||'—'}</td>
+      <td>${tenant.remark||'—'}</td>
+      <td><div class="tenant-row-actions">
+        <a class="lk" href="#tenant-detail-${tenant.id}"><img src="云电脑实例/assets/Eye.svg" alt="">详情</a>
+        <span class="lk" aria-disabled="true">编辑</span>
+        <span class="lk" aria-disabled="true">性能</span>
+        <span class="lk" aria-disabled="true">独立折扣</span>
+      </div></td>
+    </tr>`).join('')||'<tr><td class="tenant-empty" colspan="13">暂无数据</td></tr>'
+  updateTenantSelection()
+}
+
+function updateTenantSelection(){
+  const all=document.querySelectorAll('.tenant-row-checkbox').length
+  const selected=document.querySelectorAll('.tenant-row-checkbox:checked').length
+  const checkbox=document.getElementById('tenant-select-all')
+  checkbox.checked=all>0&&selected===all
+  checkbox.indeterminate=selected>0&&selected<all
+  checkbox.disabled=all===0
+  document.getElementById('tenant-selection-count').textContent='已选择 '+selected+' 项'
+}
+
+function openTenantDetail(tenant){
+  showPage('tenant-detail')
+  document.querySelectorAll('[data-tenant-field]').forEach(field=>{
+    field.textContent=tenant[field.dataset.tenantField]??'—'
+  })
+  const isSchool=tenant.type==='学校'
+  const networkId=isSchool?tenant.networkId:null
+  document.querySelectorAll('[data-school-network]').forEach(field=>{
+    field.classList.toggle('hidden',!isSchool)
+  })
+  document.getElementById('tenant-network-name').textContent=networkId?'default-vpc':'—'
+  document.getElementById('tenant-network-id').textContent=networkId??'—'
 }
 
 /* ===== 机房删除：前置校验 ===== */
@@ -629,8 +877,50 @@ function goodsReset(){
   document.querySelectorAll('#pg-list .f-grid .ipt').forEach(c=>{if(c.tagName==='SELECT')c.selectedIndex=0;else c.value=''})
   clearRoomFilter()
 }
-/* 支持 #room 直达机房管理（供硬件终端管理页返回） */
-if(location.hash==='#room')showPage('room')
+/* 支持 #room、#tenant-list、#tenant-detail 及指定租户详情的直达链接 */
+function syncPrototypePage(){
+  const hash=location.hash
+  if(hash==='#room'){
+    showPage('room')
+  }else if(hash==='#gpu-pools'){
+    location.replace('GPU资源分组-原型.html#groups')
+  }else if(hash==='#goods'){
+    showPage('list')
+  }else if(hash==='#tenant-detail'||hash.startsWith('#tenant-detail-')){
+    const tenant=hash==='#tenant-detail'?tenants[0]:tenants.find(item=>hash==='#tenant-detail-'+item.id)
+    if(tenant)openTenantDetail(tenant)
+    else showPage('tenants')
+  }else{
+    showPage('tenants')
+  }
+}
+
+const tenantFilters=document.getElementById('tenant-filters')
+tenantFilters.addEventListener('submit',event=>{
+  event.preventDefault()
+  const filters=Object.fromEntries(new FormData(tenantFilters))
+  const contains=(value,query)=>value.toLowerCase().includes(query.trim().toLowerCase())
+  renderTenantList(tenants.filter(tenant=>{
+    const createdDate=tenant.created.slice(0,10)
+    return contains(tenant.name+' '+tenant.id,filters.tenant)
+      &&contains(tenant.adminId+' '+tenant.admin,filters.admin)
+      &&contains(tenant.agent||'',filters.agent)
+      &&(!filters.type||tenant.type===filters.type)
+      &&(!filters.status||tenant.status===filters.status)
+      &&(!filters.credit||tenant.credit===filters.credit)
+      &&(!filters.start||createdDate>=filters.start)
+      &&(!filters.end||createdDate<=filters.end)
+  }))
+})
+tenantFilters.addEventListener('reset',()=>renderTenantList(tenants))
+document.getElementById('tenant-select-all').addEventListener('change',event=>{
+  document.querySelectorAll('.tenant-row-checkbox').forEach(checkbox=>checkbox.checked=event.target.checked)
+  updateTenantSelection()
+})
+document.getElementById('tenant-list-body').addEventListener('change',updateTenantSelection)
+renderTenantList(tenants)
+window.addEventListener('hashchange',syncPrototypePage)
+syncPrototypePage()
 function confirmAdd(){
   submitted=true
   const errs=validate()
