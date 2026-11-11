@@ -248,6 +248,8 @@ input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px;flex:non
   <form id="createForm" novalidate>
     <div class="dh"><h3 id="createTitle">创建资源分组</h3><button type="button" class="x" data-dialog-close="createDialog" aria-label="关闭">×</button></div>
     <div class="db">
+      <div class="form-field"><label for="newGroupRoom">所属机房 <span style="color:var(--err)">*</span></label>
+        <select id="newGroupRoom" class="field-input" required><option value="">请选择机房</option></select></div>
       <div class="form-field"><label for="newGroupName">分组名称 <span style="color:var(--err)">*</span></label>
         <input id="newGroupName" class="field-input" placeholder="请输入分组名称" minlength="2" maxlength="128" autocomplete="off" aria-describedby="groupNameHint" required>
         <p class="hint" id="groupNameHint">2–128 个字符，支持中文、英文字母、数字和连字符（-）；须以中文或英文字母开头，不能以连字符结尾。中文名称由后端按拼音或拼音首字母转换。</p></div>
@@ -270,7 +272,7 @@ input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px;flex:non
     <div class="db" style="gap:14px">
       <p class="group-current" id="nodeGroupName"></p>
       <div class="node-tools"><input class="field-input" id="nodeSearch" type="search" aria-label="搜索可添加服务器" placeholder="搜索服务器名称、ID"><span class="muted num" id="nodeCount"></span></div>
-      <p class="hint">仅显示无实例绑定、GPU 已卸载且未归组的服务器。</p>
+      <p class="hint">仅显示当前机房内无实例绑定、GPU 已卸载且未归组的服务器。</p>
       <div class="tbl-wrap" id="nodeCandidates"></div>
       <p id="nodesError" class="form-error" role="alert" hidden></p>
     </div>
@@ -293,9 +295,17 @@ input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px;flex:non
 const $ = id=>document.getElementById(id);
 const esc = s=>String(s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
 const BILLING = {course:'按课表付费',timer:'计时付费',period:'包周期付费'};
+const ROOMS = [
+  {id:'2',name:'鲍山机房-高可用',code:'002',city:'济南市',address:'山东省 济南市 历城区 鲍山街道',note:'烈士山东路1号济南联通鲍山…',servers:12,cpu:'1472核心',memory:'11.19T内存',storage:1.92},
+  {id:'demo-b',name:'演示机房B',code:'DEMO-B',city:'演示城市',address:'演示机房地址',note:'用于验证跨机房分组隔离',servers:1,cpu:'128核心',memory:'1007.52G内存',storage:0}
+];
+const roomName=id=>ROOMS.find(room=>room.id===id)?.name??'—';
+const roomOptions=(allLabel='全部机房')=>`<option value="${allLabel==='请选择机房'?'':'all'}">${allLabel}</option>`+ROOMS.map(room=>`<option value="${room.id}">${esc(room.name)}</option>`).join('');
+const groupsRoute=roomId=>'groups'+(roomId&&roomId!=='all'?'?room='+encodeURIComponent(roomId):'');
 const GROUPS = [
-  {id:'course',name:'预约保障组',billing:['course']},
-  {id:'payg',name:'按需弹性组',billing:['timer','period']}
+  {id:'course',name:'预约保障组',roomId:'2',billing:['course']},
+  {id:'payg',name:'按需弹性组',roomId:'2',billing:['timer','period']},
+  {id:'demo-course',name:'预约保障组',roomId:'demo-b',billing:['course']}
 ];
 const POOL = {}, POOL_FOR = {};
 function registerGroup(group){
@@ -307,10 +317,10 @@ const groupColor=id=>id==='course'?'course':id==='payg'?'payg':'gray';
 const billingTags=group=>group.billing.map(key=>`<span class="tag gray">${BILLING[key]}</span>`).join('');
 const UUIDS = ['3a91c2d4-5e17-4b0a-9c63-1f8e2d7a4b05','b04e6f19-2c8d-4a3e-a571-6d9f03c2e8b1','d7c35a82-91f4-4e6b-b2d0-8a4c17e9f360',
   '5f2e8b07-c3a1-4d95-8e46-0b7d92a1c3f8','9e60d1c4-7b25-4f83-a19e-c4f5082b7d36','21b146ab-aa67-4deb-82d9-7700d67d20e2',
-  '8c8b0f60-39ac-49cd-83b5-b2b58393c95d','fb9dbaa7-1fbb-4bb6-829b-c2af765b4277','7e466850-8f36-4b3d-8079-9b82df0644ce','c0f23078-8e31-4fa6-88c1-673aef0e1192'];
-const CPU=[0.38,0.52,0.31,0.47,0.29,0.28,0.61,0.56,0.45,0.21], MEM=[97.66,97.81,97.52,97.70,97.63,97.71,97.45,97.75,97.72,3.12];
+  '8c8b0f60-39ac-49cd-83b5-b2b58393c95d','fb9dbaa7-1fbb-4bb6-829b-c2af765b4277','7e466850-8f36-4b3d-8079-9b82df0644ce','c0f23078-8e31-4fa6-88c1-673aef0e1192','dff4290a-39ef-4717-bca8-c0b6653f6cd9'];
+const CPU=[0.38,0.52,0.31,0.47,0.29,0.28,0.61,0.56,0.45,0.21,0.16], MEM=[97.66,97.81,97.52,97.70,97.63,97.71,97.45,97.75,97.72,3.12,2.28];
 // pool 是最近确认生效的分组。target 是等待同步确认的目标分组。
-const SERVERS = UUIDS.map((u,i)=>({name:'cp-worker'+(i+1), ip:'192.0.2.'+(21+i), id:u, mem:i===6?'880.54G':'1007.52G', cpu:CPU[i], memU:MEM[i],
+const SERVERS = UUIDS.map((u,i)=>({name:'cp-worker'+(i+1), ip:'192.0.2.'+(21+i), id:u, roomId:i===10?'demo-b':'2',mem:i===6?'880.54G':'1007.52G', cpu:CPU[i], memU:MEM[i],
   pool:i<6?'course':(i===7||i===8)?'payg':null, target:null, state:'active', retainedBindings:0, cpuOnlyRunning:0}));
 const IDX = SERVERS.map((s,i)=>i);
 
@@ -338,7 +348,7 @@ SERVERS[2].retainedBindings=1; // 示例：实例已关机，但仍绑定在此�
 SERVERS[3].cpuOnlyRunning=1; // 示例：纯 CPU 实例在线，GPU 全部空闲。
 let uid=1820; cards.filter(c=>SERVERS[c.s].pool==='payg'&&c.st==='busy').forEach(c=>c.inst='计时云电脑 · 用户 u_'+(uid+=7));
 
-const GROUP_LABEL = {course:'onelink.ai/gpu-pool=course', payg:'onelink.ai/gpu-pool=payg'};
+const GROUP_LABEL = {course:'onelink.ai/gpu-pool=course', payg:'onelink.ai/gpu-pool=payg','demo-course':'onelink.ai/gpu-pool=demo-course'};
 const STATE = {active:'已生效', syncing:'同步中', failed:'同步失败'};
 const srvCards=si=>cards.filter(c=>c.s===si);
 const srvRun=si=>srvCards(si).filter(c=>c.st==='busy').length+SERVERS[si].cpuOnlyRunning;
@@ -366,7 +376,8 @@ function gpuModels(devices){
   return [...models.values()].sort((a,b)=>b.total-a.total||a.model.localeCompare(b.model));
 }
 function stats(pool){
-  const servers=IDX.filter(si=>SERVERS[si].pool===pool&&srvOk(SERVERS[si]));
+  const group=GROUPS.find(group=>group.id===pool);
+  const servers=IDX.filter(si=>SERVERS[si].pool===pool&&SERVERS[si].roomId===group?.roomId&&srvOk(SERVERS[si]));
   const gpu=cards.filter(c=>servers.includes(c.s));
   return {servers:servers.length,total:gpu.length,healthy:gpu.filter(c=>c.st!=='fault').length,models:gpuModels(gpu)};
 }
@@ -385,7 +396,7 @@ function serverGroupCell(si){
 }
 
 /* ---------- 导航 ---------- */
-let view='servers', currentGroupId=null;
+let view='servers', currentGroupId=null, groupRoomFilter='all';
 const NAV=[['云电脑列表'],['云硬盘管理'],['硬件终端管理'],['客户端版本'],['场所列表'],['机房管理','rooms'],['服务器管理','servers'],['资源分组','groups']];
 const ICON='<svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3"><path d="M1 3h1.5M5 3h8M1 7h1.5M5 7h8M1 11h1.5M5 11h8"/></svg>';
 function renderNav(){
@@ -408,7 +419,7 @@ $('srvMask').addEventListener('click',e=>{ if(e.target.id==='srvMask') closeMask
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('srvMask').hidden) closeMask('srvMask'); });
 
 /* ---------- 机房管理列表 ---------- */
-function renderRoomGpus(models, expanded){
+function renderRoomGpus(models, expanded, roomId){
   if(models.length===0) return '—';
   const modelRow=counts=>{
     const groups=GROUPS.map(group=>[group.name,counts.byGroup[group.id]??0,groupColor(group.id)]);
@@ -423,15 +434,13 @@ function renderRoomGpus(models, expanded){
   };
   const visible=models.slice(0,3).map(modelRow).join('');
   if(models.length<=3) return visible;
-  return `${visible}<details id="roomGpuDetails"${expanded?' open':''}>
+  return `${visible}<details id="roomGpuDetails-${roomId}"${expanded?' open':''}>
     <summary><span class="gpu-expand">查看全部 ${models.length} 种型号</span><span class="gpu-collapse">收起</span></summary>
     ${models.slice(3).map(modelRow).join('')}
   </details>`;
 }
 function renderRooms(){
-  const gpuDetailsOpen=$('roomGpuDetails')?.open;
-  const running=IDX.reduce((count,si)=>count+srvRun(si),0);
-  const bound=IDX.reduce((count,si)=>count+srvBound(si),0);
+  const expanded=new Set(ROOMS.filter(room=>$('roomGpuDetails-'+room.id)?.open).map(room=>room.id));
   $('main').innerHTML=`
     <div class="crumb"><span>云电脑管理</span>/<b>机房管理</b></div>
     <section class="panel">
@@ -442,25 +451,29 @@ function renderRooms(){
       <div class="frow"><button class="btn primary">查询</button><button class="btn">重置</button><span style="flex:1"></span><button class="btn primary">＋ 添加机房</button></div>
       <div class="tbl-wrap" style="margin-top:16px"><table>
         <tr><th>机房ID</th><th>机房名称+代码</th><th>地址</th><th>服务器数量</th><th>存储资源</th><th>CPU资源</th><th>显卡资源</th><th>运行中实例/总实例</th><th>操作</th></tr>
-        <tr><td>2</td><td><b style="font-weight:500">鲍山机房-高可用</b><div class="muted">002</div></td>
-          <td style="min-width:220px">山东省 济南市 历城区 鲍山街道<div class="muted">烈士山东路1号济南联通鲍山…</div></td>
-          <td style="white-space:nowrap">服务器：12台<div class="muted">-</div></td>
-          <td><div class="pbar"><i></i></div><div class="num" style="margin-top:4px">1.92%</div></td>
-          <td style="white-space:nowrap">1472核心<div>11.19T内存</div></td>
-          <td class="room-gpus">${renderRoomGpus(gpuModels(cards),gpuDetailsOpen)}</td>
+        ${ROOMS.map(room=>{const nodes=IDX.filter(si=>SERVERS[si].roomId===room.id),devices=cards.filter(card=>nodes.includes(card.s));
+          const running=nodes.reduce((count,si)=>count+srvRun(si),0),bound=nodes.reduce((count,si)=>count+srvBound(si),0);
+          return `<tr><td>${esc(room.id)}</td><td><b style="font-weight:500">${esc(room.name)}</b><div class="muted">${esc(room.code)}</div></td>
+          <td style="min-width:220px">${esc(room.address)}<div class="muted">${esc(room.note)}</div></td>
+          <td style="white-space:nowrap">服务器：${room.servers}台<div class="muted">-</div></td>
+          <td><div class="pbar"><i style="width:${room.storage}%"></i></div><div class="num" style="margin-top:4px">${room.storage}%</div></td>
+          <td style="white-space:nowrap">${esc(room.cpu)}<div>${esc(room.memory)}</div></td>
+          <td class="room-gpus">${renderRoomGpus(gpuModels(devices),expanded.has(room.id),room.id)}</td>
           <td class="num"><span style="color:var(--ok)">${running}</span>/${bound}</td>
           <td><div class="ops"><button class="link">详情</button><button class="link">编辑</button><button class="link danger">删除</button><button class="link">配置账号</button>
-            <button class="link" data-go="groups">查看资源分组</button></div></td></tr>
+            <button class="link" data-go="${groupsRoute(room.id)}">查看资源分组</button></div></td></tr>`;}).join('')}
       </table></div>
-      <div class="frow" style="justify-content:flex-end;font-size:13px;color:var(--fg-2)">共 1 条</div>
+      <div class="frow" style="justify-content:flex-end;font-size:13px;color:var(--fg-2)">共 ${ROOMS.length} 条</div>
     </section>`;
 }
 
 function groupCard(group){
   const capacity=stats(group);
+  const record=GROUPS.find(item=>item.id===group);
   const modelBreakdown=capacity.models.map(({model,total,healthy})=>
     `<small>${esc(model)} · ${total} 张${healthy<total?` · 健康 ${healthy} 张`:''}</small>`).join('');
   return `<div class="group-card"><span class="tag ${groupColor(group)}">${esc(POOL[group])}</span>
+    <small>${esc(roomName(record.roomId))}</small>
     <strong>${capacity.servers} 台服务器 · ${capacity.total} 张 GPU</strong>
     <small>${esc(POOL_FOR[group])}${group==='course'?` · RTX 4090 课表需求 ${COURSE_PEAK} 张`:''}</small>
     ${modelBreakdown}</div>`;
@@ -483,41 +496,48 @@ function gpuTable(si){
 
 /* ---------- 资源分组 ---------- */
 function renderGroups(){
-  $('main').innerHTML=`<div class="crumb"><span>云电脑管理</span>/<b>资源分组</b></div>
+  const groups=GROUPS.filter(group=>groupRoomFilter==='all'||group.roomId===groupRoomFilter);
+  $('main').innerHTML=`<div class="crumb"><button data-go="rooms">机房管理</button>/${groupRoomFilter==='all'?'':`<span>${esc(roomName(groupRoomFilter))}</span>/`}<b>资源分组</b></div>
     <section class="panel">
       <div class="ph"><div><h2>资源分组</h2></div><button class="btn primary" id="createGroup">＋ 创建分组</button></div>
+      <div class="filters" style="max-width:340px;margin-bottom:18px"><div><label for="fGroupRoom">所属机房</label><select id="fGroupRoom">${roomOptions()}</select></div></div>
       <div class="tbl-wrap"><table>
-        <thead><tr><th>分组名称 / ID</th><th>关联付费方式</th><th>服务器数量</th><th>GPU 资源</th><th>操作</th></tr></thead>
-        <tbody>${GROUPS.map(group=>{const capacity=stats(group.id);return `<tr>
-          <td class="group-identity"><strong>${esc(group.name)}</strong><span class="group-id">ID：${esc(group.id)}</span></td><td><div class="group-billings">${billingTags(group)}</div></td>
+        <thead><tr><th>分组名称 / ID</th><th>所属机房</th><th>关联付费方式</th><th>服务器数量</th><th>GPU 资源</th><th>操作</th></tr></thead>
+        <tbody>${groups.map(group=>{const capacity=stats(group.id);return `<tr>
+          <td class="group-identity"><strong>${esc(group.name)}</strong><span class="group-id">ID：${esc(group.id)}</span></td><td>${esc(roomName(group.roomId))}</td><td><div class="group-billings">${billingTags(group)}</div></td>
           <td class="num">${capacity.servers} 台</td><td>${capacity.models.map(model=>`<div>${esc(model.model)} · ${model.total} 张${model.healthy<model.total?`<span class="muted">（健康 ${model.healthy} 张）</span>`:''}</div>`).join('')||'<span class="muted">—</span>'}</td>
           <td><div class="ops"><button class="link" data-go="group-${group.id}">查看节点</button><button class="link" data-add-nodes="${group.id}">添加节点</button></div></td>
-        </tr>`;}).join('')}</tbody></table></div>
-      <div class="frow" style="justify-content:space-between"><a class="link" href="GPU资源分组-流程图.md" download>下载规则与流程图</a><span class="muted">共 ${GROUPS.length} 个分组</span></div>
+        </tr>`;}).join('')||'<tr><td colspan="6" class="muted" style="text-align:center;padding:36px">当前机房暂无资源分组</td></tr>'}</tbody></table></div>
+      <div class="frow" style="justify-content:space-between"><a class="link" href="GPU资源分组-流程图.md" download>下载规则与流程图</a><span class="muted">共 ${groups.length} 个分组</span></div>
     </section>`;
+  $('fGroupRoom').value=groupRoomFilter;
+  $('fGroupRoom').onchange=()=>go(groupsRoute($('fGroupRoom').value));
   $('createGroup').onclick=openCreateGroup;
 }
 function renderGroupDetail(){
   const group=GROUPS.find(g=>g.id===currentGroupId);
   if(!group){go('groups');return;}
   const capacity=stats(group.id);
-  const nodes=IDX.filter(si=>SERVERS[si].pool===group.id||(SERVERS[si].state!=='active'&&SERVERS[si].target===group.id));
-  $('main').innerHTML=`<div class="crumb"><span>云电脑管理</span>/<button data-go="groups">资源分组</button>/<b>${esc(group.name)}</b></div>
-    <section class="panel"><div class="ph"><div><h2>${esc(group.name)}</h2><span class="group-id">ID：${esc(group.id)}</span><div class="group-billings" style="margin-top:10px">${billingTags(group)}</div></div><button class="btn primary" data-add-nodes="${group.id}">＋ 添加节点</button></div>
+  const nodes=IDX.filter(si=>SERVERS[si].roomId===group.roomId&&(SERVERS[si].pool===group.id||(SERVERS[si].state!=='active'&&SERVERS[si].target===group.id)));
+  $('main').innerHTML=`<div class="crumb"><button data-go="rooms">机房管理</button>/<span>${esc(roomName(group.roomId))}</span>/<button data-go="${groupsRoute(group.roomId)}">资源分组</button>/<b>${esc(group.name)}</b></div>
+    <section class="panel"><div class="ph"><div><h2>${esc(group.name)}</h2><span class="group-id">ID：${esc(group.id)}</span><p>所属机房：${esc(roomName(group.roomId))}</p><div class="group-billings" style="margin-top:10px">${billingTags(group)}</div></div><button class="btn primary" data-add-nodes="${group.id}">＋ 添加节点</button></div>
       <div class="group-overview"><span><b>${capacity.servers}</b>台服务器</span><span><b>${capacity.total}</b>张 GPU</span></div>
     </section>
     <section class="panel"><div class="ph"><h2>服务器节点</h2></div><div class="tbl-wrap"><table>
       <thead><tr><th>服务器名称 / ID</th><th>所属机房</th><th>GPU 资源</th><th>绑定实例</th><th>分组状态</th><th>操作</th></tr></thead>
       <tbody>${nodes.map(si=>{const s=SERVERS[si];return `<tr><td class="srvinfo"><b>${s.name}</b><div class="mono">${s.id}</div></td>
-        <td>鲍山机房-高可用</td><td>${gpuModels(srvCards(si)).map(model=>`<div>${esc(model.model)} · ${model.total} 张</div>`).join('')}</td>
+        <td>${esc(roomName(s.roomId))}</td><td>${gpuModels(srvCards(si)).map(model=>`<div>${esc(model.model)} · ${model.total} 张</div>`).join('')}</td>
         <td class="num">${srvBound(si)}</td><td>${srvTags(si)}</td><td><div class="server-ops">${groupActions(si)}</div></td></tr>`;}).join('')||'<tr><td colspan="6" class="muted" style="text-align:center;padding:40px">暂无服务器节点</td></tr>'}</tbody>
     </table></div></section>`;
 }
 function openCreateGroup(){
   $('createForm').reset();
+  $('newGroupRoom').innerHTML=roomOptions('请选择机房');
+  $('newGroupRoom').value=groupRoomFilter==='all'?'':groupRoomFilter;
   $('createError').hidden=true;
+  $('newGroupName').setAttribute('aria-invalid','false');
   $('createDialog').showModal();
-  $('newGroupName').focus();
+  ($('newGroupRoom').value?$('newGroupName'):$('newGroupRoom')).focus();
 }
 function validateGroupName(name){
   if(!name) return '请输入分组名称。';
@@ -530,16 +550,18 @@ function validateGroupName(name){
 $('createForm').addEventListener('input',()=>{$('createError').hidden=true;$('newGroupName').setAttribute('aria-invalid','false');});
 $('createForm').onsubmit=e=>{
   e.preventDefault();
+  const roomId=$('newGroupRoom').value;
+  const roomValid=ROOMS.some(room=>room.id===roomId);
   const name=$('newGroupName').value.trim();
   const billing=[...$('createForm').querySelectorAll('input[name="billing"]:checked')].map(input=>input.value);
   const nameError=validateGroupName(name);
-  const duplicate=GROUPS.some(group=>group.name.toLowerCase()===name.toLowerCase());
-  const error=nameError||(duplicate?'分组名称已存在，请使用其他名称。':!billing.length?'请至少选择一种付费方式。':'');
+  const duplicate=GROUPS.some(group=>group.roomId===roomId&&group.name.toLowerCase()===name.toLowerCase());
+  const error=!roomValid?'请先选择所属机房。':nameError||(duplicate?'当前机房内分组名称已存在，请使用其他名称。':!billing.length?'请至少选择一种付费方式。':'');
   $('createError').textContent=error;
   $('createError').hidden=!error;
   $('newGroupName').setAttribute('aria-invalid',String(!!nameError||duplicate));
-  if(error){(nameError||duplicate?$('newGroupName'):$('createForm').querySelector('input[name="billing"]')).focus();return;}
-  const group={id:'rg-'+crypto.randomUUID(),name,billing};
+  if(error){(!roomValid?$('newGroupRoom'):nameError||duplicate?$('newGroupName'):$('createForm').querySelector('input[name="billing"]')).focus();return;}
+  const group={id:'rg-'+crypto.randomUUID(),name,roomId,billing};
   GROUPS.push(group);
   registerGroup(group);
   GROUP_LABEL[group.id]='onelink.ai/gpu-pool='+group.id;
@@ -548,13 +570,14 @@ $('createForm').onsubmit=e=>{
   toast('资源分组已创建。');
 };
 let nodeGroupId=null, nodeSelected=new Set();
-const canAddNode=si=>!SERVERS[si].pool&&srvOk(SERVERS[si])&&!groupBlockReason(si);
+const canAddNode=(si,groupId=nodeGroupId)=>!!GROUPS.find(group=>group.id===groupId&&group.roomId===SERVERS[si].roomId)&&!SERVERS[si].pool&&srvOk(SERVERS[si])&&!groupBlockReason(si);
 function openNodes(groupId){
   if(!GROUPS.some(group=>group.id===groupId)) return;
   nodeGroupId=groupId;
   nodeSelected=new Set();
   $('nodeSearch').value='';
-  $('nodeGroupName').textContent=POOL[groupId];
+  const group=GROUPS.find(group=>group.id===groupId);
+  $('nodeGroupName').textContent=`${roomName(group.roomId)} · ${group.name}`;
   $('nodesError').hidden=true;
   renderNodeCandidates();
   $('nodesDialog').showModal();
@@ -573,7 +596,7 @@ function renderNodeCandidates(){
   const candidates=IDX.filter(si=>canAddNode(si)&&[SERVERS[si].name,SERVERS[si].id].some(value=>value.toLowerCase().includes(query)));
   $('nodeCount').textContent=`${candidates.length} 台可添加`;
   $('nodeCandidates').innerHTML=`<table><thead><tr><th><input type="checkbox" id="allNodes" aria-label="全选当前搜索结果" ${!candidates.length?'disabled':''}></th><th>服务器名称 / ID</th><th>所属机房</th><th>GPU 资源</th></tr></thead>
-    <tbody>${candidates.map(si=>{const s=SERVERS[si];return `<tr class="node-choice-row"><td><input type="checkbox" data-node="${si}" aria-label="选择 ${s.name}" ${nodeSelected.has(si)?'checked':''}></td><td class="srvinfo"><b>${s.name}</b><div class="mono">${s.id}</div></td><td>鲍山机房-高可用</td><td>${gpuModels(srvCards(si)).map(model=>`<div>${esc(model.model)} · ${model.total} 张</div>`).join('')}</td></tr>`;}).join('')||'<tr><td colspan="4" class="muted" style="text-align:center;padding:36px">暂无符合条件的服务器</td></tr>'}</tbody></table>`;
+    <tbody>${candidates.map(si=>{const s=SERVERS[si];return `<tr class="node-choice-row"><td><input type="checkbox" data-node="${si}" aria-label="选择 ${s.name}" ${nodeSelected.has(si)?'checked':''}></td><td class="srvinfo"><b>${s.name}</b><div class="mono">${s.id}</div></td><td>${esc(roomName(s.roomId))}</td><td>${gpuModels(srvCards(si)).map(model=>`<div>${esc(model.model)} · ${model.total} 张</div>`).join('')}</td></tr>`;}).join('')||'<tr><td colspan="4" class="muted" style="text-align:center;padding:36px">暂无符合条件的服务器</td></tr>'}</tbody></table>`;
   $('nodeCandidates').querySelectorAll('[data-node]').forEach(input=>input.onchange=()=>{
     if(input.checked) nodeSelected.add(+input.dataset.node);else nodeSelected.delete(+input.dataset.node);
     updateNodeSelection();
@@ -606,34 +629,34 @@ $('nodesForm').onsubmit=async e=>{
 };
 
 /* ---------- 服务器管理 ---------- */
-let poolFilter='all', searchServer='';
+let poolFilter='all', searchServer='',serverRoomFilter='all';
 function renderServers(){
   const list=[...IDX].reverse().filter(si=>{ const s=SERVERS[si];
     const matchesGroup=poolFilter==='all'||(s.pool??'unassigned')===poolFilter;
-    return matchesGroup && [s.name,s.id].some(value=>value.toLowerCase().includes(searchServer.toLowerCase())); });
+    return matchesGroup && (serverRoomFilter==='all'||s.roomId===serverRoomFilter) && [s.name,s.id].some(value=>value.toLowerCase().includes(searchServer.toLowerCase())); });
   $('main').innerHTML=`
     <div class="crumb"><span>云电脑管理</span>/<b>服务器管理</b></div>
     <section class="panel" aria-labelledby="groupSummaryTitle">
       <div class="ph"><div><h2 id="groupSummaryTitle">服务器资源分组</h2><p>首次纳管的服务器默认未分组。实例绑定为 0 且 GPU 已卸载时可设置分组。</p></div>
-        <button class="link" data-go="groups">管理资源分组</button>
+        <button class="link" data-go="${groupsRoute(serverRoomFilter)}">管理资源分组</button>
       </div>
-      <div class="group-summary">${GROUPS.slice(0,2).map(group=>groupCard(group.id)).join('')}</div>
+      <div class="group-summary">${GROUPS.filter(group=>serverRoomFilter==='all'||group.roomId===serverRoomFilter).map(group=>groupCard(group.id)).join('')}</div>
     </section>
     <section class="panel">
       <div class="filters server-filters">
         <div><label for="fServer">搜索</label><input id="fServer" class="fake" type="search" value="${esc(searchServer)}" placeholder="搜索服务器名称、ID"></div>
-        <div><label>机房</label><div class="fake">鲍山机房-高可用</div></div>
+        <div><label for="fServerRoom">机房</label><select id="fServerRoom">${roomOptions()}</select></div>
         <div><label>类型</label><div class="fake">全部</div></div>
         <div><label>通信状态</label><div class="fake">全部</div></div>
         <div><label>设备状态</label><div class="fake">全部</div></div>
         <div><label for="fPool">资源分组</label>
-          <select id="fPool"><option value="all">全部</option>${GROUPS.map(group=>`<option value="${group.id}">${esc(group.name)}</option>`).join('')}<option value="unassigned">未分组</option></select></div>
+          <select id="fPool"><option value="all">全部</option>${GROUPS.filter(group=>serverRoomFilter==='all'||group.roomId===serverRoomFilter).map(group=>`<option value="${group.id}">${esc(group.name)}${serverRoomFilter==='all'?' · '+esc(roomName(group.roomId)):''}</option>`).join('')}<option value="unassigned">未分组</option></select></div>
       </div>
       <div class="frow"><button class="btn primary" id="fSearch">查询</button><button class="btn" id="fReset">重置</button></div>
       <div class="tbl-wrap" style="margin-top:16px"><table>
         <tr><th>服务器信息</th><th>硬件配置</th><th>资源使用率</th><th>在线云电脑</th><th>绑定实例</th><th>通信状态</th><th>设备状态</th><th>资源分组</th><th>操作</th></tr>
         ${list.map(si=>{ const s=SERVERS[si];
-          return `<tr><td class="srvinfo" style="min-width:184px"><b>${s.name}</b><div class="mono">ID: ${s.id}</div><div>IP: ${s.ip}</div><div>鲍山机房-高可用</div><div>计算服务器</div></td>
+          return `<tr><td class="srvinfo" style="min-width:184px"><b>${s.name}</b><div class="mono">ID: ${s.id}</div><div>IP: ${s.ip}</div><div>${esc(roomName(s.roomId))}</div><div>计算服务器</div></td>
           <td class="hw">CPU: 128核 | Intel(R) Xeon (R) Gold 6430 * 2<br>内存: ${s.mem}<br>磁盘: 0.43T${gpuModels(srvCards(si)).map(({model,total})=>`<br>GPU: ${total} 张 | ${esc(model)}`).join('')}</td>
           <td class="use num"><div class="r"><span>CPU</span><span>${s.cpu}%</span></div><div class="b"><i style="width:${Math.max(1,s.cpu)}%"></i></div>
             <div class="r"><span>内存</span><span>${s.memU}%</span></div><div class="b"><i class="hi" style="width:${s.memU}%"></i></div></td>
@@ -645,9 +668,11 @@ function renderServers(){
       <div class="frow" style="justify-content:flex-end;font-size:13px;color:var(--fg-2)">共 ${list.length} 条</div>
     </section>`;
   $('fPool').value=poolFilter;
+  $('fServerRoom').value=serverRoomFilter;
+  $('fServerRoom').onchange=()=>{serverRoomFilter=$('fServerRoom').value;poolFilter='all';searchServer=$('fServer').value.trim();renderServers();};
   $('fSearch').onclick=()=>{ poolFilter=$('fPool').value; searchServer=$('fServer').value.trim(); renderServers(); };
   $('fServer').onkeydown=e=>{ if(e.key==='Enter') $('fSearch').click(); };
-  $('fReset').onclick=()=>{ poolFilter='all'; searchServer=''; renderServers(); };
+  $('fReset').onclick=()=>{ poolFilter='all'; searchServer='';serverRoomFilter='all'; renderServers(); };
   document.querySelectorAll('[data-srv]').forEach(b=>b.onclick=()=>openSrv(+b.dataset.srv));
 }
 let srvCur=0, srvTab='base';
@@ -659,7 +684,7 @@ function renderSrv(){
   $('srvTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{ srvTab=b.dataset.t; renderSrv(); });
   let h='';
   if(srvTab==='base') h=`<div class="kv"><div><span>服务器名称</span><span>${s.name}</span></div><div><span>服务器 ID</span><span class="mono">${s.id}</span></div>
-    <div><span>内网IP</span><span>${s.ip}</span></div><div><span>所属机房</span><span>鲍山机房-高可用</span></div><div><span>服务器类型</span><span>计算服务器</span></div>
+    <div><span>内网IP</span><span>${s.ip}</span></div><div><span>所属机房</span><span>${esc(roomName(s.roomId))}</span></div><div><span>服务器类型</span><span>计算服务器</span></div>
     <div><span>状态</span><span class="tag ok">在线</span></div><div><span>操作系统</span><span>ubuntu 22.04.5 LTS</span></div><div><span>虚拟化平台</span><span>hypervisor</span></div></div>
     <div class="server-group">
       <div class="ph"><h2>资源分组</h2></div>
@@ -683,8 +708,8 @@ function openAdj(si){
   if(s.state==='syncing'||groupBlockReason(si)) return;
   selectedServer=si;
   $('adjTitle').textContent=`设置分组 · ${s.name}`;
-  $('groupCurrent').textContent=`最近生效的分组：${POOL[s.pool]??'未分组'}`;
-  $('groupTarget').innerHTML='<option value="" disabled>请选择分组</option>'+GROUPS.map(group=>`<option value="${group.id}">${esc(group.name)}</option>`).join('');
+  $('groupCurrent').textContent=`${roomName(s.roomId)} · 最近生效的分组：${POOL[s.pool]??'未分组'}`;
+  $('groupTarget').innerHTML='<option value="" disabled>请选择分组</option>'+GROUPS.filter(group=>group.roomId===s.roomId).map(group=>`<option value="${group.id}">${esc(group.name)}</option>`).join('');
   $('groupTarget').value=s.target??s.pool??'';
   updateGroupForm();
   $('adjDialog').showModal();
@@ -692,7 +717,8 @@ function openAdj(si){
 function updateGroupForm(){
   const si=selectedServer, s=SERVERS[si], target=$('groupTarget').value;
   const failed=s.state==='failed';
-  const changed=Boolean(target)&&target!==s.pool;
+  const validGroup=GROUPS.some(group=>group.id===target&&group.roomId===s.roomId);
+  const changed=validGroup&&target!==s.pool;
   const blocked=groupBlockReason(si);
   const capacityNote=changed&&s.pool==='course'?'请在保存前人工确认剩余课表容量。':'';
   $('groupTarget').disabled=failed;
@@ -724,7 +750,7 @@ async function replaceServerLabel(si,target){
 async function startSync(si,target,{quiet=false,unassignedOnly=false}={}){
   const s=SERVERS[si];
   // 实际接入前须确认宿主机已退出新分配，且在途请求不会再落到该宿主机。
-  if(s.state==='syncing'||!GROUPS.some(group=>group.id===target)||target===s.pool||groupBlockReason(si)||(unassignedOnly&&s.pool)) return false;
+  if(s.state==='syncing'||!GROUPS.some(group=>group.id===target&&group.roomId===s.roomId)||target===s.pool||groupBlockReason(si)||(unassignedOnly&&s.pool)) return false;
   s.target=target;
   s.state='syncing';
   render();
@@ -771,8 +797,12 @@ function render(){
 }
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>go(b.dataset.v));
 function route(){
-  const hash=location.hash.slice(1);
+  const [hash,search='']=location.hash.slice(1).split('?');
+  const params=new URLSearchParams(search);
+  if(hash==='groups'&&params.has('room')&&!ROOMS.some(room=>room.id===params.get('room'))){go('rooms');toast('机房不存在，请重新选择。');return;}
   currentGroupId=hash.startsWith('group-')?hash.slice(6):null;
+  const scopedRoom=currentGroupId?GROUPS.find(group=>group.id===currentGroupId)?.roomId:params.get('room');
+  groupRoomFilter=ROOMS.some(room=>room.id===scopedRoom)?scopedRoom:'all';
   view=hash==='rooms'?'rooms':hash==='groups'||currentGroupId?'groups':'servers';
   if(!['rooms','servers','groups'].includes(hash)&&!currentGroupId) history.replaceState(null,'','#'+view);
   render();
