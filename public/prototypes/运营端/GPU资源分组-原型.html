@@ -172,23 +172,14 @@ input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px;flex:non
 .resource-group-name{display:block;max-width:212px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:500;line-height:22px;color:var(--fg)}
 .resource-group-room{display:block;color:var(--fg-3);font-size:12px;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .resource-group.unassigned .resource-group-name{color:var(--fg-3);font-weight:400}
-.resource-group-billing{display:flex;flex-wrap:wrap;align-items:center;gap:0 5px;color:var(--fg-3);font-size:12px;line-height:20px;min-height:20px}
-.resource-group-billing span{white-space:nowrap}
-.resource-group-billing span+span:before{content:'·';margin-right:5px}
 .resource-group-sync{font-size:12px;line-height:20px;color:var(--fg-3)}
 .resource-group-sync.failed{color:var(--err)}
 .group-identity{min-width:180px;max-width:260px}
 .group-identity strong{display:block;font-weight:600;overflow-wrap:anywhere}
 .server-group{border-top:1px solid var(--line);padding-top:16px;margin-top:18px}
 .filters input::placeholder{color:var(--fg-3)}
-.group-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
-.group-card{border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:grid;gap:5px}
-.group-card .tag{justify-self:start}
-.group-card strong{font-weight:600;font-size:16px}
-.group-card small{color:var(--fg-2);font-size:12px}
 @media (max-width:960px){.nav{display:none}.main{padding:12px}}
 @media (max-width:560px){.db,.dh,.df{padding-left:16px;padding-right:16px}}
-@media (max-width:460px){.group-summary{grid-template-columns:1fr}}
 </style>
 
 </head>
@@ -319,7 +310,6 @@ const SERVERS = UUIDS.map((u,i)=>({name:'cp-worker'+(i+1), ip:'192.0.2.'+(21+i),
   pool:i<6?'course':(i===7||i===8)?'payg':null, target:null, state:'active', retainedBindings:0, cpuOnlyRunning:0}));
 const IDX = SERVERS.map((s,i)=>i);
 
-const COURSE_PEAK = 46;
 const DEFAULT_GPU_MODEL = 'GeForce RTX 4090';
 // 默认直接展示多型号演示设备，无须通过链接参数启用；single 仅供单型号对照。
 const demoGpuModels = new URLSearchParams(location.search).get('gpu-demo')==='single'
@@ -371,7 +361,6 @@ function stats(pool){
   const gpu=cards.filter(c=>servers.includes(c.s));
   return {servers:servers.length,total:gpu.length,
     busy:gpu.filter(c=>c.st==='busy').length,idle:gpu.filter(c=>c.st==='idle').length,
-    unloading:gpu.filter(c=>c.st==='unload').length,fault:gpu.filter(c=>c.st==='fault').length,
     bound:servers.reduce((sum,si)=>sum+srvBound(si),0),models:gpuModels(gpu)};
 }
 function srvTags(si){
@@ -382,10 +371,9 @@ function srvTags(si){
 function serverGroupCell(si){
   const s=SERVERS[si], group=GROUPS.find(group=>group.id===s.pool);
   const name=group?.name??'未分组';
-  const billing=group?group.billing.map(key=>`<span>${BILLING[key]}</span>`).join(''):'';
   const status=srvOk(s)?'':`<div class="resource-group-sync ${s.state}" title="目标分组：${esc(POOL[s.target])}">${STATE[s.state]}</div>`;
   return `<div class="resource-group${group?'':' unassigned'}">
-    <div class="resource-group-content"><span class="resource-group-name" title="${esc(name)}">${esc(name)}</span><span class="resource-group-room" title="所属机房：${esc(roomName(s.roomId))}">机房：${esc(roomName(s.roomId))}</span><div class="resource-group-billing">${billing}</div>${status}</div></div>`;
+    <div class="resource-group-content"><span class="resource-group-room" title="${esc(roomName(s.roomId))}">${esc(roomName(s.roomId))}</span><span class="resource-group-name" title="${esc(roomName(s.roomId))} · ${esc(name)}">${esc(name)}</span>${status}</div></div>`;
 }
 
 /* ---------- 导航 ---------- */
@@ -461,18 +449,6 @@ function renderRooms(){
     </section>`;
 }
 
-function groupCard(group){
-  const capacity=stats(group);
-  const record=GROUPS.find(item=>item.id===group);
-  const modelBreakdown=capacity.models.map(({model,total,idle})=>
-    `<small>${esc(model)} · 总量 ${total} 张 · 空闲 ${idle} 张</small>`).join('');
-  return `<div class="group-card"><span class="tag ${groupColor(group)}">${esc(POOL[group])}</span>
-    <small>所属机房：${esc(roomName(record.roomId))}</small>
-    <strong>${capacity.servers} 台服务器 · ${capacity.total} 张 GPU 总量</strong>
-    <small>当前占用 ${capacity.busy} 张 · 当前空闲 ${capacity.idle} 张 · 绑定实例 ${capacity.bound}</small>
-    <small>${esc(POOL_FOR[group])}${group==='course'?` · RTX 4090 课表需求 ${COURSE_PEAK} 张`:''}</small>
-    ${modelBreakdown}</div>`;
-}
 function groupActions(si){
   const {state}=SERVERS[si];
   if(state==='syncing') return '';
@@ -482,7 +458,7 @@ function gpuTable(si){
   const server=SERVERS[si];
   return `<table><tr><th>GPU</th><th>型号</th><th>设备标识</th><th>状态</th><th>占用云电脑</th></tr>
     ${srvCards(si).map(c=>`<tr><td>GPU${c.g}</td><td>${esc(c.model)}</td><td class="mono">${c.pci}</td>
-      <td>${c.st==='fault'?'<span class="tag err">故障</span>':c.st==='unload'?'<span class="tag warn">卸卡中</span>':c.st==='busy'?'使用中':server.pool&&srvOk(server)?'<span class="tag ok">空闲</span>':'<span class="tag gray">空闲 · 不参与新建调度</span>'}</td>
+      <td>${c.st!=='idle'&&c.st!=='busy'?'<span class="muted">—</span>':c.st==='busy'?'使用中':server.pool&&srvOk(server)?'<span class="tag ok">空闲</span>':'<span class="tag gray">空闲 · 不参与新建调度</span>'}</td>
       <td>${c.inst?esc(c.inst):'<span class="muted">—</span>'}</td></tr>`).join('')}</table>`;
 }
 
@@ -497,7 +473,7 @@ function renderGroups(){
         <thead><tr><th>分组名称</th><th>所属机房</th><th>新建 VM 适用付费方式</th><th>服务器数量</th><th>GPU 总量 / 空闲卡数</th><th>操作</th></tr></thead>
         <tbody>${groups.map(group=>{const capacity=stats(group.id);return `<tr>
           <td class="group-identity"><strong>${esc(group.name)}</strong></td><td>${esc(roomName(group.roomId))}</td><td><div class="group-billings">${billingTags(group)}</div></td>
-          <td class="num">${capacity.servers} 台</td><td>${capacity.models.map(model=>`<div>${esc(model.model)} · 总量 ${model.total} 张<span class="muted">（空闲 ${model.idle} 张）</span></div>`).join('')||'<span class="muted">—</span>'}${capacity.total?`<div class="muted" style="margin-top:4px">占用 ${capacity.busy} · 空闲 ${capacity.idle}${capacity.unloading?' · 卸载中 '+capacity.unloading:''}${capacity.fault?' · 故障 '+capacity.fault:''}</div>`:''}</td>
+          <td class="num">${capacity.servers} 台</td><td>${capacity.models.map(model=>`<div>${esc(model.model)} · 总量 ${model.total} 张<span class="muted">（空闲 ${model.idle} 张）</span></div>`).join('')||'<span class="muted">—</span>'}${capacity.total?`<div class="muted" style="margin-top:4px">占用 ${capacity.busy} · 空闲 ${capacity.idle}</div>`:''}</td>
           <td><div class="ops"><button class="link" data-go="group-${group.id}">查看节点</button><button class="link" data-add-nodes="${group.id}">添加节点</button></div></td>
         </tr>`;}).join('')||'<tr><td colspan="6" class="muted" style="text-align:center;padding:36px">当前机房暂无资源分组</td></tr>'}</tbody></table></div>
       <div class="frow" style="justify-content:space-between"><a class="link" href="GPU资源分组-流程图.md" download>下载规则与流程图</a><span class="muted">共 ${groups.length} 个分组</span></div>
@@ -513,7 +489,7 @@ function renderGroupDetail(){
   const nodes=IDX.filter(si=>SERVERS[si].roomId===group.roomId&&(SERVERS[si].pool===group.id||(SERVERS[si].state!=='active'&&SERVERS[si].target===group.id)));
   $('main').innerHTML=`<div class="crumb"><button data-go="rooms">机房管理</button>/<span>${esc(roomName(group.roomId))}</span>/<button data-go="${groupsRoute(group.roomId)}">资源分组</button>/<b>${esc(group.name)}</b></div>
     <section class="panel"><div class="ph"><div><h2>${esc(group.name)}</h2><p>所属机房：${esc(roomName(group.roomId))}</p><div class="group-billings" style="margin-top:10px">${billingTags(group)}</div></div><button class="btn primary" data-add-nodes="${group.id}">＋ 添加节点</button></div>
-      <div class="group-overview"><span><b>${capacity.servers}</b>台服务器</span><span><b>${capacity.total}</b>张 GPU 总量</span><span><b>${capacity.busy}</b>张当前占用</span><span><b>${capacity.idle}</b>张当前空闲</span><span><b>${capacity.bound}</b>个绑定实例</span>${capacity.unloading?`<span><b>${capacity.unloading}</b>张卸载中</span>`:''}${capacity.fault?`<span><b>${capacity.fault}</b>张故障</span>`:''}</div>
+      <div class="group-overview"><span><b>${capacity.servers}</b>台服务器</span><span><b>${capacity.total}</b>张 GPU 总量</span><span><b>${capacity.busy}</b>张当前占用</span><span><b>${capacity.idle}</b>张当前空闲</span><span><b>${capacity.bound}</b>个绑定实例</span></div>
       <p class="hint" style="margin-top:12px">当前空闲仅为实时状态。存量实例后续仍可申请本机资源，教学保障容量需另行人工确认。</p>
     </section>
     <section class="panel"><div class="ph"><h2>服务器节点</h2></div><div class="tbl-wrap"><table>
@@ -643,11 +619,6 @@ function renderServers(){
     return matchesGroup && (serverRoomFilter==='all'||s.roomId===serverRoomFilter) && [s.name,s.id].some(value=>value.toLowerCase().includes(searchServer.toLowerCase())); });
   $('main').innerHTML=`
     <div class="crumb"><span>云电脑管理</span>/<b>服务器管理</b></div>
-    <section class="panel" aria-labelledby="groupSummaryTitle">
-      <div class="ph"><div><h2 id="groupSummaryTitle">服务器资源分组</h2><p>允许带存量实例设置分组。仅影响后续新建 VM，现有实例的运行与本机开机逻辑保持不变。</p></div>
-      </div>
-      <div class="group-summary">${GROUPS.filter(group=>serverRoomFilter==='all'||group.roomId===serverRoomFilter).map(group=>groupCard(group.id)).join('')}</div>
-    </section>
     <section class="panel">
       <div class="filters server-filters">
         <div><label for="fServer">搜索</label><input id="fServer" class="fake" type="search" value="${esc(searchServer)}" placeholder="搜索服务器名称、ID"></div>
