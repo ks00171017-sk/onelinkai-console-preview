@@ -170,6 +170,7 @@ input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px;flex:non
 .resource-group{max-width:212px}
 .resource-group-content{min-width:0;flex:1}
 .resource-group-name{display:block;max-width:212px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:500;line-height:22px;color:var(--fg)}
+.resource-group-room{display:block;color:var(--fg-3);font-size:12px;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .resource-group.unassigned .resource-group-name{color:var(--fg-3);font-weight:400}
 .resource-group-billing{display:flex;flex-wrap:wrap;align-items:center;gap:0 5px;color:var(--fg-3);font-size:12px;line-height:20px;min-height:20px}
 .resource-group-billing span{white-space:nowrap}
@@ -178,7 +179,6 @@ input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px;flex:non
 .resource-group-sync.failed{color:var(--err)}
 .group-identity{min-width:180px;max-width:260px}
 .group-identity strong{display:block;font-weight:600;overflow-wrap:anywhere}
-.group-id{display:block;margin-top:4px;color:var(--fg-3);font-family:var(--mono);font-size:11.5px;line-height:18px;overflow-wrap:anywhere}
 .server-group{border-top:1px solid var(--line);padding-top:16px;margin-top:18px}
 .filters input::placeholder{color:var(--fg-3)}
 .group-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
@@ -252,11 +252,8 @@ input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px;flex:non
         <input id="newGroupName" class="field-input" placeholder="请输入分组名称" minlength="2" maxlength="128" autocomplete="off" aria-describedby="groupNameHint" required>
         <p class="hint" id="groupNameHint">2–128 个字符，支持中文、英文字母、数字和连字符（-）；须以中文或英文字母开头，不能以连字符结尾。中文名称由后端按拼音或拼音首字母转换。</p></div>
       <div class="form-field"><span id="billingLabel">关联付费方式 <span style="color:var(--err)">*</span></span>
-        <div class="choices" role="group" aria-labelledby="billingLabel">
-          <label><input type="checkbox" name="billing" value="course">按课表付费</label>
-          <label><input type="checkbox" name="billing" value="timer">计时付费</label>
-          <label><input type="checkbox" name="billing" value="period">包周期付费</label>
-        </div>
+        <div class="choices" id="billingChoices" role="group" aria-labelledby="billingLabel"></div>
+        <p class="hint" id="billingAvailability" role="status" hidden></p>
       </div>
       <p id="createError" class="form-error" role="alert" hidden></p>
     </div>
@@ -358,11 +355,11 @@ function gpuModels(devices){
     const server=SERVERS[card.s];
     const group=srvOk(server)?server.pool??'unassigned':'pending';
     if(!models.has(card.model)){
-      models.set(card.model,{model:card.model,total:0,healthy:0,unassigned:0,pending:0,byGroup:{}});
+      models.set(card.model,{model:card.model,total:0,idle:0,unassigned:0,pending:0,byGroup:{}});
     }
     const counts=models.get(card.model);
     counts.total++;
-    if(card.st!=='fault') counts.healthy++;
+    if(card.st==='idle') counts.idle++;
     if(group==='unassigned'||group==='pending') counts[group]++;
     else counts.byGroup[group]=(counts.byGroup[group]??0)+1;
   }
@@ -372,7 +369,7 @@ function stats(pool){
   const group=GROUPS.find(group=>group.id===pool);
   const servers=IDX.filter(si=>SERVERS[si].pool===pool&&SERVERS[si].roomId===group?.roomId&&srvOk(SERVERS[si]));
   const gpu=cards.filter(c=>servers.includes(c.s));
-  return {servers:servers.length,total:gpu.length,healthy:gpu.filter(c=>c.st!=='fault').length,
+  return {servers:servers.length,total:gpu.length,
     busy:gpu.filter(c=>c.st==='busy').length,idle:gpu.filter(c=>c.st==='idle').length,
     unloading:gpu.filter(c=>c.st==='unload').length,fault:gpu.filter(c=>c.st==='fault').length,
     bound:servers.reduce((sum,si)=>sum+srvBound(si),0),models:gpuModels(gpu)};
@@ -388,7 +385,7 @@ function serverGroupCell(si){
   const billing=group?group.billing.map(key=>`<span>${BILLING[key]}</span>`).join(''):'';
   const status=srvOk(s)?'':`<div class="resource-group-sync ${s.state}" title="目标分组：${esc(POOL[s.target])}">${STATE[s.state]}</div>`;
   return `<div class="resource-group${group?'':' unassigned'}">
-    <div class="resource-group-content"><span class="resource-group-name" title="${esc(name)}">${esc(name)}</span><div class="resource-group-billing">${billing}</div>${status}</div></div>`;
+    <div class="resource-group-content"><span class="resource-group-name" title="${esc(name)}">${esc(name)}</span><span class="resource-group-room" title="所属机房：${esc(roomName(s.roomId))}">机房：${esc(roomName(s.roomId))}</span><div class="resource-group-billing">${billing}</div>${status}</div></div>`;
 }
 
 /* ---------- 导航 ---------- */
@@ -425,6 +422,7 @@ function renderRoomGpus(models, expanded, roomId){
     const pending=counts.pending?`<div class="pool-line"><span class="tag gray num">分组待确认 ${counts.pending} 张</span></div>`:'';
     return `<div class="gpu-model">
       <div class="gpu-model-name"><strong>${esc(counts.model)}</strong><span class="num">${counts.total} 张</span></div>
+      <div class="num" style="font-size:12px;color:var(--ok);margin-top:3px">空闲 GPU：${counts.idle} 张</div>
       <div class="pools-sum">${tags}${unassigned}${pending}</div>
     </div>`;
   };
@@ -466,10 +464,10 @@ function renderRooms(){
 function groupCard(group){
   const capacity=stats(group);
   const record=GROUPS.find(item=>item.id===group);
-  const modelBreakdown=capacity.models.map(({model,total,healthy})=>
-    `<small>${esc(model)} · ${total} 张${healthy<total?` · 健康 ${healthy} 张`:''}</small>`).join('');
+  const modelBreakdown=capacity.models.map(({model,total,idle})=>
+    `<small>${esc(model)} · 总量 ${total} 张 · 空闲 ${idle} 张</small>`).join('');
   return `<div class="group-card"><span class="tag ${groupColor(group)}">${esc(POOL[group])}</span>
-    <small>${esc(roomName(record.roomId))}</small>
+    <small>所属机房：${esc(roomName(record.roomId))}</small>
     <strong>${capacity.servers} 台服务器 · ${capacity.total} 张 GPU 总量</strong>
     <small>当前占用 ${capacity.busy} 张 · 当前空闲 ${capacity.idle} 张 · 绑定实例 ${capacity.bound}</small>
     <small>${esc(POOL_FOR[group])}${group==='course'?` · RTX 4090 课表需求 ${COURSE_PEAK} 张`:''}</small>
@@ -478,7 +476,7 @@ function groupCard(group){
 function groupActions(si){
   const {state}=SERVERS[si];
   if(state==='syncing') return '';
-  return `<button class="link" data-set-group="${si}">设置分组</button>`;
+  return `<button class="link" data-set-group="${si}"${srvBound(si)>0?' title="仍有实例绑定"':''}>设置分组</button>`;
 }
 function gpuTable(si){
   const server=SERVERS[si];
@@ -496,10 +494,10 @@ function renderGroups(){
       <div class="ph"><div><h2>资源分组</h2><p>分组仅决定后续新建 VM 的调度范围；GPU 总量不代表已完成教学容量预留。</p></div><button class="btn primary" id="createGroup">＋ 创建分组</button></div>
       <div class="filters" style="max-width:340px;margin-bottom:18px"><div><label for="fGroupRoom">所属机房</label><select id="fGroupRoom">${roomOptions()}</select></div></div>
       <div class="tbl-wrap"><table>
-        <thead><tr><th>分组名称 / ID</th><th>所属机房</th><th>新建 VM 适用付费方式</th><th>服务器数量</th><th>GPU 总量 / 当前使用</th><th>操作</th></tr></thead>
+        <thead><tr><th>分组名称</th><th>所属机房</th><th>新建 VM 适用付费方式</th><th>服务器数量</th><th>GPU 总量 / 空闲卡数</th><th>操作</th></tr></thead>
         <tbody>${groups.map(group=>{const capacity=stats(group.id);return `<tr>
-          <td class="group-identity"><strong>${esc(group.name)}</strong><span class="group-id">ID：${esc(group.id)}</span></td><td>${esc(roomName(group.roomId))}</td><td><div class="group-billings">${billingTags(group)}</div></td>
-          <td class="num">${capacity.servers} 台</td><td>${capacity.models.map(model=>`<div>${esc(model.model)} · 总量 ${model.total} 张${model.healthy<model.total?`<span class="muted">（健康 ${model.healthy} 张）</span>`:''}</div>`).join('')||'<span class="muted">—</span>'}${capacity.total?`<div class="muted" style="margin-top:4px">占用 ${capacity.busy} · 空闲 ${capacity.idle}${capacity.unloading?' · 卸载中 '+capacity.unloading:''}${capacity.fault?' · 故障 '+capacity.fault:''}</div>`:''}</td>
+          <td class="group-identity"><strong>${esc(group.name)}</strong></td><td>${esc(roomName(group.roomId))}</td><td><div class="group-billings">${billingTags(group)}</div></td>
+          <td class="num">${capacity.servers} 台</td><td>${capacity.models.map(model=>`<div>${esc(model.model)} · 总量 ${model.total} 张<span class="muted">（空闲 ${model.idle} 张）</span></div>`).join('')||'<span class="muted">—</span>'}${capacity.total?`<div class="muted" style="margin-top:4px">占用 ${capacity.busy} · 空闲 ${capacity.idle}${capacity.unloading?' · 卸载中 '+capacity.unloading:''}${capacity.fault?' · 故障 '+capacity.fault:''}</div>`:''}</td>
           <td><div class="ops"><button class="link" data-go="group-${group.id}">查看节点</button><button class="link" data-add-nodes="${group.id}">添加节点</button></div></td>
         </tr>`;}).join('')||'<tr><td colspan="6" class="muted" style="text-align:center;padding:36px">当前机房暂无资源分组</td></tr>'}</tbody></table></div>
       <div class="frow" style="justify-content:space-between"><a class="link" href="GPU资源分组-流程图.md" download>下载规则与流程图</a><span class="muted">共 ${groups.length} 个分组</span></div>
@@ -514,7 +512,7 @@ function renderGroupDetail(){
   const capacity=stats(group.id);
   const nodes=IDX.filter(si=>SERVERS[si].roomId===group.roomId&&(SERVERS[si].pool===group.id||(SERVERS[si].state!=='active'&&SERVERS[si].target===group.id)));
   $('main').innerHTML=`<div class="crumb"><button data-go="rooms">机房管理</button>/<span>${esc(roomName(group.roomId))}</span>/<button data-go="${groupsRoute(group.roomId)}">资源分组</button>/<b>${esc(group.name)}</b></div>
-    <section class="panel"><div class="ph"><div><h2>${esc(group.name)}</h2><span class="group-id">ID：${esc(group.id)}</span><p>所属机房：${esc(roomName(group.roomId))}</p><div class="group-billings" style="margin-top:10px">${billingTags(group)}</div></div><button class="btn primary" data-add-nodes="${group.id}">＋ 添加节点</button></div>
+    <section class="panel"><div class="ph"><div><h2>${esc(group.name)}</h2><p>所属机房：${esc(roomName(group.roomId))}</p><div class="group-billings" style="margin-top:10px">${billingTags(group)}</div></div><button class="btn primary" data-add-nodes="${group.id}">＋ 添加节点</button></div>
       <div class="group-overview"><span><b>${capacity.servers}</b>台服务器</span><span><b>${capacity.total}</b>张 GPU 总量</span><span><b>${capacity.busy}</b>张当前占用</span><span><b>${capacity.idle}</b>张当前空闲</span><span><b>${capacity.bound}</b>个绑定实例</span>${capacity.unloading?`<span><b>${capacity.unloading}</b>张卸载中</span>`:''}${capacity.fault?`<span><b>${capacity.fault}</b>张故障</span>`:''}</div>
       <p class="hint" style="margin-top:12px">当前空闲仅为实时状态。存量实例后续仍可申请本机资源，教学保障容量需另行人工确认。</p>
     </section>
@@ -529,11 +527,23 @@ function openCreateGroup(){
   $('createForm').reset();
   $('newGroupRoom').innerHTML=roomOptions('请选择机房');
   $('newGroupRoom').value=groupRoomFilter==='all'?'':groupRoomFilter;
+  renderBillingChoices();
   $('createError').hidden=true;
   $('newGroupName').setAttribute('aria-invalid','false');
   $('createDialog').showModal();
   ($('newGroupRoom').value?$('newGroupName'):$('newGroupRoom')).focus();
 }
+function availableBilling(roomId){
+  if(!ROOMS.some(room=>room.id===roomId)) return [];
+  return Object.keys(BILLING).filter(key=>!GROUPS.some(group=>group.roomId===roomId&&group.billing.includes(key)));
+}
+function renderBillingChoices(){
+  const roomId=$('newGroupRoom').value,available=availableBilling(roomId);
+  $('billingChoices').innerHTML=available.map(key=>`<label><input type="checkbox" name="billing" value="${key}">${BILLING[key]}</label>`).join('');
+  $('billingAvailability').hidden=available.length>0;
+  $('billingAvailability').textContent=roomId?'当前机房的付费方式已全部关联分组，无法再创建分组。':'请先选择所属机房。';
+}
+$('newGroupRoom').onchange=()=>{renderBillingChoices();$('createError').hidden=true;};
 function validateGroupName(name){
   if(!name) return '请输入分组名称。';
   if([...name].length<2||[...name].length>128) return '分组名称须为 2–128 个字符。';
@@ -551,11 +561,13 @@ $('createForm').onsubmit=e=>{
   const billing=[...$('createForm').querySelectorAll('input[name="billing"]:checked')].map(input=>input.value);
   const nameError=validateGroupName(name);
   const duplicate=GROUPS.some(group=>group.roomId===roomId&&group.name.toLowerCase()===name.toLowerCase());
-  const error=!roomValid?'请先选择所属机房。':nameError||(duplicate?'当前机房内分组名称已存在，请使用其他名称。':!billing.length?'请至少选择一种付费方式。':'');
+  const conflict=billing.find(key=>!availableBilling(roomId).includes(key));
+  const error=!roomValid?'请先选择所属机房。':!availableBilling(roomId).length?'当前机房的付费方式已全部关联分组，无法再创建分组。':nameError||(duplicate?'当前机房内分组名称已存在，请使用其他名称。':conflict?'所选付费方式已被其他分组关联，请重新选择。':!billing.length?'请至少选择一种付费方式。':'');
+  if(conflict) renderBillingChoices();
   $('createError').textContent=error;
   $('createError').hidden=!error;
   $('newGroupName').setAttribute('aria-invalid',String(!!nameError||duplicate));
-  if(error){(!roomValid?$('newGroupRoom'):nameError||duplicate?$('newGroupName'):$('createForm').querySelector('input[name="billing"]')).focus();return;}
+  if(error){(!roomValid?$('newGroupRoom'):nameError||duplicate?$('newGroupName'):$('createForm').querySelector('input[name="billing"]')??$('newGroupRoom')).focus();return;}
   const group={id:'rg-'+crypto.randomUUID(),name,roomId,billing};
   GROUPS.push(group);
   registerGroup(group);
@@ -633,7 +645,6 @@ function renderServers(){
     <div class="crumb"><span>云电脑管理</span>/<b>服务器管理</b></div>
     <section class="panel" aria-labelledby="groupSummaryTitle">
       <div class="ph"><div><h2 id="groupSummaryTitle">服务器资源分组</h2><p>允许带存量实例设置分组。仅影响后续新建 VM，现有实例的运行与本机开机逻辑保持不变。</p></div>
-        <button class="link" data-go="${groupsRoute(serverRoomFilter)}">管理资源分组</button>
       </div>
       <div class="group-summary">${GROUPS.filter(group=>serverRoomFilter==='all'||group.roomId===serverRoomFilter).map(group=>groupCard(group.id)).join('')}</div>
     </section>
