@@ -165,9 +165,7 @@ input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px;flex:non
 @media(max-width:760px){.server-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:430px){.server-filters{grid-template-columns:minmax(0,1fr)}}
 .server-ops{display:flex;flex-wrap:nowrap;gap:14px;align-items:flex-start;min-width:176px}
-.group-action{display:flex;flex-direction:column;align-items:flex-start;gap:5px}
 .server-ops button:disabled,.server-group button:disabled{opacity:.5;cursor:not-allowed}
-.group-block-reason{color:var(--fg-3);font-size:12px;line-height:18px;white-space:nowrap}
 .resource-group-cell{min-width:190px;width:212px}
 .resource-group{max-width:212px}
 .resource-group-content{min-width:0;flex:1}
@@ -272,7 +270,7 @@ input[type=checkbox]{accent-color:var(--primary);width:16px;height:16px;flex:non
     <div class="db" style="gap:14px">
       <p class="group-current" id="nodeGroupName"></p>
       <div class="node-tools"><input class="field-input" id="nodeSearch" type="search" aria-label="搜索可添加服务器" placeholder="搜索服务器名称、ID"><span class="muted num" id="nodeCount"></span></div>
-      <p class="hint">仅显示当前机房内无实例绑定、GPU 已卸载且未归组的服务器。</p>
+      <p class="hint">仅显示当前机房内未归组的服务器，允许添加已有实例或 GPU 正在使用的服务器。分组仅影响后续新建 VM。</p>
       <div class="tbl-wrap" id="nodeCandidates"></div>
       <p id="nodesError" class="form-error" role="alert" hidden></p>
     </div>
@@ -353,11 +351,6 @@ const STATE = {active:'已生效', syncing:'同步中', failed:'同步失败'};
 const srvCards=si=>cards.filter(c=>c.s===si);
 const srvRun=si=>srvCards(si).filter(c=>c.st==='busy').length+SERVERS[si].cpuOnlyRunning;
 const srvBound=si=>srvRun(si)+SERVERS[si].retainedBindings;
-function groupBlockReason(si){
-  if(srvBound(si)>0) return '仍有实例绑定';
-  if(srvCards(si).some(c=>c.st==='unload')) return 'GPU 卸载中';
-  return '';
-}
 const srvOk=s=>s.state==='active';
 function gpuModels(devices){
   const models=new Map();
@@ -379,7 +372,10 @@ function stats(pool){
   const group=GROUPS.find(group=>group.id===pool);
   const servers=IDX.filter(si=>SERVERS[si].pool===pool&&SERVERS[si].roomId===group?.roomId&&srvOk(SERVERS[si]));
   const gpu=cards.filter(c=>servers.includes(c.s));
-  return {servers:servers.length,total:gpu.length,healthy:gpu.filter(c=>c.st!=='fault').length,models:gpuModels(gpu)};
+  return {servers:servers.length,total:gpu.length,healthy:gpu.filter(c=>c.st!=='fault').length,
+    busy:gpu.filter(c=>c.st==='busy').length,idle:gpu.filter(c=>c.st==='idle').length,
+    unloading:gpu.filter(c=>c.st==='unload').length,fault:gpu.filter(c=>c.st==='fault').length,
+    bound:servers.reduce((sum,si)=>sum+srvBound(si),0),models:gpuModels(gpu)};
 }
 function srvTags(si){
   const s=SERVERS[si];
@@ -474,23 +470,21 @@ function groupCard(group){
     `<small>${esc(model)} · ${total} 张${healthy<total?` · 健康 ${healthy} 张`:''}</small>`).join('');
   return `<div class="group-card"><span class="tag ${groupColor(group)}">${esc(POOL[group])}</span>
     <small>${esc(roomName(record.roomId))}</small>
-    <strong>${capacity.servers} 台服务器 · ${capacity.total} 张 GPU</strong>
+    <strong>${capacity.servers} 台服务器 · ${capacity.total} 张 GPU 总量</strong>
+    <small>当前占用 ${capacity.busy} 张 · 当前空闲 ${capacity.idle} 张 · 绑定实例 ${capacity.bound}</small>
     <small>${esc(POOL_FOR[group])}${group==='course'?` · RTX 4090 课表需求 ${COURSE_PEAK} 张`:''}</small>
     ${modelBreakdown}</div>`;
 }
 function groupActions(si){
   const {state}=SERVERS[si];
   if(state==='syncing') return '';
-  const blocked=groupBlockReason(si);
-  const disabled=blocked?`disabled aria-describedby="group-reason-${si}"`:'';
-  const button=`<button class="link" data-set-group="${si}" ${disabled}>设置分组</button>`;
-  return `<span class="group-action">${button}${blocked?`<span class="group-block-reason" id="group-reason-${si}">${blocked}</span>`:''}</span>`;
+  return `<button class="link" data-set-group="${si}">设置分组</button>`;
 }
 function gpuTable(si){
   const server=SERVERS[si];
   return `<table><tr><th>GPU</th><th>型号</th><th>设备标识</th><th>状态</th><th>占用云电脑</th></tr>
     ${srvCards(si).map(c=>`<tr><td>GPU${c.g}</td><td>${esc(c.model)}</td><td class="mono">${c.pci}</td>
-      <td>${c.st==='fault'?'<span class="tag err">故障</span>':c.st==='unload'?'<span class="tag warn">卸卡中</span>':c.st==='busy'?'使用中':server.pool&&srvOk(server)?'<span class="tag ok">空闲</span>':'<span class="tag gray">空闲 · 不可调度</span>'}</td>
+      <td>${c.st==='fault'?'<span class="tag err">故障</span>':c.st==='unload'?'<span class="tag warn">卸卡中</span>':c.st==='busy'?'使用中':server.pool&&srvOk(server)?'<span class="tag ok">空闲</span>':'<span class="tag gray">空闲 · 不参与新建调度</span>'}</td>
       <td>${c.inst?esc(c.inst):'<span class="muted">—</span>'}</td></tr>`).join('')}</table>`;
 }
 
@@ -499,13 +493,13 @@ function renderGroups(){
   const groups=GROUPS.filter(group=>groupRoomFilter==='all'||group.roomId===groupRoomFilter);
   $('main').innerHTML=`<div class="crumb"><button data-go="rooms">机房管理</button>/${groupRoomFilter==='all'?'':`<span>${esc(roomName(groupRoomFilter))}</span>/`}<b>资源分组</b></div>
     <section class="panel">
-      <div class="ph"><div><h2>资源分组</h2></div><button class="btn primary" id="createGroup">＋ 创建分组</button></div>
+      <div class="ph"><div><h2>资源分组</h2><p>分组仅决定后续新建 VM 的调度范围；GPU 总量不代表已完成教学容量预留。</p></div><button class="btn primary" id="createGroup">＋ 创建分组</button></div>
       <div class="filters" style="max-width:340px;margin-bottom:18px"><div><label for="fGroupRoom">所属机房</label><select id="fGroupRoom">${roomOptions()}</select></div></div>
       <div class="tbl-wrap"><table>
-        <thead><tr><th>分组名称 / ID</th><th>所属机房</th><th>关联付费方式</th><th>服务器数量</th><th>GPU 资源</th><th>操作</th></tr></thead>
+        <thead><tr><th>分组名称 / ID</th><th>所属机房</th><th>新建 VM 适用付费方式</th><th>服务器数量</th><th>GPU 总量 / 当前使用</th><th>操作</th></tr></thead>
         <tbody>${groups.map(group=>{const capacity=stats(group.id);return `<tr>
           <td class="group-identity"><strong>${esc(group.name)}</strong><span class="group-id">ID：${esc(group.id)}</span></td><td>${esc(roomName(group.roomId))}</td><td><div class="group-billings">${billingTags(group)}</div></td>
-          <td class="num">${capacity.servers} 台</td><td>${capacity.models.map(model=>`<div>${esc(model.model)} · ${model.total} 张${model.healthy<model.total?`<span class="muted">（健康 ${model.healthy} 张）</span>`:''}</div>`).join('')||'<span class="muted">—</span>'}</td>
+          <td class="num">${capacity.servers} 台</td><td>${capacity.models.map(model=>`<div>${esc(model.model)} · 总量 ${model.total} 张${model.healthy<model.total?`<span class="muted">（健康 ${model.healthy} 张）</span>`:''}</div>`).join('')||'<span class="muted">—</span>'}${capacity.total?`<div class="muted" style="margin-top:4px">占用 ${capacity.busy} · 空闲 ${capacity.idle}${capacity.unloading?' · 卸载中 '+capacity.unloading:''}${capacity.fault?' · 故障 '+capacity.fault:''}</div>`:''}</td>
           <td><div class="ops"><button class="link" data-go="group-${group.id}">查看节点</button><button class="link" data-add-nodes="${group.id}">添加节点</button></div></td>
         </tr>`;}).join('')||'<tr><td colspan="6" class="muted" style="text-align:center;padding:36px">当前机房暂无资源分组</td></tr>'}</tbody></table></div>
       <div class="frow" style="justify-content:space-between"><a class="link" href="GPU资源分组-流程图.md" download>下载规则与流程图</a><span class="muted">共 ${groups.length} 个分组</span></div>
@@ -521,7 +515,8 @@ function renderGroupDetail(){
   const nodes=IDX.filter(si=>SERVERS[si].roomId===group.roomId&&(SERVERS[si].pool===group.id||(SERVERS[si].state!=='active'&&SERVERS[si].target===group.id)));
   $('main').innerHTML=`<div class="crumb"><button data-go="rooms">机房管理</button>/<span>${esc(roomName(group.roomId))}</span>/<button data-go="${groupsRoute(group.roomId)}">资源分组</button>/<b>${esc(group.name)}</b></div>
     <section class="panel"><div class="ph"><div><h2>${esc(group.name)}</h2><span class="group-id">ID：${esc(group.id)}</span><p>所属机房：${esc(roomName(group.roomId))}</p><div class="group-billings" style="margin-top:10px">${billingTags(group)}</div></div><button class="btn primary" data-add-nodes="${group.id}">＋ 添加节点</button></div>
-      <div class="group-overview"><span><b>${capacity.servers}</b>台服务器</span><span><b>${capacity.total}</b>张 GPU</span></div>
+      <div class="group-overview"><span><b>${capacity.servers}</b>台服务器</span><span><b>${capacity.total}</b>张 GPU 总量</span><span><b>${capacity.busy}</b>张当前占用</span><span><b>${capacity.idle}</b>张当前空闲</span><span><b>${capacity.bound}</b>个绑定实例</span>${capacity.unloading?`<span><b>${capacity.unloading}</b>张卸载中</span>`:''}${capacity.fault?`<span><b>${capacity.fault}</b>张故障</span>`:''}</div>
+      <p class="hint" style="margin-top:12px">当前空闲仅为实时状态。存量实例后续仍可申请本机资源，教学保障容量需另行人工确认。</p>
     </section>
     <section class="panel"><div class="ph"><h2>服务器节点</h2></div><div class="tbl-wrap"><table>
       <thead><tr><th>服务器名称 / ID</th><th>所属机房</th><th>GPU 资源</th><th>绑定实例</th><th>分组状态</th><th>操作</th></tr></thead>
@@ -570,7 +565,7 @@ $('createForm').onsubmit=e=>{
   toast('资源分组已创建。');
 };
 let nodeGroupId=null, nodeSelected=new Set();
-const canAddNode=(si,groupId=nodeGroupId)=>!!GROUPS.find(group=>group.id===groupId&&group.roomId===SERVERS[si].roomId)&&!SERVERS[si].pool&&srvOk(SERVERS[si])&&!groupBlockReason(si);
+const canAddNode=(si,groupId=nodeGroupId)=>!!GROUPS.find(group=>group.id===groupId&&group.roomId===SERVERS[si].roomId)&&!SERVERS[si].pool&&srvOk(SERVERS[si]);
 function openNodes(groupId){
   if(!GROUPS.some(group=>group.id===groupId)) return;
   nodeGroupId=groupId;
@@ -595,8 +590,8 @@ function renderNodeCandidates(){
   const query=$('nodeSearch').value.trim().toLowerCase();
   const candidates=IDX.filter(si=>canAddNode(si)&&[SERVERS[si].name,SERVERS[si].id].some(value=>value.toLowerCase().includes(query)));
   $('nodeCount').textContent=`${candidates.length} 台可添加`;
-  $('nodeCandidates').innerHTML=`<table><thead><tr><th><input type="checkbox" id="allNodes" aria-label="全选当前搜索结果" ${!candidates.length?'disabled':''}></th><th>服务器名称 / ID</th><th>所属机房</th><th>GPU 资源</th></tr></thead>
-    <tbody>${candidates.map(si=>{const s=SERVERS[si];return `<tr class="node-choice-row"><td><input type="checkbox" data-node="${si}" aria-label="选择 ${s.name}" ${nodeSelected.has(si)?'checked':''}></td><td class="srvinfo"><b>${s.name}</b><div class="mono">${s.id}</div></td><td>${esc(roomName(s.roomId))}</td><td>${gpuModels(srvCards(si)).map(model=>`<div>${esc(model.model)} · ${model.total} 张</div>`).join('')}</td></tr>`;}).join('')||'<tr><td colspan="4" class="muted" style="text-align:center;padding:36px">暂无符合条件的服务器</td></tr>'}</tbody></table>`;
+  $('nodeCandidates').innerHTML=`<table><thead><tr><th><input type="checkbox" id="allNodes" aria-label="全选当前搜索结果" ${!candidates.length?'disabled':''}></th><th>服务器名称 / ID</th><th>所属机房</th><th>GPU 总量</th><th>绑定实例</th><th>当前 GPU 占用</th></tr></thead>
+    <tbody>${candidates.map(si=>{const s=SERVERS[si];return `<tr class="node-choice-row"><td><input type="checkbox" data-node="${si}" aria-label="选择 ${s.name}" ${nodeSelected.has(si)?'checked':''}></td><td class="srvinfo"><b>${s.name}</b><div class="mono">${s.id}</div></td><td>${esc(roomName(s.roomId))}</td><td>${gpuModels(srvCards(si)).map(model=>`<div>${esc(model.model)} · ${model.total} 张</div>`).join('')}</td><td>${srvBound(si)}</td><td>${srvCards(si).filter(card=>card.st==='busy').length} 张</td></tr>`;}).join('')||'<tr><td colspan="6" class="muted" style="text-align:center;padding:36px">暂无符合条件的服务器</td></tr>'}</tbody></table>`;
   $('nodeCandidates').querySelectorAll('[data-node]').forEach(input=>input.onchange=()=>{
     if(input.checked) nodeSelected.add(+input.dataset.node);else nodeSelected.delete(+input.dataset.node);
     updateNodeSelection();
@@ -637,7 +632,7 @@ function renderServers(){
   $('main').innerHTML=`
     <div class="crumb"><span>云电脑管理</span>/<b>服务器管理</b></div>
     <section class="panel" aria-labelledby="groupSummaryTitle">
-      <div class="ph"><div><h2 id="groupSummaryTitle">服务器资源分组</h2><p>首次纳管的服务器默认未分组。实例绑定为 0 且 GPU 已卸载时可设置分组。</p></div>
+      <div class="ph"><div><h2 id="groupSummaryTitle">服务器资源分组</h2><p>允许带存量实例设置分组。仅影响后续新建 VM，现有实例的运行与本机开机逻辑保持不变。</p></div>
         <button class="link" data-go="${groupsRoute(serverRoomFilter)}">管理资源分组</button>
       </div>
       <div class="group-summary">${GROUPS.filter(group=>serverRoomFilter==='all'||group.roomId===serverRoomFilter).map(group=>groupCard(group.id)).join('')}</div>
@@ -705,7 +700,7 @@ function renderSrv(){
 let selectedServer=null;
 function openAdj(si){
   const s=SERVERS[si];
-  if(s.state==='syncing'||groupBlockReason(si)) return;
+  if(s.state==='syncing') return;
   selectedServer=si;
   $('adjTitle').textContent=`设置分组 · ${s.name}`;
   $('groupCurrent').textContent=`${roomName(s.roomId)} · 最近生效的分组：${POOL[s.pool]??'未分组'}`;
@@ -719,17 +714,17 @@ function updateGroupForm(){
   const failed=s.state==='failed';
   const validGroup=GROUPS.some(group=>group.id===target&&group.roomId===s.roomId);
   const changed=validGroup&&target!==s.pool;
-  const blocked=groupBlockReason(si);
   const capacityNote=changed&&s.pool==='course'?'请在保存前人工确认剩余课表容量。':'';
   $('groupTarget').disabled=failed;
   $('groupPurchase').textContent=POOL_FOR[target]??'—';
   const status=$('groupStatus');
-  status.hidden=!changed&&!blocked&&!failed;
-  status.dataset.tone=blocked?'warn':failed?'error':'info';
-  if(blocked) status.textContent=`${blocked}，请在服务器空闲后重新设置分组。`;
-  else if(failed) status.textContent=capacityNote+'上次同步未确认，保存后重新同步目标分组。';
-  else status.textContent=capacityNote+'保存后同步整台服务器的调度标签。';
-  $('adjOk').disabled=!changed||s.state==='syncing'||!!blocked;
+  const bound=srvBound(si),busy=srvCards(si).filter(card=>card.st==='busy').length;
+  status.hidden=!changed&&!failed;
+  status.dataset.tone=failed?'error':bound?'warn':'info';
+  const effect='仅影响后续新建 VM；存量实例保留原绑定与运行状态，之后仍在原服务器开机。';
+  const stock=bound?`当前绑定 ${bound} 个实例、占用 ${busy} 张 GPU。分组生效不代表整机教学容量已预留，请人工确认。`:'';
+  status.textContent=capacityNote+(failed?'上次同步未确认，保存后重新同步目标分组。':'')+effect+stock;
+  $('adjOk').disabled=!changed||s.state==='syncing';
 }
 $('groupTarget').onchange=updateGroupForm;
 $('adjClose').onclick=()=>$('adjDialog').close();
@@ -749,8 +744,8 @@ async function replaceServerLabel(si,target){
 }
 async function startSync(si,target,{quiet=false,unassignedOnly=false}={}){
   const s=SERVERS[si];
-  // 实际接入前须确认宿主机已退出新分配，且在途请求不会再落到该宿主机。
-  if(s.state==='syncing'||!GROUPS.some(group=>group.id===target&&group.roomId===s.roomId)||target===s.pool||groupBlockReason(si)||(unassignedOnly&&s.pool)) return false;
+  // 仅变更新建 VM 的调度归属；不得修改存量 VM、GPU 占用或原服务器绑定。
+  if(s.state==='syncing'||!GROUPS.some(group=>group.id===target&&group.roomId===s.roomId)||target===s.pool||(unassignedOnly&&s.pool)) return false;
   s.target=target;
   s.state='syncing';
   render();
