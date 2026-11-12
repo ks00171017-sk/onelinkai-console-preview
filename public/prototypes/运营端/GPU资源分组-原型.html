@@ -92,9 +92,12 @@ button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-vis
 .tag.err{background:var(--err-soft);color:var(--err)}
 .tag.gray{background:var(--surface-2);color:var(--fg-2)}
 .lbl{font-family:var(--mono);font-size:12px;padding:2px 7px;border-radius:4px;background:var(--surface-2);border:1px solid var(--line);white-space:nowrap;color:var(--fg)}
-.pools-sum{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
-.pools-sum .pool-line{display:flex;gap:6px;flex-wrap:wrap;flex-basis:100%}
-.room-gpus{min-width:230px}
+.pools-sum{display:grid;gap:6px;margin-top:6px}
+.pool-gpu-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:10px;font-size:12px}
+.pool-gpu-row .tag{justify-self:start;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.pool-gpu-total{color:var(--fg-2);white-space:nowrap}
+.pool-gpu-idle{color:var(--ok);white-space:nowrap;min-width:68px;text-align:right}
+.room-gpus{min-width:310px}
 .gpu-model{padding:8px 0}
 .gpu-model+.gpu-model,.room-gpus details{border-top:1px solid var(--line)}
 .gpu-model-name{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
@@ -345,11 +348,14 @@ function gpuModels(devices){
     const server=SERVERS[card.s];
     const group=srvOk(server)?server.pool??'unassigned':'pending';
     if(!models.has(card.model)){
-      models.set(card.model,{model:card.model,total:0,idle:0,unassigned:0,pending:0,byGroup:{}});
+      models.set(card.model,{model:card.model,total:0,idle:0,unassigned:0,pending:0,byGroup:{},idleByGroup:{}});
     }
     const counts=models.get(card.model);
     counts.total++;
-    if(card.st==='idle') counts.idle++;
+    if(card.st==='idle'){
+      counts.idle++;
+      counts.idleByGroup[group]=(counts.idleByGroup[group]??0)+1;
+    }
     if(group==='unassigned'||group==='pending') counts[group]++;
     else counts.byGroup[group]=(counts.byGroup[group]??0)+1;
   }
@@ -403,11 +409,10 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&!$('srvMask').hidd
 function renderRoomGpus(models, expanded, roomId){
   if(models.length===0) return '—';
   const modelRow=counts=>{
-    const groups=GROUPS.map(group=>[group.name,counts.byGroup[group.id]??0,groupColor(group.id)]);
-    const tags=groups.filter(([,count])=>count>0).map(([label,count,color])=>
-      `<span class="tag ${color} num">${esc(label)} ${count} 张</span>`).join('');
-    const unassigned=counts.unassigned?`<div class="pool-line"><span class="tag gray num">未分组 ${counts.unassigned} 张</span></div>`:'';
-    const pending=counts.pending?`<div class="pool-line"><span class="tag gray num">分组待确认 ${counts.pending} 张</span></div>`:'';
+    const poolRow=(key,label,total,color)=>`<div class="pool-gpu-row" data-pool="${esc(key)}" data-total="${total}" data-idle="${counts.idleByGroup[key]??0}"><span class="tag ${color}" title="${esc(label)}">${esc(label)}</span><span class="pool-gpu-total num">总量 ${total} 张</span><span class="pool-gpu-idle num">空闲 ${counts.idleByGroup[key]??0} 张</span></div>`;
+    const tags=GROUPS.filter(group=>group.roomId===roomId&&(counts.byGroup[group.id]??0)>0).map(group=>poolRow(group.id,group.name,counts.byGroup[group.id],groupColor(group.id))).join('');
+    const unassigned=counts.unassigned?poolRow('unassigned','未分组',counts.unassigned,'gray'):'';
+    const pending=counts.pending?poolRow('pending','分组待确认',counts.pending,'gray'):'';
     return `<div class="gpu-model">
       <div class="gpu-model-name"><strong>${esc(counts.model)}</strong><span class="num">${counts.total} 张</span></div>
       <div class="num" style="font-size:12px;color:var(--ok);margin-top:3px">空闲 GPU：${counts.idle} 张</div>
