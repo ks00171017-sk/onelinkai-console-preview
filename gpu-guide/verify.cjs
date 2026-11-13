@@ -1,0 +1,16 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert');
+const html=fs.readFileSync(__dirname+'/index.html','utf8');
+const fields={};const ids=['search','category','memory','sort','grid','count','specs','reset','export','copy','command'];
+for(const id of ids)fields[id]={value:'',innerHTML:'',textContent:'',addEventListener(){}};
+fields.memory.value='0';fields.sort.value='default';
+const ctx={document:{getElementById:id=>fields[id],querySelectorAll:()=>[]},console};
+vm.createContext(ctx);vm.runInContext(html.match(/<script>([\s\S]*?)<\/script>/)[1],ctx);
+const run=s=>vm.runInContext(s,ctx);
+assert.equal(run('filtered().length'),13);assert.equal((fields.grid.innerHTML.match(/<article/g)||[]).length,13);
+fields.search.value='5090';assert.equal(run('filtered()[0].name'),'RTX 5090');assert.equal(run('filtered().length'),1);
+fields.search.value='';fields.memory.value='140';assert.equal(run('filtered().length'),4);
+fields.memory.value='0';fields.category.value='企业推理';assert.equal(run('filtered().length'),4);
+fields.category.value='';fields.sort.value='rent';assert.equal(run('filtered()[0].name'),'L4');assert.equal(run('filtered().at(-1).rent'),null);
+fields.search.value='no-match';run('render()');assert(fields.grid.innerHTML.includes('没有匹配结果'));fields.reset.onclick();assert.equal(run('filtered().length'),13);
+assert(html.includes('2026.11.12'));assert(html.includes('127.0.0.1:8000:8000'));
+console.log('PASS: 13 cards, search, category, VRAM filter, price sorting, empty state, reset, date and command.');
